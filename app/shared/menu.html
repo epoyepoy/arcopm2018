@@ -1,0 +1,29 @@
+<div id="icon-bar">
+	<a href="#" class="menulinks" ui-sref="homepage" ui-sref-active="active" uib-tooltip="Homepage" tooltip-placement="right" tooltip-trigger="'mouseenter'">
+		<i class="fa fa-home" ></i>
+	</a>
+	<a href="#" class="menulinks" data-ui-sref="evaluationGoals" data-ng-class="{ active: $state.includes('evaluationGoals') || $state.includes('evaluationGoalForm')}" uib-tooltip="Configuration & Goal Setting" tooltip-placement="right" tooltip-trigger="'mouseenter'">
+		<i class="fa fa-crosshairs"></i>
+	</a>
+	<a href="#" class="menulinks" data-ui-sref="evaluationLists" data-ng-class="{ active: $state.includes('evaluationLists') || $state.includes('evaluationForm')}" uib-tooltip="Performance Evaluations" tooltip-placement="right" tooltip-trigger="'mouseenter'">
+		<i class="fa fa-users "></i>
+	</a>
+	<a href="#" class="menulinks" ui-sref="statistics" ui-sref-active="active" uib-tooltip="Statistics" tooltip-placement="right" tooltip-trigger="'mouseenter'">
+		<i class="fa fa-pie-chart"></i>
+	</a>
+	<a href="#" class="menulinks" ui-sref="reports" ui-sref-active="active" uib-tooltip="Reports" tooltip-placement="right" tooltip-trigger="'mouseenter'">
+		<i class="fa fa-folder-open"></i>
+	</a>
+	<a href="#" class="menulinks" ui-sref="support" ui-sref-active="active" uib-tooltip="Support" tooltip-placement="right" tooltip-trigger="'mouseenter'">
+		<i class="fa fa-phone-square"></i>
+	</a>
+	<a href="#" class="menulinks" ui-sref="help" ui-sref-active="active" uib-tooltip="Help" tooltip-placement="right" tooltip-trigger="'mouseenter'">
+		<i class="fa fa-question-circle-o"></i>
+	</a>
+	<a ng-if="user.isAdmin == 1" href="#" class="menulinks" ui-sref="admin" ui-sref-active="active" uib-tooltip="Administration" tooltip-placement="right" tooltip-trigger="'mouseenter'">
+		<i class="fa fa-lock"></i>
+	</a>
+	<a href="" class="menulinks" ng-click="logout();" uib-tooltip="Logout" ui-sref-active="active" tooltip-placement="right" tooltip-trigger="'mouseenter'">
+		<i class="fa fa-power-off" ></i>
+	</a>
+</div>

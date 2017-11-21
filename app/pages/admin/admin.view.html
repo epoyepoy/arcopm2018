@@ -1,0 +1,278 @@
+<div id="admin" ng-controller="adminController" ng-init="init()">
+	<div class="col-lg-12" style="padding: 0">
+		<div class="col-lg-4" style="padding: 0">
+			<div class="pageHeader" style="display: inline-block;">Administration</div>
+			<div style="display: inline-block;">
+				<label class="pageHeader" ng-show="localUsers" style="font-style: italic; font-size: 1.8em;"> &rarr; Local Users</label>
+				<label class="pageHeader" ng-show="reportingLine" style="font-style: italic; font-size: 1.8em;"> &rarr; Reporting Line</label>
+			</div>
+		</div>
+		<div class="col-lg-4" style="text-align: center; padding: 0;" ng-show="reportingLine || localUsers ">
+			<a href class="btn btn-sq-lg-back btn-warning warning-custom" ng-click="reportingLine=localUsers=emptyTable=repLineTable=localUsersTable=false;">
+				<i class="fa fa-arrow-left fa-2x"></i>
+				<span style="font-size: 1.5em; font-weight: bold;"> Back</span><br/>
+			</a>
+		</div>
+		<div class="col-lg-4" style="padding: 0"></div>
+	</div>
+	<br/><br/>
+	
+	<div id="evaluations-categories">
+		<div class="row">
+			<div class="col-lg-12" style="text-align: center;" ng-hide="reportingLine || localUsers">
+				<p>
+					<a href class="btn btn-sq-lg btn-warning warning-custom" ng-click="resetFilters(); reportingLine=true; show = true;">
+						<i class="fa fa-cogs fa-5x"></i><br/>
+						<span style="font-size: 1.4em; font-weight: bold;">REPORTING LINE</span><br/>
+						<span style="font-size: 1em; font-style: italic;">Manage employees' reporting lines <br/>Reset Evaluations, Goal Setting & Configuration.</span>
+					</a>
+					<a href class="btn btn-sq-lg btn-success success-custom" style="margin-left: 5px;" ng-click="resetFilters(); localUsers=true; show = true;">
+						<i class="fa fa-user-plus fa-5x"></i><br/>
+						<span style="font-size: 1.4em; font-weight: bold;">LOCAL USERS</span><br/>
+						<span style="font-size: 1em; font-style: italic;">Create users that don't have an <br/>Active Directory Email. </span>
+					</a>
+				</p>
+			</div>
+		</div>
+	</div>
+	<div id="filters" ng-show="reportingLine || localUsers">
+		<div class="panel panel-success col-lg-12" style="padding: 0px; margin-top: 4vh;">
+			<div class="panel-heading" ng-click="showFilters()"><b>Filters</b> 
+				<i ng-hide="show" class="fa fa-plus fa-2x" aria-hidden="true" style="float: right;"></i>
+				<i ng-show="show" class="fa fa-minus fa-2x" aria-hidden="true" style="float: right;"></i>
+			</div>
+			<div id="evals" class="panel-body" style="padding:5px !important;">
+			<form name="myForm">
+			 <div class="noteFilter">
+				<fieldset>
+					<div class="input-group col-lg-4" ng-hide="localUsers">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> Select Project <span class="caret"></span></button>
+							<ul class="dropdown-menu projects">
+								<li ng-repeat="project in projects" ng-click="setProject(project)"><a href="">{{project.projectCode}} - {{project.projectDesc}}</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="filters.projectcode" ng-required="!filters.empid && !filters.evaluatorid && !filters.dottedid">
+					</div>
+					<div class="input-group col-lg-4" ng-hide="localUsers">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Is Active</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.isactive = ''"><a href="">All</a></li>
+								<li ng-click="filters.isactive = 'Yes'"><a href="">Yes</a></li>
+								<li ng-click="filters.isactive = 'No'"><a href="">No</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="filters.isactive">
+					</div>
+					<div class="input-group col-lg-4" ng-hide="localUsers">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Has Wrong Rep. Line</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.wrongmanager = 1; has_wrong_repline = 'Yes'"><a href="">Yes</a></li>
+								<li ng-click="filters.wrongmanager = 0; has_wrong_repline = 'No'"><a href="">No</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="has_wrong_repline">
+					</div><br/><br/>
+					<div class="input-group col-lg-4">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" aria-expanded="false" style="pointer-events: none;"><span class="btn-label">Employee ID/Name</span></button>
+						</div>
+						<input type="text" class="form-control form-label" ng-model="filters.empid">
+					</div>
+					<div class="btn-group ng-scope pull-left" style="" ng-hide="!localUsers"> 
+						<button type="button" class="btn btn-success dropdown-toggle" aria-expanded="false" style="pointer-events: none;"><span class="btn-label">Has ARCOPM account</span></button>
+					   <label ng-class="(filters.islocal == 0) ? 'btn btn-default active' : 'btn btn-default'" ng-click="filters.islocal=0"   required="" class="btn btn-default ng-not-empty ng-valid ng-valid-required ng-touched ng-dirty" role="button" tabindex="0" aria-invalid="false" aria-required="true" style="">No</label>
+					   <label ng-class="(filters.islocal == 1) ? 'btn btn-default active' : 'btn btn-default'" ng-click="filters.islocal=1" required="" class="btn btn-default ng-not-empty ng-valid ng-valid-required ng-touched ng-dirty" role="button" tabindex="0" aria-invalid="false" aria-required="true" style="">Yes</label>
+					</div>
+					<div class="input-group col-lg-4" ng-hide="localUsers">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" aria-expanded="false" style="pointer-events: none;"><span class="btn-label">Evaluator ID/Name</span></button>
+						</div>
+						<input type="text" class="form-control form-label" ng-model="filters.evaluatorid">
+					</div>
+					<div class="input-group col-lg-4" ng-hide="localUsers">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" aria-expanded="false" style="pointer-events: none;"><span class="btn-label">Dotted ID/Name</span></button>
+						</div>
+						<input type="text" class="form-control form-label" ng-model="filters.dottedid">
+					</div>
+				</fieldset>
+			</br>
+				<fieldset>
+					<div class="col-lg-6" style="text-align: right;"><button type="button" ng-click="resetFilters()" class="btn btn-info"> Reset Filters</button></div>
+					<div class="col-lg-6" style="text-align: left;"><button type="button" ng-click="getAdminRights()" ng-disabled="!myForm.$valid" class="btn btn-success filters"
+						tooltip-placement="top" tooltip-trigger="'mouseenter'" ng-attr-uib-tooltip="{{!form.$valid ? 'Button will become active only after you fill all required filters.' : ''}}"> Submit Filters</button>
+					</div>
+				</fieldset>
+			</div>
+			</form>
+			</div>
+		</div>
+	</div>
+	<div id="reportingLine" ng-show="reportingLine">
+		<div class="dataTable statisticsTable" ng-show="repLineTable" style="padding-left: 0; width: 93vw; overflow-x: auto;">
+			<table class="table table-condensed table-bordered table-striped" ng-show="!showMessage('loading')  && !emptyTable">
+				<thead>
+					<tr>
+						<th rowspan="3" class="center">Lno</th>
+						<th rowspan="2" colspan="3" class="center" style="">Employee</th>
+						<th colspan="4" class="center" style="">Evaluator</th>
+						<th colspan="4" class="center" style="">1st Dotted</th>
+						<th colspan="4" class="center" style="">2nd Dotted</th>
+						<th colspan="4" class="center" style="">3rd Dotted</th>
+						<th rowspan="3" class="center" style="">Actions</th>
+					</tr>
+					<tr>
+						<th colspan="2" class="center" style="">Period: {{(cycles[0].CycleDescription).trim()}}</th>
+						<th colspan="2" class="center" style="">Period: {{(cycles[1].CycleDescription).trim()}}</th>
+						
+						<th colspan="2" class="center" style="">Period: {{(cycles[0].CycleDescription).trim()}}</th>
+						<th colspan="2" class="center" style="">Period: {{(cycles[1].CycleDescription).trim()}}</th>
+						
+						<th colspan="2" class="center" style="">Period: {{(cycles[0].CycleDescription).trim()}}</th>
+						<th colspan="2" class="center" style="">Period: {{(cycles[1].CycleDescription).trim()}}</th>
+						
+						<th colspan="2" class="center" style="">Period: {{(cycles[0].CycleDescription).trim()}}</th>
+						<th colspan="2" class="center" style="">Period: {{(cycles[1].CycleDescription).trim()}}</th>
+					</tr>
+					<tr>
+						<th class="center" style="">ID/Name</th>
+						<th class="center" style="">AHRIS Status</th>
+						<th class="center" style="">Exclude From Evaluation Cycle</th>
+						
+						<th class="center" style="">ID/Name</th>
+						<th class="center" style="">Flagged As Wrong Evaluator</th>
+						<th class="center" style="">ID/Name</th>
+						<th class="center" style="">Flagged As Wrong Evaluator</th>
+						
+						<th class="center" style="">ID/Name</th>
+						<th class="center" style="">Flagged As Wrong Evaluator</th>
+						<th class="center" style="">ID/Name</th>
+						<th class="center" style="">Flagged As Wrong Dotted</th>
+						
+						<th class="center" style="">ID/Name</th>
+						<th class="center" style="">Flagged As Wrong Dotted</th>
+						<th class="center" style="">ID/Name</th>
+						<th class="center" style="">Flagged As Wrong Dotted</th>
+						
+						<th class="center" style="">ID/Name</th>
+						<th class="center" style="">Flagged As Wrong Dotted</th>
+						<th class="center" style="">ID/Name</th>
+						<th class="center" style="">Flagged As Wrong Dotted</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="repline in reportingLine" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+						<td class="center">{{$index+1}} </td>
+						<td class="center"><a href ng-click="reportingLineDialog(repline)">{{repline.EmpNo}}</a><br/>{{repline.EmpName}}</td>
+						<td class="center">{{repline.EmployeeAhrisStatus}}</td>
+						<td class="center">{{repline.CycleDescription}}</td>
+						<td class="center" ng-attr-style="{{repline.ReportedWrongEvaluator == 1 ? 'background-color: #ff9696;' : ''}}">{{repline.EvaluatorNumber}}<br/>{{repline.EvaluatorName}}</td>
+						<td class="center"><i ng-if="repline.ReportedWrongEvaluator == 1" class="fa fa-user-times" aria-hidden="true" style="color: #c52f2f;"></i></td>
+						<td class="center" ng-attr-style="{{repline.NextEvaluationReportedWrongEvaluator == 1 ? 'background-color: #ff9696;' : ''}}">{{repline.NextEvaluationEvaluatorNumber}}<br/>{{repline.NextEvaluationEvaluatorName}}</td>
+						<td class="center"><i ng-if="repline.NextEvaluationReportedWrongEvaluator == 1" class="fa fa-user-times" aria-hidden="true" style="color: #c52f2f;"></td>
+						<td class="center" ng-attr-style="{{repline.ReportedWrongDot1 == 1 ? 'background-color: #ff9696;' : ''}}">{{repline.Dotted1Empno}}<br/>{{repline.Dotted1Name}}</td>
+						<td class="center"><i ng-if="repline.ReportedWrongDot1 == 1" class="fa fa-user-times" aria-hidden="true" style="color: #c52f2f;"></td>
+						<td class="center" ng-attr-style="{{repline.NextReportedWrongDot1 == 1 ? 'background-color: #ff9696;' : ''}}">{{repline.NextDotted1Empno}}<br/>{{repline.NextDotted1Name}}</td>
+						<td class="center"><i ng-if="repline.NextReportedWrongDot1 == 1" class="fa fa-user-times" aria-hidden="true" style="color: #c52f2f;"></td>
+						<td class="center" ng-attr-style="{{repline.ReportedWrongDot2 == 1 ? 'background-color: #ff9696;' : ''}}">{{repline.Dotted2Empno}}<br/>{{repline.Dotted2Name}}</td>
+						<td class="center"><i ng-if="repline.ReportedWrongDot2 == 1" class="fa fa-user-times" aria-hidden="true" style="color: #c52f2f;"></td>
+						<td class="center" ng-attr-style="{{repline.NextReportedWrongDot2 == 1 ? 'background-color: #ff9696;' : ''}}">{{repline.NextDotted2Empno}}<br/>{{repline.NextDotted2Name}}</td>
+						<td class="center"><i ng-if="repline.NextReportedWrongDot2 == 1" class="fa fa-user-times" aria-hidden="true" style="color: #c52f2f;"></td>
+						<td class="center" ng-attr-style="{{repline.ReportedWrongDot3 == 1 ? 'background-color: #ff9696;' : ''}}">{{repline.Dotted3Empno}}<br/>{{repline.Dotted3Name}}</td>
+						<td class="center"><i ng-if="repline.ReportedWrongDot3 == 1" class="fa fa-user-times" aria-hidden="true" style="color: #c52f2f;"></td>
+						<td class="center" ng-attr-style="{{repline.NextReportedWrongDot3 == 1 ? 'background-color: #ff9696;' : ''}}">{{repline.NextDotted3Empno}}<br/>{{repline.NextDotted3Name}}</td>
+						<td class="center"><i ng-if="repline.NextReportedWrongDot3 == 1" class="fa fa-user-times" aria-hidden="true" style="color: #c52f2f;"></td>
+						<td class="center">
+							<div style="display: inline-flex; margin-left: 5px; margin-right: 5px;">
+								<span>
+									<button class="sitesBtn" ng-click="showUpdateEvaluatorPopup(repline,'update')" uib-tooltip="Update Reporting Line" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-address-card-o" aria-hidden="true"></i></button>
+								</span>
+								<span style="margin-left: 5px;" >
+									<button class="sitesBtn" ng-click="showResetEvaluationPopup(repline)" uib-tooltip="Reset Evaluation" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-erase" aria-hidden="true"  ></span></button>
+								</span>
+								<span style="margin-left: 5px;" >
+									<button class="sitesBtn" ng-click="showDeleteUserPopup(repline)" uib-tooltip="Remove From ARCOPM" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-trash" aria-hidden="true"  ></span></button>
+								</span>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<div ng-show="showMessage('loading')">
+				<div class="content">
+					<div class="circle"></div>
+					<div class="circle1"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="localUsers" ng-show="localUsers">
+		<div class="dataTable statisticsTable" ng-show="localUsersTable" style="padding-left: 0; width: 93vw; overflow-x: auto;">
+			<table class="table table-condensed table-bordered table-striped" ng-show="!showMessage('loading') && !emptyTable">
+				<thead>
+					<tr class="headerRow">
+						<th class="center" style="width:50px">Line<br/> Number</th>
+						<th class="center" style="width:50px">Employee<br/> Number</th>
+						<th class="center" style="width:15%">Employee Name</th>
+						<th class="center" style="width:50px">AHRIS Status</th>
+						<th class="center" style="width:120px">Grade</th>
+						<th class="center" style="width:130px">Email Address</th>
+						<th class="center" style="width:50px;">Active Directory Account</th>
+						<th class="center" style="width:50px;">ARCOPM Account</th>
+						<th class="center" style="width:50px;">ARCOPM Account Status</th>
+						<th class="center" style="width:50px;">Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="user in localUsersList" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+						<td class="center">{{ $index + 1 }}</td>
+						<td class="center">{{ user.empno }}</td>
+						<td class="center">{{ user.EmpName }}</td>
+						<td class="center">{{ user.EmployeeAhrisStatus }}</td>
+						<td class="center">{{ user.grade }}</td>
+						<td class="center">{{ user.emailaddress }}</td>
+						<td class="center">{{ user.directoryAccount }}</td>
+						<td class="center">{{ user.localUserAccountName }}</td>
+						<td class="center">{{ (user.arcopmAcountStatus == 1 ) ? 'Inactive' : 'Active' }}</td>
+						<td class="center">
+							<div style="display: inline-flex; margin-left: 10px;">
+								<span>
+									<button ng-click="editLocalUserPopUp(user)" class="sitesBtn" uib-tooltip="Manage Account" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-cog" aria-hidden="true" ></span></button>
+								</span>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<div ng-show="showMessage('loading')">
+				<div class="content">
+					<div class="circle"></div>
+					<div class="circle1"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div style="text-align: -moz-center; margin-top: 4%;" ng-show="emptyTable && !showMessage('loading')">
+		<div class="center" style="width: 65%;">
+			<div class="alert alert-warning">
+				<strong>
+					<span>Currently there are no results for these filters.</span>
+					<span ng-if="filters.empid && reportingLine">Do you want to add user <span style="color: green">{{filters.empid}}</span> to ARCOPM?<br/><br/>
+						<button type="button" ng-click="repline.EmpNo = filters.empid; repline.CycleExclude = 0; showUpdateEvaluatorPopup(repline,'addnew');" class="btn btn-success">+ADD USER</button>
+					</span>
+				</strong>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	$(document).ready(function(){
+		$('.btn-sq-lg, .btn-sq-lg-back').click(function(){
+			$('#evals').show();
+		});
+	});
+</script>

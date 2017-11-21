@@ -1,0 +1,42 @@
+<div id="loginWrapper" ng-controller="loginController" ng-init="init()">
+    <div class="loaderWrapper" ng-show="isLoading();">
+        <div class="loader">
+			<div class="content">
+				<div class="circle"></div>
+				<div class="circle1"></div>
+			</div>
+        </div>
+    </div>
+	
+	
+    
+	<div id="login" ng-show="!isLoading()">
+    
+        <form ng-submit="signIn()">
+            
+            <!-- fake fields are a workaround for chrome autofill getting the wrong fields -->
+            <input style="display:none" type="text" name="fakeusernameremembered"/>
+            <input style="display:none" type="password" name="fakepasswordremembered"/>
+
+            <!--<div id="loginLogo"><img id="loginLogoImg" src="assets/images/loginLogo.svg" /></div>-->
+			<div id="loginLogo"><img id="loginLogoImg" src="assets/images/loginPM.svg" /></div>
+
+            <div id="loginUsername">
+                <input type="text" ng-model="username" placeholder="USERNAME"  />
+            </div>
+            <div id="loginPassword">
+                <input type="password" ng-model="password" placeholder="PASSWORD" />
+            </div>
+
+            <!--<div ng-click="signIn();"> SIGN IN </div>-->
+			<button type="submit" id="loginButton" class="btn">SIGN IN </button>
+            <input style="display:none" type="submit" />
+        </form> 
+        
+        <div id="loginMessage">{{message}}</div>
+        
+        
+    
+    </div> <!-- end of login -->
+
+</div><!-- end of login wrapper -->

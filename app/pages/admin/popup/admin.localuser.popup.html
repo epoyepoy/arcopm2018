@@ -1,0 +1,56 @@
+<!doctype html>
+<div class="popup">
+	<div class="panel panel-primary" style="margin-bottom: 0px;">
+		<div class="custom panel-heading">
+			<div class="popupClose" ng-click="closeThisDialog();">
+				<img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+			</div>
+			<h4 >Manage Account : {{selectedUser.empno}} - {{selectedUser.EmpName}}</h4>
+		</div>
+		<div class="panel-body" id="uploadEvalationPopupBody">
+			<div class="dataTable">
+				<form class="form-horizontal" ng-show="formMessage">
+					<div class="form-group">
+						<label class="control-label col-sm-3" for="email">ARCOPM Account:</label>
+						<div class="col-sm-8">
+							<input ng-model="selectedUser.localUserAccountName" type="text" class="form-control" id="email" placeholder="Enter arcopm account name" name="email" required>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="control-label col-sm-3" for="inputPassword">Password:</label>
+						<div class="col-sm-8">
+							<input ng-model="selectedUser.password" type="password" class="form-control" id="inputPassword" placeholder="Enter password" name="inputPassword" ng-required="!selectedUser.localUserAccountName">
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="control-label col-sm-3" for="pwd" >Confirm Password:</label>
+						<div class="col-sm-8">
+							<input ng-model="selectedUser.confirmPassword" type="password" class="form-control" id="inputPasswordConfirm" placeholder="Confirm password" name="pwd" data-match="#inputPassword" data-match-error="Whoops, these don't match" ng-required="!selectedUser.localUserAccountName">
+							<p ng-show="selectedUser.confirmPassword != selectedUser.password" class="help-block">Password does not match</p>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="control-label col-sm-3" for="pwd">Status:</label>
+						<div class="col-sm-8">
+							<div class="btn-group ng-scope pull-left" style="" ng-hide="!localUsers" aria-hidden="false">
+								<label ng-click="makeLocalUserActive(selectedUser);" ng-class="(selectedUser.arcopmAcountStatus == 1) ? 'btn btn-default active' : 'btn btn-default'" ng-model="selectedUser.arcopmAcountStatus" ng-click="filters.islocal=0" required="" class="btn btn-default ng-not-empty ng-valid ng-valid-required ng-touched ng-dirty" role="button" tabindex="0" aria-invalid="false" aria-required="true" style="">Inactive</label>
+								<label ng-click="makeLocalUserInactive(selectedUser);" ng-class="(selectedUser.arcopmAcountStatus == 0) ? 'btn btn-default active' : 'btn btn-default'" ng-click="filters.islocal=1" required="" class="btn btn-default ng-not-empty ng-valid ng-valid-required ng-touched ng-dirty" role="button" tabindex="0" aria-invalid="false" aria-required="true" style="">Active</label>
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-sm-offset-1 col-sm-10">
+							<button ng-click="closeThisDialog();" type="button" class="btn btn-default filters" >Cancel</button>
+							<button ng-click="updateLocalUser(selectedUser);" type="submit" class="btn btn-success filters" ng-disabled="!form.$valid && selectedUser.confirmPassword != selectedUser.password">Update</button>
+						</div>
+					</div>
+				</form>
+				<div class="message" ng-show="successMessage">
+					<div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/successIcon.svg" /></div>
+					<div class="popupMessage">Employee Updated Successfully!</div>
+					<div class="popupButtonSave" ng-click="closeThisDialog();">OK!</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

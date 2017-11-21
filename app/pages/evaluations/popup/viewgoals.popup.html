@@ -1,0 +1,85 @@
+<!doctype html>
+   <div class="popup">
+      <div class="panel panel-primary">
+        <div class="custom panel-heading">
+           <div class="iconContainer">
+                <div class="shine"><img class="imgicon" ng-src="{{photoUrl}}{{tempEval.EmployeeID}}b.jpg"   err-src="{{photoUrl}}male.gif">
+                </div>
+            </div>
+            <div class="popupClose" ng-click="closeThisDialog();">
+                <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+            </div>
+            <h4 style="">Configuration:<br /> {{tempEval.EmployeeID}} - {{tempEval.employeeName}}</h4>
+        </div>
+        <div class="panel-body" id="createProjectPopupBody" ng-init="getUserGoals(tempEval.EmployeeID, tempEval.EvaluationID)">
+            <div class="container-fluid" ng-if="tempEval.State>=2" ng-show="showExtraMessagePopup('none')">
+				<form name="form" >
+					<div class="panel panel-default">
+						<div class="panel-heading panel-heading-center">
+							Does the employee manage any direct reports (subordinates)?
+						</div>
+						<div class="panel-body">
+							<div>
+								<label>{{tempEval.ManagesTeam == 1 ? 'Yes' : tempEval.ManagesTeam == 0 ? 'No' : ''}}</label>
+							</div>
+						</div>
+					</div>
+					<div class="panel panel-default" ng-if="tempEval.grade >= 4">
+						<div class="panel-heading panel-heading-center">
+							<label style="margin-left: 10px;">Goals Assignment:</label>
+						</div>
+
+						<div class="panel-body">
+							<div class="dataTable goals-table">
+								<table>
+									<thead>
+										<tr class="headerRowPopup">
+											<th></th>
+											<th class="center" style="min-width:25%">ATTRIBUTE</th>
+											<th class="center" style="width:35%">GOAL</th>
+											<!--<th class="center" style="width:10%"> TARGET </th>-->
+											<th class="center" style="width:10%">WEIGHT %</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr ng-repeat="goal in goals" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+											<td class="center">{{$index+1}}</td>
+											<td class="center"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}}&nbsp;-&nbsp;{{goal.CodeDescription}}</span></td>
+											<td class="center">{{goal.GoalDescription}}</td>
+											<!--<td class="center">{{goal.Target}}</td>-->
+											<td class="center">{{goal.Weight}}</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</form>
+            </div>
+			<div style="text-align: -moz-center; margin-top: 5%;" ng-show="showExtraMessagePopup('none')">
+				<div class="center" ng-if="tempEval.State<2" style="width: 65%;">
+					<div class="alert alert-warning">
+						<strong>Not yet finalized.</strong>
+					</div>
+				</div>
+			</div>
+            <div class="container" ng-show="showExtraMessagePopup('loading')">
+				<div class="content"><br/>
+					<div class="circle "></div>
+					<div class="circle1 "></div>
+				</div>
+			</div>
+
+            <div class="message " ng-show="showExtraMessagePopup('error') ">
+
+                <div class="popupError ">
+                    <div class="popupErrorIcon "><img class="popupErrorIconImg " src="assets/images/errorIcon.svg " /></div>
+                    <div class="popupErrorText ">Error!</div>
+                    <div class="popupErrorMessage ">{{messageText}}</div>
+                </div>
+
+                <div class="popupButtonSave" ng-click="closeThisDialog(); ">OK</div>
+            </div>
+         </div>
+    </div>
+</div>

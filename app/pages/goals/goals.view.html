@@ -1,0 +1,205 @@
+<div id="evaluations" ng-controller="goalsController" ng-init="init()">
+
+    <div class="col-lg-12" style="padding: 0">
+		<div class="col-lg-4" style="padding: 0">
+			<div class="pageHeader" style="display: inline-block;">Configuration & Goal Setting</div>
+			<div style="display: inline-block;">
+				<label class="pageHeader" ng-show="employeesGoals" style="font-style: italic; font-size: 1.8em;"> &rarr; Configure Employee Goals</label>
+				<label class="pageHeader" ng-show="myGoals" style="font-style: italic; font-size: 1.8em;"> &rarr; My Goals</label>
+			</div>
+		</div>
+		<div class="col-lg-4" style="text-align: center; padding: 0;" ng-show="myGoals || employeesGoals">
+			<a href class="btn btn-sq-lg-back btn-warning warning-custom" ng-click="myGoals=employeesGoals=false">
+				<i class="fa fa-arrow-left fa-2x"></i>
+				<span style="font-size: 1.5em; font-weight: bold;"> Back</span><br/>
+			</a>
+		</div>
+		<div class="col-lg-4" style="padding: 0"></div>
+	</div>
+	<br/><br/>
+
+	<div id="evaluations-categories">
+		<div class="row">
+			<div class="col-lg-12" style="text-align: center;" ng-hide="myGoals || employeesGoals">
+				<p>
+					<a href class="btn btn-sq-lg btn-warning warning-custom" ng-click="myGoals=true">
+						<i class="fa fa-user fa-5x"></i><br/>
+						<span style="font-size: 1.4em; font-weight: bold;">MY GOALS</span><br/>
+						<span style="font-size: 1em; font-style: italic;">Set my own goals <br/>for a particular Evaluation Cycle.</span>
+					</a>
+					<a href class="btn btn-sq-lg btn-success success-custom" style="margin-left: 5px;" ng-click="employeesGoals=true">
+						<i class="fa fa-users fa-5x"></i><br/>
+						<span style="font-size: 1.4em; font-weight: bold;">SET EMPLOYEES GOALS</span><br/>
+						<span style="font-size: 1em; font-style: italic;">Set goals for your employees<br/>for a particular Evaluation Cycle.</span>
+					</a>
+				</p>
+			</div>
+		</div>
+	</div>
+	<div id="myEvaluations" ng-show="myGoals">
+		<div id="ownEvals">
+			<br />
+			<div class="input-group">
+				<div class="input-group-btn">
+	                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> Select Evaluation Period <span class="caret"></span></button>
+	                <ul class="dropdown-menu">
+	                    <li ng-repeat="cycle in cycles" ng-click="getMyGoalsPerCycle(cycle.CycleID, cycle.CycleDescription)"><a href="">{{cycle.CycleDescription}}</a></li>
+	                </ul>
+	            </div>
+				<input type="text" class="form-control" aria-label="" ng-readonly='true' ng-model="filterDesc" style="font-weight: bold;font-size: 16px;padding-left: 10px;width: 100px; text-align:right;">
+				<span ng-show="filterDesc.trim() == '2016' && myGoals" style="padding: 10px;vertical-align: middle;position: absolute;font-style: italic;"> *Goal setting for 2016 is optional for employees.</span>
+				<span ng-show="filterDesc.trim() == '2017' && myGoals" style="padding: 10px;vertical-align: middle;position: absolute;font-style: italic;"> *Goal setting for 2017 is optional for employees.</span>
+		 	</div>
+			<div class="dataTable" ng-show="personalCycleGoals.length != 0">
+				<table>
+					<thead>
+						<tr class="headerRow">
+							<th class="center" style="width:50px">Line Number</th>
+							<th class="center" style="width:50px">Employee<br/>Number</th>
+							<th class="center" style="width:30%">Employee Name</th>
+							<th class="center" style="width:30%">Position</th>
+							<th class="center" style="width:50px">Grade</th>
+							<th class="center" style="width:50px">Manages Team</th>
+							<th class="center" style="width:50px">Evaluation Period</th>
+							<th class="center" style="width:20%"> Goal Action</th>
+							<th style="width:10%"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="myCycleGoal in personalCycleGoals" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+							<td class="center">{{$index+1}} </td>
+							<td class="center"><a href ng-click="reportingLineDialog(myCycleGoal)">{{myCycleGoal.Empno}}</a></td>
+							<td class="center">{{myCycleGoal.employeeName}}</td>
+							<td class="center">{{myCycleGoal.job_desc}}</td>
+							<td class="center">{{myCycleGoal.grade}}</td>
+							<td class="center">{{myCycleGoal.ManagesTeam == 1 ? 'Yes' : myCycleGoal.ManagesTeam == 0 ? 'No' : ''}}</td>
+							<td class="center">{{myCycleGoal.CycleDescription}}</td>
+							<td class="center">
+								{{myCycleGoal.GoalsState == 0 && myCycleGoal.goalsInputStatus == 1 ? 'To Be Set By Employee' : myCycleGoal.GoalsState == 1 ? 'To Be Set By Evaluator' : myCycleGoal.GoalsState == 2 ? 'Configuration Complete' : 'Configuration Complete'}}
+							</td>
+							<td class="center">
+								<span ng-if="myCycleGoal.GoalsState == 0 && myCycleGoal.goalsInputStatus == 1 && myCycleGoal.onBehalfFlag==0">
+									<button class="sitesBtn" ng-click="showEvalConfiguration(myCycleGoal,'mylist',0)" uib-tooltip="Configuration" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-wrench" aria-hidden="true"  ></span></button>
+								</span>
+								<span ng-if="myCycleGoal.GoalsState!=0 || myCycleGoal.goalsInputStatus == 0">
+									<button class="sitesBtn" ng-click="showEvalConfiguration(myCycleGoal,'mylist',0)" uib-tooltip="View Configuration/Goals" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-crosshairs" aria-hidden="true"></i></button>
+								</span>
+								<span ng-if="myCycleGoal.GoalsState!=0 || myCycleGoal.goalsInputStatus == 0">
+									<button class="sitesBtn" ng-click="showEvalPreview(myCycleGoal)" uib-tooltip="Evaluation Form Template Preview" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"  ></span></button>
+								</span>
+								<span ng-if="myCycleGoal.onBehalfFlag==1">
+									<label>Processing by Evaluator</label>
+								</span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div style="text-align: -moz-center;">
+				<div class="center" ng-show="personalCycleGoals.length == 0" style="width: 65%;">
+					<div class="alert alert-warning">
+						<strong>This Evaluation Cycle is not available for you.</strong>
+					</div>
+				</div>
+			</div>
+		</div>
+    </div>
+	<div id="employeesToEvaluate" ng-show="employeesGoals">
+		<div id="evals">
+			<br />
+			<div class="input-group">
+				<div class="input-group-btn">
+	                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> Select Evaluation Period <span class="caret"></span></button>
+	                <ul class="dropdown-menu">
+	                    <li ng-repeat="cycle in cycles" ng-click="getGoalsPerCycle(cycle.CycleID, cycle.CycleDescription)"><a href="">{{cycle.CycleDescription}}</a></li>
+	                </ul>
+	            </div>
+				<input type="text" class="form-control" aria-label="" ng-readonly='true' ng-model="filterDesc1" style="font-weight: bold;font-size: 16px;padding-left: 10px;width: 100px; text-align:right;">
+				<span ng-show="filterDesc1.trim() == '2016' && !myGoals" style="padding: 10px;vertical-align: middle;position: absolute;font-style: italic;"> *Goal setting for 2016 is optional for evaluators.</span>
+				<span ng-show="filterDesc1.trim() == '2017' && !myGoals" style="padding: 10px;vertical-align: middle;position: absolute;font-style: italic;"> *Goal setting for 2017 is obligatory for evaluators.</span>
+		 	</div>
+			<div class="dataTable" >
+				<table>
+					<thead>
+						<tr class="headerRow">
+							<th class="center" style="width:50px">Line Number</th>
+							<th class="center" style="width:50px">Employee<br/>Number</th>
+							<th class="center" style="width:30%">Employee Name</th>
+							<th class="center" style="width:30%">Position</th>
+							<th class="center" style="width:50px">Grade</th>
+							<th class="center" style="width:50px">Manages Team</th>
+							<th class="center" style="width:50px">Evaluation Period</th>
+							<th class="center" style="width:20%"> Goal Action</th>
+							<th style="width:10%"></th>
+						</tr>
+					</thead>
+					<tbody ng-show="!showExtraMessage('loading')">
+						<tr ng-repeat="cycleGoal in cycleGoals" ng-class="{'oddRow' : $odd, 'evenRow': $even, 'strikeout':cycleGoal.wrongManager>0}" uib-tooltip="
+							{{cycleGoal.wrongManager>0 ? 'You have reported this evaluation as it has been mistakenly sent to you. It is being corrected by HR Department at this moment. Once corrected it will be removed from your list. ' : ''}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">
+							<td class="center">{{$index+1}} </td>
+							<td class="center"><a href ng-click="reportingLineDialog(cycleGoal)">{{cycleGoal.Empno}}</a></td>
+							<td class="center">{{cycleGoal.employeeName}}</td>
+							<td class="center">{{cycleGoal.job_desc}}</td>
+							<td class="center">{{cycleGoal.grade}}</td>
+							<td class="center">{{cycleGoal.ManagesTeam == 1 ? 'Yes' : cycleGoal.ManagesTeam == 0 ? 'No' : ''}}</td>
+							<td class="center">{{cycleGoal.CycleDescription}}</td>
+							<td class="center">
+								{{cycleGoal.GoalsState == 0 && cycleGoal.goalsInputStatus == 1 ? 'To Be Set By Employee' : cycleGoal.GoalsState == 1 ? 'To Be Set By Evaluator' : cycleGoal.GoalsState == 2 ? 'Configuration Complete' : 'Configuration Complete'}}
+							</td>
+							<td class="center">
+								<div ng-if="cycleGoal.wrongManager==0">
+									
+									<span ng-if=" (cycleGoal.GoalsState == 1 || cycleGoal.GoalsState == 2) && cycleGoal.grade > 3 && cycleGoal.flagEvalAnswers == 0">
+											<button class="sitesBtn" ng-click="showSendBackPopup(cycleGoal)" uib-tooltip="Send Back Goals & Configuration for Review" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-step-backward" aria-hidden="true"></i></button>
+									</span>
+									
+									<span ng-if="cycleGoal.GoalsState == 1 && cycleGoal.onBehalfFlag==0">
+										<button class="sitesBtn" ng-click="showEvalConfiguration(cycleGoal,'emplist',0)" uib-tooltip="Configuration" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-wrench" aria-hidden="true"  ></span></button>
+									</span>
+									
+									<span ng-if="cycleGoal.GoalsState>=2">
+										<button class="sitesBtn" ng-click="showEvalConfiguration(cycleGoal,'emplist',0)" uib-tooltip="View Configuration/Goals" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-crosshairs" aria-hidden="true"></i></button>
+									</span>
+									<span ng-if="cycleGoal.GoalsState>=2">
+										<button class="sitesBtn" ng-click="showEvalPreview(cycleGoal)" uib-tooltip="Evaluation Form Template Preview" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="cycleGoal.GoalsState == 0 && cycleGoal.onBehalfFlag==0">
+										<button class="sitesBtn" ng-click="showEvalConfiguration(cycleGoal,'emplist',1)" uib-tooltip="Configure on behalf of Employee" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-cog" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="cycleGoal.GoalsState<2">
+										<button class="sitesBtn" ng-click="showRejectManagerPopup(cycleGoal)" uib-tooltip="Reject Action" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="fa fa-flag text-danger" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="cycleGoal.onBehalfFlag==1">
+										<label>Processing by Employee</label>
+									</span>
+								</div>
+								<div ng-if="cycleGoal.wrongManager>0" style="margin-top: 5px;">
+									<span>
+										<button class="sitesBtn" ng-click="showRevertRejectionPopup(cycleGoal)" uib-tooltip="Enable Employee" tooltip-placement="left" tooltip-trigger="'mouseenter'"><span class="fa fa-flag" aria-hidden="true" style="color: #059208;"></span></button>
+									</span>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<br/>
+
+		<div style="text-align: -moz-center;" ng-show="!showExtraMessage('loading')">
+			<div class="center" ng-show="cycleGoals.length == 0" style="width: 65%;">
+				<div class="alert alert-warning">
+					<strong>Currently there are no employees to configure.</strong>
+				</div>
+			</div>
+		</div>
+
+		<div class="container" ng-show="showExtraMessage('loading')">
+			<div class="content"><br/>
+				<div class="circle "></div>
+				<div class="circle1 "></div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- end of evaluations -->

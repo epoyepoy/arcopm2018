@@ -1,0 +1,72 @@
+<!doctype html>
+<div class="popup">
+	<div class="panel panel-primary" style="margin-bottom: 0px;">
+        <div class="custom panel-heading">
+            <div class="iconContainer">
+                <div class="shine"><img class="imgicon" ng-src="{{photoUrl}}{{replineObject.EmpNo}}b.jpg"   err-src="{{photoUrl}}male.gif">
+                </div>
+            </div>
+            <div class="popupClose" ng-click="closeThisDialog();">
+                <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+            </div>
+            <h4 >Evaluations List :<br /> {{replineObject.EmpNo}} - {{replineObject.EmpName}}</h4>
+        </div>
+        <div class="panel-body" id="uploadEvalationPopupBody">
+			<div class="dataTable" ng-show="employeeEvaluations.length && showExtraMessagePopup('none')">
+				<table>
+					<thead>
+						<tr class="headerRow">
+							<th></th>
+							<th class="center">Period</th>
+							<th class="center">Status</th>
+							<th class="center">Status Date</th>
+							<th class="center">Is Manager</th>
+							<th class="center">Created By</th>
+							<th class="center">No. of Goals Set</th>
+							<th class="center" title="Number of answered questions in current status">No. of Answers</th>
+							<th class="center">Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="evaluation in employeeEvaluations" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+							<td class="center">{{evaluation.ID}}</td>
+							<td class="center">{{evaluation.EvaluationPeriod}}</td>
+							<td class="center">{{evaluation.StateDescription ? evaluation.StateDescription : '-' }}</td>
+							<td class="center">{{evaluation.StateDate ? evaluation.StateDate : '-' }}</td>
+							<td class="center">{{evaluation.ManagesTeam ? evaluation.ManagesTeam==1 ? 'Yes' : 'No' : '-' }}</td>
+							<td class="center">{{evaluation.CreatedByID ? evaluation.CreatedByID : '-'}}<br/>{{evaluation.CreatedByName}}</td>
+							<td class="center">{{evaluation.CreatedByID ? evaluation.noOfGoalsSet : '-' }}</td>
+							<td class="center">{{evaluation.CreatedByID ? evaluation.currentStateAnswersCount : '-'}}</td>
+							<td class="center">
+								<div style="display: inline-flex; margin-left: 5px; margin-right: 5px;">
+									<span ng-if="evaluation.State > 0">
+										<button class="sitesBtn" ng-click="showResetEvaluationConfirmPopup(evaluation,2)" style="width: 38px;" uib-tooltip="Send Evaluation to Previous State" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-step-backward" aria-hidden="true"></i></button>
+									</span>
+									<span ng-if="(evaluation.State > 2 && replineObject.grade > 4) || (evaluation.State > 4 && replineObject.grade < 4)" style="margin-left: 5px;">
+										<button class="sitesBtn" ng-click="showResetEvaluationConfirmPopup(evaluation,0)" uib-tooltip="Reset Evaluation" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-reply" aria-hidden="true"></i></button>
+									</span>
+									<span ng-if="evaluation.State" style="margin-left: 5px;">
+										<button class="sitesBtn" ng-click="showResetEvaluationConfirmPopup(evaluation,1)" uib-tooltip="Reset Evaluation & Goals" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-reply-all" aria-hidden="true"></i></button>
+									</span>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div style="text-align: -moz-center; margin-top: 6%;" ng-show="!employeeEvaluations.length && showExtraMessagePopup('none')">
+				<div class="center" style="width: 65%;">
+					<div class="alert alert-warning">
+						<strong>Currently there are no evaluations for this employee.</strong>
+					</div>
+				</div>
+			</div>
+			<div class="container" ng-show="showExtraMessagePopup('loading')">
+				<div class="content"><br/>
+					<div class="circle "></div>
+					<div class="circle1 "></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

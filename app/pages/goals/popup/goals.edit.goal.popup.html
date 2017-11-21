@@ -1,0 +1,114 @@
+<!doctype html>
+
+   <div class="panel panel-primary popup todo-popup mobilization" >
+		<div class="custom panel-heading">
+			<div class="popupClose" ng-click="closeThisDialog();">
+			   <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+			</div>
+			<h4 class="pop-up-header" >Edit Goal</h4>
+		</div>
+		<div class="panel-body" id="todoPopupBody">
+			<div class="formItems" ng-show="showExtraMessage('none')" >
+				<div class="container-fluid">
+				<form name="form" >
+					<div class="row">
+						<!-- CLEAR -->
+						<div class="col-md-12">
+							<div class="">
+								<div class="clear"> </div>
+								<!-- CLEAR -->
+								<div class="panel panel-default newPanelBody">
+									<div class="panel-body">
+										<div class="col-md-12">
+											<label style="margin-left:15px;margin-top:15px;">Goal Description:</label>
+											<textarea ng-model="tempGoal.GoalDescription" rows="2" style="width: 97%; float: right;" required></textarea>
+										</div>
+										<div class="col-md-12" style="margin-top: 7%;">
+											<hr>
+											<label style="margin-left:15px;margin-top:15px;">Attribute: </label>
+											<select ng-model="tempGoal.AttributeCode" style="margin-left: 20px;" >
+												<option value="N">[Select]</option>
+												<option ng-repeat="attribute in attributes" value="{{attribute.AttributeCode}}">{{attribute.AttributeCode}} - {{attribute.CodeDescription}}</option>
+											</select>
+										</div>
+										<div class="col-md-12" style="margin-top: 7%;">
+											<hr>
+											<label style="margin-left:15px;margin-top:15px;" >Weight: &nbsp;&nbsp;&nbsp;&nbsp;</label>
+											<div layout="" ng-init="tempGoal.Weight ? tempGoal.Weight = parseInt(tempGoal.Weight) : tempGoal.Weight = 0" style="padding: 30px 0px 0px 0px;">
+												<div flex="10" layout="" layout-align="center center">
+													<span class="md-body-1">1</span>
+												</div>
+												<md-slider flex="" md-discrete="" ng-model="tempGoal.Weight" step="1" min="1" max="{{totalRemainingWeight}}" aria-label="rating" ></md-slider>
+												<div flex="10" layout="" layout-align="center center">
+													<span class="md-body-1">{{totalRemainingWeight}}</span>
+												</div>
+												<div flex="10" layout="" layout-align="center center" style="max-width: 11%;">
+													<input flex type="number" ng-model="tempGoal.Weight" ng-change="noNullTempWeight()" step="1" min="1" max="{{totalRemainingWeight}}" aria-label="green" aria-controls="green-slider" style="width: 100%" required>
+												</div>
+											</div>
+										</div>
+										<div class="clear"> </div>
+									  <!-- CLEAR -->
+									</div>
+								</div>
+							   <!-- end of popup buttons -->
+							</div>
+							<div class="clear"> </div>
+						</div>
+						<div class="popupButtons center">
+							<div class="popupButtonCancel" ng-click="closeThisDialog(); tempGoal.Weight = prevWeight; tempGoal.AttributeCode = prevAttrCode; tempGoal.GoalDescription = prevGoalDescr; ">Exit</div>
+							<input type="submit" value="Update Goal" class="popupButtonSave" ng-class="{ 'disabled': !form.$valid}" ng-click="editGoal(tempGoal,prevWeight);" ng-disabled="!form.$valid" />
+						</div>
+					</div>
+				</form>
+				<!--hidden value -->
+				</div>
+			</div>
+			<div class="message" ng-show="showExtraMessage('created')">
+				<div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/successIcon.svg"/></div>
+				<div class="popupMessage">Goal Updated Successfully! </div>
+				<div class="popupButtonSave" ng-click="closeThisDialog();">OK</div>
+			</div>
+			<div class="message" ng-show="showExtraMessage('deleted')">
+                <div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/successIcon.svg" /></div>
+                <div class="popupMessage">Goal Deleted Successfully! </div>
+                <div class="popupButtonSave" ng-click="closeThisDialog();">OK!</div>
+            </div>
+			<div class="message" ng-show="showExtraMessage('warning')">
+				<div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/errorIcon.svg"/></div>
+				<div class="popupMessage">
+					You cannot add weight for this goal more than <b>{{totalRemainingWeight}}</b>
+					<br/>
+					Weight of all Goals cannot exceed the value of <b>100</b>
+				</div>
+				<div class="popupButtonSave" ng-click="changeExtraMessage('none');">OK</div>
+			</div>
+			<div class="message" ng-show="showExtraMessage('loading')" >
+				<div class="content">
+					<div class="circle"></div>
+					<div class="circle1"></div>
+				</div>
+			</div>
+			<div class="message" ng-show="showExtraMessage('error')">
+				<div class="popupError">
+					<div class="popupErrorIcon"><img class="popupErrorIconImg" src="assets/images/errorIcon.svg"/></div>
+					<div class="popupErrorText">Error!</div>
+					<div class="popupErrorMessage">{{extraMessageText}}</div>
+				</div>
+				<div class="popupButtonSave" ng-click="changeExtraMessage('none');">OK</div>
+			</div>
+		   <!-- end of popupcONTENT -->
+		</div>
+   </div>
+   <!-- end of popup -->
+
+
+   <!--bootstrap pop over-->
+   <script>
+$(document).ready(function(){
+	$(".panel").mouseover(function(){
+		$('[data-toggle="popover"]').popover();
+		$('[data-toggle="class-when-false"]').popover('disable');
+	});
+});
+</script>

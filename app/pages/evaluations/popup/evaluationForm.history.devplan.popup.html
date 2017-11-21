@@ -1,0 +1,51 @@
+<!doctype html>
+   <div class="popup">
+      <div class="panel panel-primary">
+        <div class="custom panel-heading">
+            <div class="popupClose" ng-click="closeThisDialog();">
+                <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+            </div>
+            <h4 style="">Development Plan History</h4>
+        </div>
+        <div class="panel-body" id="createProjectPopupBody" ng-init="getDevPlanHistory(evaluation)">
+            <div class="container-fluid" ng-if="historydevplans.length != 0" ng-show="showMessage('none')">
+				<div class="dataTable devplan-table" style="margin-bottom: 25px;">
+					<table>
+						<thead>
+							<tr class="headerRowPopup">
+								<th></th>
+								<th class="center" style="width:25%">Developmental Objective<br/><span style="font-style: italic; font-weight: initial;">(Can include competencies, skills or performance standards or whatever else can be developed)</span></th>
+								<th class="center" title="Choose a developmental action based on the 'Golden Rule' that says: '60% can be on-the-job training, 30% coaching from manager and only 10% classroom training'.">Developmental Action</th>
+								<th class="center">Additional Information/Clarifications</th>
+								<th class="center">By When?</th>
+								<th class="center" title="Refers to the person who is responsible for the implementation of the developmental action. For example, who is responsible to conduct the on-the-job training to the employee?">By Whom?<br/><span style="font-style: italic; font-weight: initial;">(where applicable)</span></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="devplan in historydevplans" ng-class="{'oddRow' : $odd, 'evenRow': $even}" ng-attr-style="{{getRowColor(devplan.State)}}">
+								<td class="center" style="{{devplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{$index+1}}</td>
+								<td class="center" style="{{devplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{devplan.Objective}}</td>
+								<td class="center" style="{{devplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{devplan.Action==1 ? ' On-the-job training' : devplan.Action==2 ? 'Classroom training, formal learning or education' : devplan.Action==3 ? 'Other action' : ''}}</td>
+								<td class="center" style="{{devplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{devplan.AdditionalInfo}}</td>
+								<td class="center" style="{{devplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{devplan.ByWhen}}</td>
+								<td class="center" style="{{devplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{devplan.ByWhom}}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="col-md-12" style="margin-top: 20px;">
+					<span class="col col-md-4"><label class="color-explanation" style="background-color: #ececec;">By Employee</label></span>
+					<span class="col col-md-4"><label class="color-explanation" style="background-color: #c5e0b6;">By Evaluator</label></span>
+					<span class="col col-md-4"><label class="color-explanation" style="background-color: #8eaf91;color: #3B3B3B;">By Dotted Line Manager</label></span>
+				</div>
+            </div>
+			<div style="text-align: -moz-center; margin-top: 5%;" ng-if="historydevplans.length == 0">
+				<div class="center" style="width: 65%;">
+					<div class="alert alert-warning">
+						<strong>No Development Plan History at this moment.</strong>
+					</div>
+				</div>
+			</div>
+		</div>
+    </div>
+</div>

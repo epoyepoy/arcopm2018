@@ -1,0 +1,117 @@
+<!doctype html>
+<div class="popup">
+	<div class="panel panel-primary" style="margin-bottom: 0px;">
+        <div class="custom panel-heading">
+            <div class="iconContainer">
+                <div class="shine"><img class="imgicon" ng-src="{{photoUrl}}{{tempRepline.EmpNo}}b.jpg"   err-src="{{photoUrl}}male.gif">
+                </div>
+            </div>
+            <div class="popupClose" ng-click="closeThisDialog();">
+                <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+            </div>
+            <h4>Update Reporting Line for Employee:<br /> {{tempRepline.EmpNo}} - {{tempRepline.EmpName}}</h4>
+        </div>
+        <div class="panel-body" id="uploadEvalationPopupBody" style="min-width: 37vw;">
+			<div ng-show="showExtraMessage('none')">
+				<form name="myForm">
+					<div class="row" style="margin-right: 0px">
+							<div class="input-group col-lg-3">
+								<button type="button" class="btn btn-admin-label" aria-expanded="false" style="pointer-events: none;">
+									<span class="btn-label" style="font-size: 1.3vw;">Role</span>
+								</button>
+							</div>
+							<div class="input-group col-lg-4">
+								<button type="button" class="btn btn-admin-label" aria-expanded="false" style="pointer-events: none;">
+									<span class="btn-label" style="font-size: 1.3vw;">Period: {{(cycles[0].CycleDescription).trim()}}</span>
+								</button>
+							</div>
+							<div class="input-group col-lg-4">
+								<button type="button" class="btn btn-admin-label" aria-expanded="false" style="pointer-events: none;">
+									<span class="btn-label" style="font-size: 1.3vw;">Period: {{(cycles[1].CycleDescription).trim()}}</span>
+								</button>
+							</div>
+						</div><br/>
+					<div class="row" style="margin-right: 0px">
+						<div class="input-group col-lg-3">
+							<button type="button" class="btn btn-admin-label" aria-expanded="false" style="pointer-events: none;">
+								<span class="btn-label">Evaluator:</span>
+							</button>
+						</div>
+						<div class="input-group col-lg-4">
+							<input type="text" class="form-control form-label" ng-model="tempRepline.EvaluatorNumber" style="width: 12vw !important;" ng-disabled="tempRepline.CycleExclude == 1" ng-required="tempRepline.CycleExclude != 1">
+						</div>
+						<div class="input-group col-lg-4">
+							<input type="text" class="form-control form-label" ng-model="tempRepline.NextEvaluationEvaluatorNumber" style="width: 12vw !important;" ng-disabled="tempRepline.CycleExclude == 2" ng-required="tempRepline.CycleExclude != 2">
+						</div>
+					</div><br/>
+					<div class="row" style="margin-right: 0px">
+						<div class="input-group col-lg-3">
+							<button type="button" class="btn btn-admin-label" aria-expanded="false" style="pointer-events: none;">
+								<span class="btn-label">1st Dotted:</span>
+							</button>
+						</div>
+						<div class="input-group col-lg-4">
+							<input type="text" class="form-control form-label" ng-model="tempRepline.Dotted1Empno" style="width: 12vw !important;" ng-disabled="tempRepline.CycleExclude == 1">
+						</div>
+						<div class="input-group col-lg-4">
+							<input type="text" class="form-control form-label" ng-model="tempRepline.NextDotted1Empno" style="width: 12vw !important;" ng-disabled="tempRepline.CycleExclude == 2">
+						</div>
+					</div><br/>
+					<div class="row" style="margin-right: 0px">
+						<div class="input-group col-lg-3">
+							<button type="button" class="btn btn-admin-label" aria-expanded="false" style="pointer-events: none;">
+								<span class="btn-label">2nd Dotted:</span>
+							</button>
+						</div>
+						<div class="input-group col-lg-4">
+							<input type="text" class="form-control form-label" ng-model="tempRepline.Dotted2Empno" style="width: 12vw !important;" ng-disabled="tempRepline.CycleExclude == 1">
+						</div>
+						<div class="input-group col-lg-4">
+							<input type="text" class="form-control form-label" ng-model="tempRepline.NextDotted2Empno" style="width: 12vw !important;" ng-disabled="tempRepline.CycleExclude == 2">
+						</div>
+					</div><br/>
+					<div class="row" style="margin-right: 0px">
+						<div class="input-group col-lg-3">
+							<button type="button" class="btn btn-admin-label" aria-expanded="false" style="pointer-events: none;">
+								<span class="btn-label">3rd Dotted:</span>
+							</button>
+						</div>
+						<div class="input-group col-lg-4">
+							<input type="text" class="form-control form-label" ng-model="tempRepline.Dotted3Empno" style="width: 12vw !important;" ng-disabled="tempRepline.CycleExclude == 1">
+						</div>
+						<div class="input-group col-lg-4">
+							<input type="text" class="form-control form-label" ng-model="tempRepline.NextDotted3Empno" style="width: 12vw !important;" ng-disabled="tempRepline.CycleExclude == 2">
+						</div>
+					</div><br/>
+					<div class="form-group">
+						<div class="btn-group ng-scope" style="" aria-hidden="false">
+							<!-- In CycleExclude we are sending the CycleID -->
+							<label ng-class="(tempRepline.CycleExclude == 0) ? 'btn btn-default active' : 'btn btn-default'" ng-click="tempRepline.CycleExclude = 0;" required=""
+								class="btn btn-default ng-not-empty ng-valid ng-valid-required ng-touched ng-dirty" role="button" tabindex="0" aria-invalid="false" aria-required="true" style="">Include All</label>
+							<label ng-class="(tempRepline.CycleExclude == 1) ? 'btn btn-default active' : 'btn btn-default'" ng-click="tempRepline.CycleExclude = 1;" required="" 
+								class="btn btn-default ng-not-empty ng-valid ng-valid-required ng-touched ng-dirty" role="button" tabindex="0" aria-invalid="false" aria-required="true" style="">Exclude for {{(cycles[0].CycleDescription).trim()}}</label>
+							<label ng-class="(tempRepline.CycleExclude == 2) ? 'btn btn-default active' : 'btn btn-default'" ng-click="tempRepline.CycleExclude = 2;" required=""
+								class="btn btn-default ng-not-empty ng-valid ng-valid-required ng-touched ng-dirty" role="button" tabindex="0" aria-invalid="false" aria-required="true" style="">Exclude for {{(cycles[1].CycleDescription).trim()}}</label>
+						</div>
+					</div><br/><br/>
+					<div class="col-lg-6" style="text-align: right;"><button type="button" ng-click="closeThisDialog();" class="btn btn-default">Cancel</button></div>
+					<div class="col-lg-6" style="text-align: left;"><button type="button" ng-click="updateReportingLine(tempRepline,action)" ng-disabled="!myForm.$valid" class="btn btn-success"
+						tooltip-placement="top" tooltip-trigger="'mouseenter'" ng-attr-uib-tooltip="{{!form.$valid ? 'Evaluators are required for the included periods' : ''}}">Update</button></div>
+				</form>
+			</div>	
+			<div class="message" ng-show="showExtraMessage('created')">
+				<div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/successIcon.svg"/></div>
+				<div class="popupMessage">Reporting Line Updated Successfully! </div>
+				<div class="popupButtonSave" ng-click="closeThisDialog();">OK</div>
+			</div>
+			<div class="message" ng-show="showExtraMessage('error')">
+				<div class="popupError">
+					<div class="popupErrorIcon"><img class="popupErrorIconImg" src="assets/images/errorIcon.svg"/></div>
+					<div class="popupErrorText">Error!</div>
+					<div class="popupErrorMessage" ng-bind-html="extraMessageText"></div>
+				</div>
+				<div class="popupButtonSave" ng-click="resetDialog(); ">OK</div>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,43 @@
+<!doctype html>
+<div class="popup">
+	<div class="panel panel-primary" style="margin-bottom: 0px;">
+        <div class="custom panel-heading">
+            <div class="iconContainer">
+                <div class="shine"><img class="imgicon" ng-src="{{photoUrl}}{{goalObject.Empno}}b.jpg"   err-src="{{photoUrl}}male.gif">
+                </div>
+            </div>
+            <div class="popupClose" ng-click="closeThisDialog();">
+                <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+            </div>
+            <h4 >Reporting Line :<br /> {{goalObject.Empno}} - {{goalObject.employeeName}}</h4>
+        </div>
+        <div class="panel-body" id="uploadEvalationPopupBody">
+			<div class="dataTable" ng-show="showMessage('none')">
+				<table>
+					<thead>
+						<tr class="headerRow">
+							<th></th>
+							<th class="center" style="width:50px"> Employee Number </th>
+							<th class="center" style="width:50%"> Employee Name </th>
+							<th class="center" style="width:50%">Relationship Type</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="reportline in empReportingLine" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+							<td class="center">{{$index+1}}</td>
+							<td class="center">{{reportline.empNo}}</td>
+							<td class="center">{{reportline.empName}}</td>
+							<td class="center">{{reportline.RelationshipDesc}}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div ng-show="showMessage('loading')">
+				<div class="content">
+					<div class="circle"></div>
+					<div class="circle1"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,29 @@
+<!doctype html>
+<div class="popup">
+	<div class="panel panel-primary" style="margin-bottom: 0px;">
+        <div class="custom panel-heading">
+            <div class="iconContainer">
+                <div class="shine"><img class="imgicon" ng-src="{{photoUrl}}{{replineObject.EmpNo}}b.jpg"   err-src="{{photoUrl}}male.gif">
+                </div>
+            </div>
+            <div class="popupClose" ng-click="closeThisDialog();">
+                <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+            </div>
+            <h4 >Employee Details :<br /> {{replineObject.EmpNo}} - {{replineObject.EmpName}}</h4>
+        </div>
+        <div class="panel-body" id="uploadEvalationPopupBody">
+			<div class="col-lg-12">
+				<div class="col-lg-6" style="text-align: left;">
+					<div><label style="width: 4vw;">Grade: </label>{{replineObject.grade}}</div>
+					<div><label style="width: 4vw;">Position: </label>{{replineObject.PositionCode}} - {{replineObject.PositionDesc}}</div>
+					<div><label style="width: 4vw;">Family: </label>{{replineObject.FamilyCode}} - {{replineObject.FamilyDesc}}</div>
+				</div>
+				<div class="col-lg-6" style="text-align: left;">
+					<div><label style="width: 4vw;">Years: </label>{{replineObject.groupYears}}</div>
+					<div><label style="width: 4vw;">Region: </label>{{replineObject.region}}</div>
+					<div><label style="width: 4vw;">Project: </label>{{replineObject.ProjectCode}} - {{replineObject.ProjectDesc}}</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

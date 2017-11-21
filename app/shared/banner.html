@@ -1,0 +1,35 @@
+    <div id="banner">
+       <div class="col-lg-5" style="padding:0">
+
+        </div>
+        <div class="col-lg-4" style="padding:0">
+            <div id="logo" >
+                <a href="/arcopm"><img id="logoImg" src="assets/images/server.svg" alt="logo" /></a>
+            </div>
+        </div>
+        <!-- <ng-include src="'app/shared/menu.html'"></ng-include>-->
+
+        <div class="col-lg-3">
+            <div id="account">
+                <!--<div id="accountIcon"><img id="accountIconImg" src="assets/images/accountIcon.svg" alt="user" /></div>-->
+
+                <div class="image-holder">
+                    <img class="imgshadow" ng-src="{{photoUrl}}{{user.id}}b.jpg"   err-src="{{photoUrl}}male.gif">
+                </div>
+
+                <div id="accountUser">
+                    <div>
+                        <div id="accountUserName">{{user.first_name}} </div>
+                        <div id="accountUserSurname"> {{user.family_name}} </div>
+						<div id="accountPass" ng-if="user.isLocal == 1"><a href ng-click="showChangePassPopup()"><i class="fa fa-key" aria-hidden="true" uib-tooltip="Change Password" tooltip-placement="left" tooltip-trigger="'mouseenter'" style="font-size: large; top: 3px;"></i></a></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- end of account -->
+    </div>
+
+    <div class="clear"> </div>
+<!-- end of banner -->

@@ -1,0 +1,132 @@
+<!doctype html>
+<div class="popup">
+	<div class="panel panel-primary" ng-show="showMessage('none')">
+        <div class="custom panel-heading">
+            <div class="popupClose" ng-click="closeThisDialog();">
+                <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+            </div>
+            <h4 style="">Evaluation Form PDF Summary</h4>
+			<div>
+				<button class="downloadBtn" type="button" ng-click="generatePdf()"><span class="glyphicon glyphicon-print" aria-hidden="true"></span> Export Evaluation in PDF</button>
+			</div>
+        </div>
+        <div class="panel-body-preview" id="evaluationPreviewPopup">
+            <div id="exportthis" class="container-fluid">
+			<div class="row">
+				<div class="panel panel-success ">
+					<div style="float:left;"><img class="imgHeader" ng-src="{{photoUrl}}{{empDetails.empNo}}b.jpg"   err-src="{{photoUrl}}male.gif"></div>
+					<div class="panel-heading" style="text-align:center;">
+						<br>
+						<b>{{empDetails.familyName}} {{empDetails.firstName}} EVALUATION </b>
+						<br>
+					   Evaluation Period: {{empDetails.startDate}} / {{empDetails.endDate}}
+					   <br>
+					   <br>
+					</div>
+					<div class="panel-body">
+						<div class="row">
+							<div class="form-group col-xs-2" style="width: 14%">
+								<div class="detailsCardLabel"><b>Employee No:   </b></div>
+								<div class="detailsCardLabel"><b>Employee Name: </b></div>
+								<div class="detailsCardLabel"><b>Site:          </b></div>
+							</div>
+							<div class="form-group col-xs-2" style="width: 14%">
+								<div class="detailsCard">{{empDetails.empNo}}</div>
+								<div class="detailsCard">{{empDetails.empName}}</div>
+								<div class="detailsCard">{{empDetails.empSite}} - {{empDetails.empSiteDesc}}</div>
+							</div>
+							<div class="form-group col-xs-2" style="width: 14%">
+								<div class="detailsCardLabel"><b>Job Position:  </b></div>
+								<div class="detailsCardLabel"><b>Department:    </b></div>
+								<div class="detailsCardLabel"><b>Category:    </b></div>
+							</div>
+							<div class="form-group col-xs-2" style="width: 14%">
+								<div class="detailsCard">{{empDetails.empPosition}}</div>
+								<div class="detailsCard">{{empDetails.empDepartment}}</div>
+								<div class="detailsCard">{{empDetails.empCategory}}</div>
+							</div>
+							<div class="form-group col-xs-1">
+								<div class="detailsCardLabel"><b>Grade:    </b></div>
+								<div class="detailsCardLabel"><b>Age:    </b></div>
+								<div class="detailsCardLabel"><b>Group Years:    </b></div>
+							</div>
+							<div class="form-group col-xs-1">
+								<div class="detailsCard">{{empDetails.empGrade}}</div>
+								<div class="detailsCard">{{empDetails.empAge}}</div>
+								<div class="detailsCard">{{empDetails.groupYears}}</div>
+							</div>
+						</div>
+					</div>
+				</div>
+						<div class="clearfix" style="height: 50px;"></div>
+						<!--<div class="col-xs-1" style="width: 0px;"></div>-->
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>Summary Table</strong>
+							</div>
+							<div class="panel-body">
+								<table class="table table-bordered formNotes" ng-show="showScoresMessage('none')">
+									<thead>
+										<tr>
+											<th rowspan="2" style="vertical-align: middle;"><b>Performance Elements</b></th>
+											<th rowspan="2" style="vertical-align: middle; text-align: center;"><b>Weight %</b></th>
+											<th colspan="2" style="text-align: center; border-right-width: 2px;"><b>Employee Scores</b></th>
+											<th colspan="2" style="text-align: center; border-right-width: 2px;"><b>{{list=='mylist' ? 'Evaluation Final Score' : 'Evaluator Scores'}}</b></th>
+										</tr>
+										<tr>
+											<th style="text-align: center; border-right-width: 2px;"><b>Actual</b></th>
+											<th style="text-align: center; border-right-width: 2px;"><b>Weighted</b></th>
+											<th style="text-align: center; border-right-width: 2px;"><b>Actual</b></th>
+											<th style="text-align: center; border-right-width: 2px;"><b>Weighted</b></th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr ng-repeat="score in scores track by $index" class="{{scoreClasses[$index]}}">
+											<td><b>{{score.SectionDescription}}</b></td>
+											<td style="text-align: center; font-size: 12px; border-right-width: 2px;">{{score.ScoreWeight * 100}}</td>
+											<td style="text-align: center; font-size: 12px;">{{score.EmpScore == null ? '-' : score.EmpScore}}</td>
+											<td style="text-align: center; font-size: 12px; border-right-width: 2px;">{{score.EmpScore ? (score.ScoreWeight * score.EmpScore).toFixed(2) : '-'}}</td>
+											<td style="text-align: center; font-size: 12px;">{{score.EvalScore == null ? '-' : score.EvalScore}}</td>
+											<td style="text-align: center; font-size: 12px; border-right-width: 2px;">{{score.EvalScore ? (score.ScoreWeight * score.EvalScore).toFixed(2) : '-'}}</td>
+										</tr>
+										<tr style="background-color: #bababa;">
+											<td rowspan="2"><br/><b>Overall Performance Score</b></td>
+											<td rowspan="2" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{totalWeight * 100}}</td>
+											<td colspan="2" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{totalEmpWeightScore ? totalEmpWeightScore.toFixed(2) : '-'}}</td>
+											<td colspan="2" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{totalEvalWeightScore ? totalEvalWeightScore.toFixed(2) : '-'}}</td>
+										</tr>
+										<tr style="background-color: #bababa;">
+											<td colspan="2" style="text-align: center; border-right-width: 2px;"><b>{{totalEmpWeightScore == 0 ? '-' : totalEmpWeightScore < scoreScales.ScaleTo1 ? scoreDefinition[0] : totalEmpWeightScore < scoreScales.ScaleTo2 ? scoreDefinition[1] : totalEmpWeightScore < scoreScales.ScaleTo3 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
+											<td colspan="2" style="text-align: center; border-right-width: 2px;"><b>{{totalEvalWeightScore == 0 ? '-' : totalEvalWeightScore < scoreScales.ScaleTo1 ? scoreDefinition[0] : totalEvalWeightScore < scoreScales.ScaleTo2 ? scoreDefinition[1] : totalEvalWeightScore < scoreScales.ScaleTo3 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
+										</tr>
+									</tbody>
+								</table>
+								<div class="container" ng-show="showScoresMessage('loading')" style="width: 605px;">
+									<div class="content">
+										<div class="circle"></div>
+										<div class="circle1"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					<!--</div>-->
+				</div>
+				<div class="clearfix" style="height: 50px;"></div>
+				<div class="row">
+					<div class="signature">
+						<div style="text-align: center; float: right; height: 20%"><label>Date: </label> .........................................................</div><br/>
+						<div style="text-align: center; float: right; height: 20%"><label>Signed By: </label> .........................................................</div><br/>
+						<div style="border-style: solid;border-color: #adadad; border-width: 1px;height: 60%; width: 80%; float: right; border-radius: 5px;"></div>
+					</div>
+				</div>
+            </div>
+         </div>
+    </div>
+
+	<div class="container" ng-show="showMessage('loading')">
+		<div class="content"><br/>
+			<div class="circle "></div>
+			<div class="circle1 "></div>
+		</div>
+	</div>
+</div>

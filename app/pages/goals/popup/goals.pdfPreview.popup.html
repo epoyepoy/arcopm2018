@@ -1,0 +1,59 @@
+<!doctype html>
+<div class="popup">
+	<div class="panel panel-primary" ng-show="showMessage('none')">
+        <div class="custom panel-heading">
+           <div class="iconContainer">
+                <div class="shine"><img class="imgicon" ng-src="{{photoUrl}}{{tempCycleGoal.Empno}}b.jpg"   err-src="{{photoUrl}}male.gif">
+                </div>
+            </div>
+            <div class="popupClose" ng-click="closeThisDialog();">
+                <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+            </div>
+            <h4 style="">Goals Preview<br /> {{tempCycleGoal.Empno}} - {{tempCycleGoal.employeeName}}</h4>
+			<div>
+				<button class="downloadBtn" type="button" ng-click="generatePdf()"><span class="glyphicon glyphicon-print" aria-hidden="true"></span> Export Goals in PDF</button>
+			</div>
+        </div>
+        <div id="evaluationPreviewPopup">
+			<div id="exportthis">
+				<table style="width: 100%">
+					<tr>
+						<td style="width: 93%"><h3 style="text-align: center; margin-top: 0px;">Goals Form Preview<br/>Period: {{(tempCycleGoal.CycleDescription).trim()}}<br/>{{tempCycleGoal.Empno}} - {{tempCycleGoal.employeeName}}</h3></td>
+						<td style="width: 7%;vertical-align: middle;"><img id="logoImg" src="assets/images/logo3.png" alt="logo"></td>
+					</tr>
+				</table>
+				<div class="clearfix page-break" style="height: 30px;"></div>
+				<div class="dataTable goals-table">
+					<table>
+						<thead>
+							<tr class="headerRowPopup">
+								<th style="width:3vw"></th>
+								<th class="center" style="width:10vw">ATTRIBUTE</th>
+								<th class="center" style="width:30vw">GOAL</th>
+								<!--<th class="center" style="width:10%"> TARGET </th>-->
+								<th class="center" style="width:5vw">WEIGHT %</th>
+								<th class="center" style="width:20vw" ng-if="tempCycleGoal.GoalsState >= 2"></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-repeat="goal in tempGoals" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+								<td class="center">{{$index+1}}</td>
+								<td class="center"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}}&nbsp;-&nbsp;{{goal.CodeDescription}}</span></td>
+								<td class="center">{{goal.GoalDescription}}</td>
+								<!--<td class="center">{{goal.Target}}</td>-->
+								<td class="center">{{goal.Weight}}</td>
+								<td class="center" ng-if="tempCycleGoal.GoalsState >= 2"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+        </div>
+    </div>
+	<div class="container" ng-show="showMessage('loading')">
+		<div class="content"><br/>
+			<div class="circle "></div>
+			<div class="circle1 "></div>
+		</div>
+	</div>
+</div>

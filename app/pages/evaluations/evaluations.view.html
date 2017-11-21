@@ -1,0 +1,496 @@
+<div id="evaluations" ng-controller="evaluationsController" ng-init="init()">
+
+	<div class="col-lg-12" style="padding: 0">
+		<div class="col-lg-4" style="padding: 0">
+			<div class="pageHeader" style="display: inline-block;">({{(evaluationscycles[0].CycleDescription).trim()}}) Performance Evaluations</div>
+			<div style="display: inline-block;">
+				<label class="pageHeader" ng-show="employeesToEvaluate" style="font-style: italic; font-size: 1.8em;"> &rarr; Employees To Evaluate</label>
+				<label class="pageHeader" ng-show="myEvaluations" style="font-style: italic; font-size: 1.8em;"> &rarr; My Evaluations</label>
+			</div>
+		</div>
+		<div class="col-lg-4" style="text-align: center; padding: 0;" ng-show="myEvaluations || employeesToEvaluate">
+			<a href class="btn btn-sq-lg-back btn-warning warning-custom" ng-click="myEvaluations=employeesToEvaluate=false">
+				<i class="fa fa-arrow-left fa-2x"></i>
+				<span style="font-size: 1.5em; font-weight: bold;"> Back</span><br/>
+			</a>
+		</div>
+		<div class="col-lg-4" style="padding: 0"></div>
+	</div>
+	<br/><br/>
+
+	<div id="evaluations-categories">
+		<div class="row">
+			<div class="col-lg-12" style="text-align: center;" ng-hide="myEvaluations || employeesToEvaluate">
+				<p>
+					<a href class="btn btn-sq-lg btn-warning warning-custom" ng-click="myEvaluations=true">
+						<i class="fa fa-user fa-5x"></i><br/>
+						<span style="font-size: 1.4em; font-weight: bold;">MY EVALUATIONS</span><br/>
+						<span style="font-size: 1em; font-style: italic;">My own evaluations.<br/> List of pending or completed evaluations.</span>
+					</a>
+					<a href class="btn btn-sq-lg btn-success success-custom" style="margin-left: 5px;" ng-click="employeesToEvaluate=true">
+						<i class="fa fa-users fa-5x"></i><br/>
+						<span style="font-size: 1.4em; font-weight: bold;">EMPLOYEES TO EVALUATE</span><br/>
+						<span style="font-size: 1em; font-style: italic;">See pending evaluations either as<br/> Evaluator or Dotted Line Manager.</span>
+					</a>
+				</p>
+			</div>
+		</div>
+	</div>
+	<br/><br/>
+	<div id="myEvaluations" ng-show="myEvaluations">
+       <div id="ownEvals"  ng-show="personalevaluations.length != 0 && showExtraMessage('none')">
+			<label class="panel-title-text" >MY Evaluations</label><br />
+			<div class="dataTable">
+				<table>
+					<thead>
+						<tr class="headerRow">
+							<th class="center" style="width:5%">Line<br/> Number</th>
+							<th class="center" style="width:5%">Employee<br/> Number</th>
+							<th class="center" style="width:20%">Employee Name</th>
+							<th class="center" style="width:20%">Position</th>
+							<th class="center" style="width:5%">Grade</th>
+							<th class="center" style="width:15%">Pending Action Set Date</th>
+							<th class="center" style="width:15%">Pending Action</th>
+							<th class="center" style="width:15%;">Options</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="myevaluation in personalevaluations  | filter: applyEvalFilters " ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+							<td class="center">{{$index+1}} </td>
+							<td class="center"><a href ng-click="reportingLineDialog(myevaluation,evaluationscycles[0].CycleID)">{{myevaluation.EmployeeID}}</a></td>
+							<td class="center">{{myevaluation.employeeName}}</td>
+							<td class="center">{{myevaluation.job_desc}}</td>
+							<td class="center">{{myevaluation.grade}}</td>
+							<td class="center">{{myevaluation.StateDate}}</td>
+							<td class="center">{{myevaluation.StateDescription}}</td>
+							<td class="center">
+								<div style="display: inline-flex; margin-left: 10px;">
+									<span ng-if="(myevaluation.State==2) && myevaluation.resumeSection==0 && myevaluation.onBehalfFlag==0">
+										<button class="sitesBtn" ng-click="gotoEvalForm(myevaluation.EvaluationID,myevaluation)" uib-tooltip="Go to Evaluation Form" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="myevaluation.State>2">
+										<button class="sitesBtn" ng-click="gotoEvalForm(myevaluation.EvaluationID,myevaluation,'mylist')" uib-tooltip="View the Evaluation" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-ok" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="myevaluation.resumeSection!=0 && myevaluation.State==2 && myevaluation.onBehalfFlag==0">
+										<button class="sitesBtn" ng-click="gotoEvalForm(myevaluation.EvaluationID, myevaluation)" uib-tooltip="Resume Evaluation Form" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-pause" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="myevaluation.State==2 && myevaluation.onBehalfFlag==1">
+										<label>Processing by Evaluator</label>
+									</span>
+									<span ng-if="evaluation.State==6" style="margin-left: 5px;">
+										<button class="sitesBtn" ng-click="fileUploadDialog(myevaluation,evaluationscycles[0].CycleDescription)" uib-tooltip="Attached Evaluation File" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-paperclip" aria-hidden="true"  ></span></button>
+									</span>
+									<span style="margin-left: 5px;">
+										<button class="sitesBtn" ng-click="showEvalConfiguration(myevaluation)" uib-tooltip="View Configuration/Goals" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-crosshairs" aria-hidden="true"></i></button>
+									</span>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div style="text-align: -moz-center; margin-top: 5%;" ng-show="showExtraMessage('none')">
+			<div class="center" ng-show="personalevaluations.length == 0" style="width: 65%;">
+				<div class="alert alert-warning">
+					<strong>No Pending Evalutions at this moment.</strong>
+				</div>
+			</div>
+		</div>
+		<div class="container" ng-show="showExtraMessage('loading')" style=" margin-top: 20px;">
+			<div class="content">
+				<div class="circle"></div>
+				<div class="circle1"></div>
+			</div>
+		</div>
+    </div>
+	<div id="employeesToEvaluate" ng-show="employeesToEvaluate">
+
+		<div id="grades1_3" ng-show="getCount(evaluations, 0,3)==true && showMessage('none')">
+			<label class="panel-title-text" >Evaluations for Grades 1 - 3</label><br />
+			<!--<button class="downloadBtn" style="float:right;" type="button" ng-click="downloadFile('templates/G1.xlsx')">Download Evaluation Template</button>-->
+			<div class="filtersContainer" >
+				<input type="radio" id="AllMainEvalFilter1_3" ng-model="MainEvalFilter1_3"   value="all" checked />
+				<label for="AllMainEvalFilter1_3" >
+					 All
+				</label>
+				<input type="radio" id="myactionsEvaluations1_3" ng-model="MainEvalFilter1_3"  value="5" />
+				<label for="myactionsEvaluations1_3" style="color: #90EE90;">
+					My Actions
+				</label>
+				<input type="radio" id="myoptionalactionsEvaluations1_3" ng-model="MainEvalFilter1_3"  value="6" />
+				<label for="myoptionalactionsEvaluations1_3" style="color: #87CEFA;">
+					My (Optional) Actions
+				</label>
+				<input type="radio" id="PendingMainEvalFilter1_3" ng-model="MainEvalFilter1_3"   value="1" />
+				<label for="PendingMainEvalFilter1_3">
+					Initial
+				</label>
+				<input type="radio" id="inprogressMainEvalFilter1_3" ng-model="MainEvalFilter1_3"  value="2" />
+				<label for="inprogressMainEvalFilter1_3">
+					In Progress
+				</label>
+                <input type="radio" id="CompleteMainEvalFilter1_3" ng-model="MainEvalFilter1_3"  value="3" />
+				<label for="CompleteMainEvalFilter1_3">
+					Complete
+                </label>
+				<input type="radio" id="RejectedMainEvalFilter1_3" ng-model="MainEvalFilter1_3"  value="4" />
+				<label for="RejectedMainEvalFilter1_3">
+					Rejected
+                </label>
+				<input type="button" ng-disabled="selected1_3.length==0" class="revise-evals" ng-if="status5Evals1_3.length" ng-show="selectAllCheckBox1_3" ng-click="reviseSelectedDialog('1_3')" style="float:right" value="Finalize Selected"/>
+			</div>
+			<div class="dataTable" >
+				<table>
+					<thead>
+						<tr class="headerRow">
+							<th class="center" style="width:5%">Line<br/> Number</th>
+							<th class="center" style="width:5%">Employee<br/> Number</th>
+							<th class="center" style="width:15%">Employee Name</th>
+							<th class="center" style="width:15%">Position</th>
+							<th class="center" style="width:5%">Grade</th>
+							<th class="center" style="width:10%">Pending Action Set Date</th>
+							<th class="center" style="width:15%">Pending Action</th>
+							<th class="center" style="width:10%">Your Action</th>
+							<th class="center" style="width:15%;">Options</th>
+							<th class="center" style="width:1%;" ng-if="status5Evals1_3.length" ng-show="selectAllCheckBox1_3">
+								<md-checkbox md-no-ink aria-label="Select All" uib-tooltip="{{isChecked('1_3') ? 'Deselect All' : 'Select All'}}" tooltip-placement="top" tooltip-trigger="'mouseenter'" ng-checked="isChecked('1_3')" md-indeterminate="isIndeterminate('1_3')" ng-click="toggleAll('1_3')" class="md-green">
+								</md-checkbox>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="evaluation in evaluations | filter:  greaterThan('grade', -1) | filter: lessThan('grade', 4) | filter: applyEvalFilters(3) " ng-class="{'oddRow' : $odd, 'evenRow': $even, 'strikeout':evaluation.wrongManager>0}" uib-tooltip="
+							{{evaluation.wrongManager>0 ? 'You have reported this evaluation as it has been mistakenly sent to you. It is being corrected by HR Department at this moment. Once corrected it will be removed from your list. ' : ''}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">
+							<td class="center">{{$index+1}} </td>
+							<td class="center"><a href ng-click="reportingLineDialog(evaluation,evaluationscycles[0].CycleID)">{{evaluation.EmployeeID}}</a></td>
+							<td class="center">{{evaluation.employeeName}}</td>
+							<td class="center">{{evaluation.job_desc}}</td>
+							<td class="center">{{evaluation.grade}}</td>
+							<td class="center">{{evaluation.StateDate}}</td>
+							<td class="center">{{evaluation.StateDescription}}</td>
+							<td class="center">{{evaluation.yourAction}}</td>
+							<td style="text-align:right !important;">
+								<div style="display: inline-flex; margin-left: 10px;" ng-if="evaluation.wrongManager==0">
+									<!-- blue arrow -->
+									<span ng-if="evaluation.isForAction==2" class="fa fa-arrow-circle-right" aria-hidden="true" style="color:  #87CEFA ; margin-right:10px; margin-top:10px;"></span>
+									<!-- green arrow -->
+									<span ng-if="evaluation.isForAction==1" class="fa fa-arrow-circle-right" aria-hidden="true" style="color: #90EE90; margin-right:10px; margin-top:10px;"></span>
+
+									<!-- Grade 1-3 there is not onbehalf, is just evaluator's actions. This is the difference between grade 1-3 and all other grades -->
+									<span ng-if="(evaluation.State==0 && evaluation.isForAction==1)">
+										<button class="sitesBtn" ng-click="gotoGoals(evaluationscycles[0].CycleDescription, evaluationscycles[0].CycleID)" uib-tooltip="{{(evaluation.State==0 && evaluation.isForAction==1) ? 'Go to Configuration' :  ''}}" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class=" glyphicon glyphicon-exclamation-sign" aria-hidden="true"  ></span></button>
+									</span>
+
+									<span ng-if="(evaluation.State==3 || evaluation.State==4) && evaluation.resumeSection==0 && evaluation.editBy==user.id && evaluation.finishedFlag==0">
+										<button class="sitesBtn" ng-click="gotoEvalForm(evaluation.EvaluationID,evaluation)" uib-tooltip="Go to Evaluation Form" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="evaluation.State==5 && evaluation.resumeSection==0 && evaluation.editBy==user.id && evaluation.finishedFlag==0">
+										<button class="sitesBtn" ng-click="gotoEvalForm(evaluation.EvaluationID,evaluation)" uib-tooltip="Revise/Finalize Evaluation Form" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-check-square-o" aria-hidden="true"></i></button>
+									</span>
+									<span ng-if="evaluation.State==6">
+										<button class="sitesBtn" ng-click="gotoEvalForm(evaluation.EvaluationID,evaluation)" uib-tooltip="View the Evaluation" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-ok" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="evaluation.State==2 && evaluation.onBehalfFlag==0 && evaluation.resumeSection==0 && evaluation.editBy==user.id && evaluation.finishedFlag==0">
+										<button class="sitesBtn" ng-click="gotoEvalForm(evaluation.EvaluationID,evaluation)" uib-tooltip="Fill Evaluation Form on behalf of Employee" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-edit" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="evaluation.resumeSection!=0 && evaluation.editBy==user.id && evaluation.onBehalfFlag==0 && evaluation.finishedFlag==0">
+										<button class="sitesBtn" ng-click="gotoEvalForm(evaluation.EvaluationID, evaluation)" uib-tooltip="{{evaluation.State==2 ? 'Resume Evaluation Form on behalf of Employee' : 'Resume Evaluation Form'}}" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-pause" aria-hidden="true"  ></span></button>
+									</span>
+									<span style="margin-left: 5px;" ng-if="evaluation.State<=evaluation.yourActionState && evaluation.yourActionState<6">
+										<button class="sitesBtn" ng-click="showRejectManagerPopup(evaluation)" uib-tooltip="Reject Action" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="fa fa-flag text-danger" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="evaluation.State==6" style="margin-left: 5px;">
+										<button class="sitesBtn" ng-click="fileUploadDialog(evaluation,evaluationscycles[0].CycleDescription)" uib-tooltip="Attached Evaluation File" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-paperclip" aria-hidden="true"  ></span></button>
+									</span>
+									<span style="margin-left: 5px;">
+										<button class="sitesBtn" ng-click="showEvalConfiguration(evaluation)" uib-tooltip="View Configuration/Goals" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-crosshairs" aria-hidden="true"></i></button>
+									</span>
+									<span ng-if="evaluation.State>=2" style="margin-left: 5px;">
+										<button class="sitesBtn" ng-click="showEvalPreview(evaluation,evaluationscycles[0].CycleDescription)" uib-tooltip="Evaluation Form Template Preview" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"  ></span></button>
+									</span>
+								</div>
+								<div ng-if="evaluation.wrongManager==0" style="margin-top: 5px;">
+									<span ng-if="evaluation.State==2 && evaluation.onBehalfFlag==1">
+										<label>Processing by Employee</label>
+									</span>
+								</div>
+								<div ng-if="evaluation.wrongManager>0" style="margin-top: 5px;">
+									<span>
+										<button class="sitesBtn" ng-click="showRevertRejectionPopup(evaluation)" uib-tooltip="Enable Employee" tooltip-placement="left" tooltip-trigger="'mouseenter'"><span class="fa fa-flag" aria-hidden="true" style="color: #059208;"></span></button>
+									</span>
+								</div>
+							</td>
+							<td class="center" ng-if="status5Evals1_3.length" ng-show="selectAllCheckBox1_3">
+								<md-checkbox ng-if="checkBoxAppear(evaluation,'1_3')" md-no-ink aria-label="Select" ng-checked="exists(evaluation.EvaluationID, selected1_3)" ng-click="toggle(evaluation.EvaluationID, selected1_3)" class="md-green"></md-checkbox>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<br/>
+
+		<div id="grades4_9" ng-show="getCount(evaluations, 4,9)==true && showMessage('none')">
+			<label class="panel-title-text">Evaluations for Grades 4 - 9</label><br />
+			<!--<button class="downloadBtn" style="float:right;" type="button" ng-click="downloadFile('templates/G4.xlsx')">Download Evaluation Template</button>-->
+			<div class="filtersContainer" >
+				<input type="radio" id="AllEvaluations4_9" ng-model="MainEvalFilter4_9"   value="all" checked />
+				<label for="AllEvaluations4_9" >
+					All
+				</label>
+				<input type="radio" id="myactionsEvaluations4_9" ng-model="MainEvalFilter4_9"  value="5" />
+				<label for="myactionsEvaluations4_9" style="color: #90EE90;">
+					My Actions
+				</label>
+				<input type="radio" id="myoptionalactionsEvaluations4_9" ng-model="MainEvalFilter4_9"  value="6" />
+				<label for="myoptionalactionsEvaluations4_9" style="color: #87CEFA;">
+					My (Optional) Actions
+				</label>
+				<input type="radio" id="PendingEvaluations4_9" ng-model="MainEvalFilter4_9"   value="1" />
+				<label for="PendingEvaluations4_9">
+					Initial
+				</label>
+				<input type="radio" id="inprogressEvaluations4_9" ng-model="MainEvalFilter4_9"  value="2" />
+				<label for="inprogressEvaluations4_9">
+					In Progress
+				</label>
+                <input type="radio" id="CompleteEvaluations4_9" ng-model="MainEvalFilter4_9"  value="3" />
+				<label for="CompleteEvaluations4_9">
+					Complete
+				</label>
+				<input type="radio" id="RejectedEvaluations4_9" ng-model="MainEvalFilter4_9"  value="4" />
+				<label for="RejectedEvaluations4_9">
+					Rejected
+				</label>
+				<input type="button" ng-disabled="selected4_9.length==0" class="revise-evals" ng-if="status5Evals4_9.length" ng-show="selectAllCheckBox4_9" ng-click="reviseSelectedDialog('4_9')" style="float:right" value="Finalize Selected"/>
+			</div>
+			<div class="dataTable" >
+				<table>
+					<thead>
+						<tr class="headerRow">
+							<th class="center" style="width:5%">Line<br/> Number</th>
+							<th class="center" style="width:5%">Employee<br/> Number</th>
+							<th class="center" style="width:15%">Employee Name</th>
+							<th class="center" style="width:15%">Position</th>
+							<th class="center" style="width:5%">Grade</th>
+							<th class="center" style="width:10%">Pending Action Set Date</th>
+							<th class="center" style="width:15%">Pending Action</th>
+							<th class="center" style="width:10%">Your Action</th>
+							<th class="center" style="width:15%;">Options</th>
+							<th class="center" style="width:1%;" ng-if="status5Evals4_9.length" ng-show="selectAllCheckBox4_9">
+								<md-checkbox md-no-ink aria-label="Select All" uib-tooltip="{{isChecked('4_9') ? 'Deselect All' : 'Select All'}}" tooltip-placement="top" tooltip-trigger="'mouseenter'" ng-checked="isChecked('4_9')" md-indeterminate="isIndeterminate('4_9')" ng-click="toggleAll('4_9')" class="md-green">
+								</md-checkbox>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="evaluation in evaluations | filter:  greaterThan('grade', 3) | filter: lessThan('grade', 10) | filter: applyEvalFilters(9)" ng-class="{'oddRow' : $odd, 'evenRow': $even, 'strikeout':evaluation.wrongManager>0}" uib-tooltip="
+							{{evaluation.wrongManager>0 ? 'You have reported this evaluation as it has been mistakenly sent to you. It is being corrected by HR Department at this moment. Once corrected it will be removed from your list. ' : ''}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">
+							<td class="center">{{$index+1}}</td>
+							<td class="center"><a href ng-click="reportingLineDialog(evaluation,evaluationscycles[0].CycleID)">{{evaluation.EmployeeID}}</a></td>
+							<td class="center">{{evaluation.employeeName}} </td>
+							<td class="center">{{evaluation.job_desc}}</td>
+							<td class="center">{{evaluation.grade}}</td>
+							<td class="center">{{evaluation.StateDate}}</td>
+							<td class="center">{{evaluation.StateDescription}}</td>
+							<td class="center">{{evaluation.yourAction}}</td>
+							<td style="text-align:right !important;">
+								<div style="display: inline-flex; margin-left: 10px;" ng-if="evaluation.wrongManager==0">
+									<!-- blue arrow -->
+									<span ng-if="evaluation.isForAction==2" class="fa fa-arrow-circle-right" aria-hidden="true" style="color:  #87CEFA ; margin-right:10px; margin-top:10px;"></span>
+									<!-- green arrow -->
+									<span ng-if="evaluation.isForAction==1 && evaluation.finishedFlag==0" class="fa fa-arrow-circle-right" aria-hidden="true" style="color: #90EE90; margin-right:10px; margin-top:10px;"></span>
+									<!-- This button will appear for both yourAction and onbehalfAction -->
+									<span ng-if="(evaluation.State==0 && evaluation.isForAction==2) || (evaluation.State==1 && evaluation.isForAction==1)">
+										<button class="sitesBtn" ng-click="gotoGoals(evaluationscycles[0].CycleDescription, evaluationscycles[0].CycleID)" uib-tooltip="{{(evaluation.State==0 && evaluation.isForAction==2) ? 'Set Goals on behalf of Employee' : (evaluation.State==1 && evaluation.isForAction==1) ? 'Set Goals' : ''}}" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class=" glyphicon glyphicon-exclamation-sign" aria-hidden="true"  ></span></button>
+									</span>
+
+									<span ng-if="(evaluation.State==3 || evaluation.State==4) && evaluation.resumeSection==0 && evaluation.editBy==user.id && evaluation.finishedFlag==0">
+										<button class="sitesBtn" ng-click="gotoEvalForm(evaluation.EvaluationID,evaluation)" uib-tooltip="Go to Evaluation Form" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="evaluation.State==5 && evaluation.resumeSection==0 && evaluation.editBy==user.id && evaluation.finishedFlag==0">
+										<button class="sitesBtn" ng-click="gotoEvalForm(evaluation.EvaluationID,evaluation)" uib-tooltip="Revise/Finalize Evaluation Form" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-check-square-o" aria-hidden="true"></i></button>
+									</span>
+									<span ng-if="evaluation.State==6">
+										<button class="sitesBtn" ng-click="gotoEvalForm(evaluation.EvaluationID,evaluation)" uib-tooltip="View the Evaluation" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-ok" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="evaluation.State==2 && evaluation.onBehalfFlag==0 && evaluation.resumeSection==0 && evaluation.editBy==user.id && evaluation.finishedFlag==0">
+										<button class="sitesBtn" ng-click="gotoEvalForm(evaluation.EvaluationID,evaluation)" uib-tooltip="Fill Evaluation Form on behalf of Employee" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-edit" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="evaluation.resumeSection!=0 && evaluation.editBy==user.id && evaluation.onBehalfFlag==0 && evaluation.finishedFlag==0">
+										<button class="sitesBtn" ng-click="gotoEvalForm(evaluation.EvaluationID, evaluation)" uib-tooltip="{{evaluation.State==2 ? 'Resume Evaluation Form on behalf of Employee' : 'Resume Evaluation Form'}}" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-pause" aria-hidden="true"  ></span></button>
+									</span>
+									<span style="margin-left: 5px;" ng-if="evaluation.State<=evaluation.yourActionState && evaluation.yourActionState<6">
+										<button class="sitesBtn" ng-click="showRejectManagerPopup(evaluation)" uib-tooltip="Reject Action" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="fa fa-flag text-danger" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="evaluation.State==6" style="margin-left: 5px;">
+										<button class="sitesBtn" ng-click="fileUploadDialog(evaluation,evaluationscycles[0].CycleDescription)" uib-tooltip="Attached Evaluation File" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-paperclip" aria-hidden="true"  ></span></button>
+									</span>
+									<span style="margin-left: 5px;">
+										<button class="sitesBtn" ng-click="showEvalConfiguration(evaluation)" uib-tooltip="View Configuration/Goals" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-crosshairs" aria-hidden="true"></i></button>
+									</span>
+									<span ng-if="evaluation.State>=2" style="margin-left: 5px;">
+										<button class="sitesBtn" ng-click="showEvalPreview(evaluation)" uib-tooltip="Evaluation Form Template Preview" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"  ></span></button>
+									</span>
+								</div>
+								<div ng-if="evaluation.wrongManager==0" style="margin-top: 5px;">
+									<span ng-if="evaluation.State==2 && evaluation.onBehalfFlag==1">
+										<label>Processing by Employee</label>
+									</span>
+								</div>
+								<div ng-if="evaluation.wrongManager>0" style="margin-top: 5px;">
+									<span>
+										<button class="sitesBtn" ng-click="showRevertRejectionPopup(evaluation)" uib-tooltip="Enable Employee" tooltip-placement="left" tooltip-trigger="'mouseenter'"><span class="fa fa-flag" aria-hidden="true" style="color: #059208;"></span></button>
+									</span>
+								</div>
+							</td>
+							<td class="center" ng-if="status5Evals4_9.length" ng-show="selectAllCheckBox4_9">
+								<md-checkbox ng-if="checkBoxAppear(evaluation,'4_9')" md-no-ink aria-label="Select" ng-checked="exists(evaluation.EvaluationID, selected4_9)" ng-click="toggle(evaluation.EvaluationID, selected4_9)" class="md-green"></md-checkbox>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<br/>
+
+		<div id="grades10plus" ng-show="getCount(evaluations, 10,20)==true && showMessage('none')">
+			<label class="panel-title-text">Evaluations for Grades 10+</label><br />
+			<!--<button class="downloadBtn" style="float:right;" type="button" ng-click="downloadFile('templates/G10.xlsx')">Download Evaluation Template</button>-->
+			<div class="filtersContainer" >
+				<input type="radio" id="AllMainEvalFilter10" ng-model="MainEvalFilter10"   value="all" checked />
+				<label for="AllMainEvalFilter10" >
+					 All
+				</label>
+				<input type="radio" id="myactionsEvaluations10" ng-model="MainEvalFilter10"  value="5" />
+				<label for="myactionsEvaluations10" style="color: #90EE90;">
+					My Actions
+				</label>
+				<input type="radio" id="myoptionalactionsEvaluations10" ng-model="MainEvalFilter10"  value="6" />
+				<label for="myoptionalactionsEvaluations10" style="color: #87CEFA;">
+					My (Optional) Actions
+				</label>
+				<input type="radio" id="PendingMainEvalFilter10" ng-model="MainEvalFilter10"   value="1" />
+				<label for="PendingMainEvalFilter10">
+					Initial
+				</label>
+				<input type="radio" id="inprogressMainEvalFilter10" ng-model="MainEvalFilter10"  value="2" />
+				<label for="inprogressMainEvalFilter10">
+					In Progress
+                </label>
+                <input type="radio" id="CompleteMainEvalFilter10" ng-model="MainEvalFilter10"  value="3" />
+				<label for="CompleteMainEvalFilter10">
+					Complete
+                </label>
+				<input type="radio" id="RejectedMainEvalFilter10" ng-model="MainEvalFilter10"  value="4" />
+				<label for="RejectedMainEvalFilter10">
+					Rejected
+                </label>
+				<input type="button" ng-disabled="selected10.length==0" class="revise-evals" ng-if="status5Evals10.length" ng-show="selectAllCheckBox10" ng-click="reviseSelectedDialog('10')" style="float:right" value="Finalize Selected"/>
+			</div>
+			<div class="dataTable" >
+				<table>
+					<thead>
+						<tr class="headerRow">
+							<th class="center" style="width:5%">Line<br/> Number</th>
+							<th class="center" style="width:5%">Employee<br/> Number</th>
+							<th class="center" style="width:15%">Employee Name</th>
+							<th class="center" style="width:15%">Position</th>
+							<th class="center" style="width:5%">Grade</th>
+							<th class="center" style="width:10%">Pending Action Set Date</th>
+							<th class="center" style="width:15%">Pending Action</th>
+							<th class="center" style="width:10%">Your Action</th>
+							<th class="center" style="width:15%;">Options</th>
+							<th class="center" style="width:1%;" ng-if="status5Evals10.length"  ng-show="selectAllCheckBox10">
+								<md-checkbox md-no-ink aria-label="Select All" uib-tooltip="{{isChecked('10') ? 'Deselect All' : 'Select All'}}" tooltip-placement="top" tooltip-trigger="'mouseenter'" ng-checked="isChecked('10')" md-indeterminate="isIndeterminate('10')" ng-click="toggleAll('10')" class="md-green">
+								</md-checkbox>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="evaluation in evaluations | filter:  greaterThan('grade', 9) | filter: applyEvalFilters(10)" ng-class="{'oddRow' : $odd, 'evenRow': $even, 'strikeout':evaluation.wrongManager>0  }" uib-tooltip="
+							{{evaluation.wrongManager>0 ? 'You have reported this evaluation as it has been mistakenly sent to you. It is being corrected by HR Department at this moment. Once corrected it will be removed from your list. ' : ''}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">
+							<td class="center">{{$index+1}}</td>
+							<td class="center"><a href ng-click="reportingLineDialog(evaluation,evaluationscycles[0].CycleID)">{{evaluation.EmployeeID}}</a></td>
+							<td class="center">{{evaluation.employeeName}}</td>
+							<td class="center">{{evaluation.job_desc}}</td>
+							<td class="center">{{evaluation.grade}}</td>
+							<td class="center">{{evaluation.StateDate}}</td>
+							<td class="center">{{evaluation.StateDescription}}</td>
+							<td class="center">{{evaluation.yourAction}}</td>
+							<td style="text-align:right !important;">
+								<div style="display: inline-flex; margin-left: 10px;" ng-if="evaluation.wrongManager==0">
+									<!-- blue arrow -->
+									<span ng-if="evaluation.isForAction==2" class="fa fa-arrow-circle-right" aria-hidden="true" style="color:  #87CEFA ; margin-right:10px; margin-top:10px;"></span>
+									<!-- green arrow -->
+									<span ng-if="evaluation.isForAction==1 && evaluation.finishedFlag==0" class="fa fa-arrow-circle-right" aria-hidden="true" style="color: #90EE90; margin-right:10px; margin-top:10px;"></span>
+
+									<!-- This button will appear for both yourAction and onbehalfAction -->
+									<span ng-if="(evaluation.State==0 && evaluation.isForAction==2) || (evaluation.State==1 && evaluation.isForAction==1)">
+										<button class="sitesBtn" ng-click="gotoGoals(evaluationscycles[0].CycleDescription, evaluationscycles[0].CycleID)" uib-tooltip="{{(evaluation.State==0 && evaluation.isForAction==2) ? 'Set Goals on behalf of Employee' : (evaluation.State==1 && evaluation.isForAction==1) ? 'Set Goals' : ''}}" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class=" glyphicon glyphicon-exclamation-sign" aria-hidden="true"  ></span></button>
+									</span>
+
+									<span ng-if="(evaluation.State==3 || evaluation.State==4) && evaluation.resumeSection==0 && evaluation.editBy==user.id && evaluation.finishedFlag==0">
+										<button class="sitesBtn" ng-click="gotoEvalForm(evaluation.EvaluationID,evaluation)" uib-tooltip="Go to Evaluation Form" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="evaluation.State==5 && evaluation.resumeSection==0 && evaluation.editBy==user.id && evaluation.finishedFlag==0">
+										<button class="sitesBtn" ng-click="gotoEvalForm(evaluation.EvaluationID,evaluation)" uib-tooltip="Revise/Finalize Evaluation Form" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-check-square-o" aria-hidden="true"></i></button>
+									</span>
+									<span ng-if="evaluation.State==6">
+										<button class="sitesBtn" ng-click="gotoEvalForm(evaluation.EvaluationID,evaluation)" uib-tooltip="View the Evaluation" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-ok" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="evaluation.State==2 && evaluation.onBehalfFlag==0 && evaluation.resumeSection==0 && evaluation.editBy==user.id && evaluation.finishedFlag==0">
+										<button class="sitesBtn" ng-click="gotoEvalForm(evaluation.EvaluationID,evaluation)" uib-tooltip="Fill Evaluation Form on behalf of Employee" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-edit" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="evaluation.resumeSection!=0 && evaluation.editBy==user.id && evaluation.onBehalfFlag==0 && evaluation.finishedFlag==0">
+										<button class="sitesBtn" ng-click="gotoEvalForm(evaluation.EvaluationID, evaluation)" uib-tooltip="{{evaluation.State==2 ? 'Resume Evaluation Form on behalf of Employee' : 'Resume Evaluation Form'}}" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-pause" aria-hidden="true"  ></span></button>
+									</span>
+									<span style="margin-left: 5px;" ng-if="evaluation.State<=evaluation.yourActionState && evaluation.yourActionState<6">
+										<button class="sitesBtn" ng-click="showRejectManagerPopup(evaluation)" uib-tooltip="Reject Action" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="fa fa-flag text-danger" aria-hidden="true"  ></span></button>
+									</span>
+									<span ng-if="evaluation.State==6" style="margin-left: 5px;">
+										<button class="sitesBtn" ng-click="fileUploadDialog(evaluation,evaluationscycles[0].CycleDescription)" uib-tooltip="Attached Evaluation File" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-paperclip" aria-hidden="true"  ></span></button>
+									</span>
+									<span style="margin-left: 5px;">
+										<button class="sitesBtn" ng-click="showEvalConfiguration(evaluation)" uib-tooltip="View Configuration/Goals" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-crosshairs" aria-hidden="true"></i></button>
+									</span>
+									<span ng-if="evaluation.State>=2" style="margin-left: 5px;">
+										<button class="sitesBtn" ng-click="showEvalPreview(evaluation)" uib-tooltip="Evaluation Form Template Preview" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"  ></span></button>
+									</span>
+								</div>
+								<div ng-if="evaluation.wrongManager==0" style="margin-top: 5px;">
+									<span ng-if="evaluation.State==2 && evaluation.onBehalfFlag==1">
+										<label>Processing by Employee</label>
+									</span>
+								</div>
+								<div ng-if="evaluation.wrongManager>0" style="margin-top: 5px;">
+									<span>
+										<button class="sitesBtn" ng-click="showRevertRejectionPopup(evaluation)" uib-tooltip="Enable Employee" tooltip-placement="left" tooltip-trigger="'mouseenter'"><span class="fa fa-flag" aria-hidden="true" style="color: #059208;"></span></button>
+									</span>
+								</div>
+							</td>
+							<td class="center" ng-if="status5Evals10.length" ng-show="selectAllCheckBox10">
+								<md-checkbox ng-if="checkBoxAppear(evaluation,'10')" md-no-ink aria-label="Select" ng-checked="exists(evaluation.EvaluationID, selected10)" ng-click="toggle(evaluation.EvaluationID, selected10)" class="md-green"></md-checkbox>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div style="text-align: -moz-center; margin-top: 5%;" ng-show="showMessage('none')">
+			<div class="center" ng-show="getCount(evaluations, 1,4)==false && getCount(evaluations, 4,9)==false && getCount(evaluations, 10,20)==false" style="width: 65%;">
+				<div class="alert alert-warning">
+					<strong>You have not any pending evaluation at this time.</strong>
+				</div>
+			</div>
+		</div>
+		<div class="container" ng-show="showMessage('loading')" style=" margin-top: 20px;">
+			<div class="content">
+				<div class="circle"></div>
+				<div class="circle1"></div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- end of evaluations -->

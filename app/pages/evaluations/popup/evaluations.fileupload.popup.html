@@ -1,0 +1,104 @@
+<!doctype html>
+<div class="popup">
+	<div class="panel panel-primary">
+        <div class="custom panel-heading">
+            <div class="popupClose" ng-click="closeThisDialog();">
+                <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+            </div>
+            <h4 class="pop-up-header">Upload Signed Evaluation <br/> Employee: {{evaluationObject.EmployeeID}} - {{evaluationObject.employeeName}}</h4>
+
+        </div>
+        <div class="panel-body" id="uploadEvalationPopupBody">
+			<div class="dataTable" ng-show="evaluationObject.UploadedFile">
+				<table>
+					<thead>
+						<tr class="headerRowPopup">
+							<th class="center">Employee ID</th>
+							<th class="center">Cycle</th>
+							<th class="center">File Name</th>
+							<th class="center">Date Uploaded</th>
+							<th class="center">Options</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-class="{'oddRow' : $odd, 'evenRow': $even}" >
+							<td class="center">{{evaluationObject.EmployeeID}}</td>
+							<td class="center">{{cycle}}</td>
+							<td class="center">{{evaluationObject.UploadedFile}}</td>
+							<td class="center">{{evaluationObject.UploadedDate}}</td>
+							<td class="right">
+								<span style="margin-left: 5px;">
+									<button class="sitesBtn" ng-click="fileDeleteDialog(evaluationObject)" uib-tooltip="Delete Uploaded Evaluation" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-trash" aria-hidden="true"  ></span></button>
+								</span>
+
+								<span style="margin-left: 5px;">
+									<button class="sitesBtn" ng-click="downloadFile(evaluationObject)" uib-tooltip="Download Signed Evaluation" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-save" aria-hidden="true"  ></span></button>
+								</span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div><br/><br/>
+            <div class="container-fluid">
+			<div class="container-fluid" ng-hide="evaluationObject.UploadedFile">
+                <div class="container"  style="max-width: 650px;">
+                    <div class="content">
+                       <label>Select file to upload: </label>
+                        <input file-model="evaluationObject.fileToUpload" type="file" class="file" value=""/>
+                        <div class="popupButtonSave" ng-click="fileUpload(cycle);">Upload</div>
+                    </div>
+                </div>
+            </div>
+            <div class="message" ng-show="showMessage('success')">
+                <div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/successIcon.svg" /></div>
+                <div class="popupMessage">Evaluation Uploaded Successfully! </div>
+                <div class="popupButtonSave" ng-click="closeThisDialog();">OK!</div>
+            </div>
+            <div class="message" ng-show="showMessage('uploading')">
+                <div class="messageLoader">
+                    <div class="loaderWrapper">
+                        <div class="loader">
+                            <div class="container">
+                                <div class="content ">
+                                    <div class="circle "></div>
+                                    <div class="circle1 "></div>
+                                </div>
+                            </div>
+                            <div class="loaderText ">Uploading & Validating Excel Evaluation ...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="message " ng-show="showMessage( 'error_filetype') ">
+
+                <div class="popupError ">
+                    <div class="popupErrorIcon "><img class="popupErrorIconImg " src="assets/images/errorIcon.svg " /></div>
+                    <div class="popupErrorText ">Warning!</div>
+                    <div class="popupErrorMessage ">Wrong file format. Please select an <b>.xlsx</b> file to upload.</div>
+                </div>
+
+                <div class="popupButtonSave" ng-click="closeThisDialog(); ">OK</div>
+            </div>
+            <div class="message " ng-show="showMessage('error_file_exists') ">
+                <div class="popupError ">
+                    <div class="popupErrorIcon "><img class="popupErrorIconImg " src="assets/images/errorIcon.svg " /></div>
+                    <div class="popupErrorText ">Error!</div>
+                    <div class="popupErrorMessage ">Evaluation Already Exists...</div>	
+                    <div class="popupErrorMessage ">Refresh the page and if the problem persists contact the Administrator.</div>	
+                </div>
+                <div class="popupButtonSave" ng-click="closeThisDialog(); ">OK</div>
+            </div>
+			<div class="message " ng-show="showMessage('file_upload_error') ">
+                <div class="popupError ">
+                    <div class="popupErrorIcon "><img class="popupErrorIconImg " src="assets/images/errorIcon.svg " /></div>
+                    <div class="popupErrorText ">Error!</div>
+                    <div class="popupErrorMessage ">There was an erron in uploading process...</div>	
+                    <div class="popupErrorMessage ">Refresh the page and if the problem persists contact the Administrator.</div>	
+                </div>
+                <div class="popupButtonSave" ng-click="closeThisDialog(); ">OK</div>
+            </div>
+         </div>
+    </div>
+</div>   
+<!-- end of popup -->

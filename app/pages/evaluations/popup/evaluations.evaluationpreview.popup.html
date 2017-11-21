@@ -1,0 +1,96 @@
+<!doctype html>
+<div class="popup">
+	<div class="panel panel-primary" ng-show="showExtraMessagePopup('none')">
+        <div class="custom panel-heading">
+           <div class="iconContainer">
+                <div class="shine"><img class="imgicon" ng-src="{{photoUrl}}{{evaluationObj.EmployeeID}}b.jpg"   err-src="{{photoUrl}}male.gif">
+                </div>
+            </div>
+            <div class="popupClose" ng-click="closeThisDialog();">
+                <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+            </div>
+            <h4 style="">Evaluation Form Preview<br /> {{evaluationObj.EmployeeID}} - {{evaluationObj.employeeName}}</h4>
+			<div>
+				<button class="downloadBtn" type="button" ng-click="generatePdf()"><span class="glyphicon glyphicon-print" aria-hidden="true"></span> Export Evaluation in PDF</button>
+			</div>
+        </div>
+        <div id="evaluationPreviewPopup">
+			<div id="exportthis">
+				<table style="width: 100%">
+					<tr>
+						<td style="width: 93%"><h3 style="text-align: center; margin-top: 0px;">Evaluation Form Preview<br/>Period: {{activeCycle}}<br/>{{evaluationObj.EmployeeID}} - {{evaluationObj.employeeName}}</h3></td>
+						<td style="width: 7%;vertical-align: middle;"><img id="logoImg" src="assets/images/logo3.png" alt="logo"></td>
+					</tr>
+				</table>
+				<div class="container-fluid" ng-init="getSections(evaluationObj.EvaluationID,evaluationObj.State)">
+					<div class="row" ng-init="getQuestions(evaluationObj.EvaluationID,evaluationObj.State)">
+						<div class="form-group col-xs-12"  style="padding-right: 0px;padding-left: 0px;">
+							<div ng-repeat="section in questionnaireSections track by $index">
+
+										<h3 class="panel-title panel-title-pdf pull-left">SECTION {{section.SectionOrder}} - {{section.SectionDescription}}</h3>
+
+									<div ng-repeat="question in questions" ng-if="question.SectionID == section.SectionID">
+										<div class="form-group col-xs-12 col-md-12"  style="margin-bottom: 0px;">
+
+											<div class="row" ng-init="getUserGoals(evaluationObj.EmployeeID,evaluationObj.EvaluationID)" ng-if="section.SectionID == 3">
+													<div class="dataTable goals-table">
+														<table >
+															<thead>
+																<tr class="headerRowPopup">
+																	<th style="width:1%;">Goal#</th>
+																	<th style="width:20%; vertical-align: middle;">ATTRIBUTE</th>
+																	<th style="width:50%; vertical-align: middle;">GOAL</th>
+																	<th class="center" style="width:5%">WEIGHT %</th>
+																	<th style="width:20%;"></th>
+																</tr>
+															</thead>
+															<tbody>
+																<tr ng-repeat="goal in goals track by $index" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+																	<td class="center">{{$index+1}}</td>
+																	<td style="vertical-align: middle;"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}} - {{goal.CodeDescription}}</span></td>
+																	<td style="vertical-align: middle;">{{goal.GoalDescription}}</td>
+																	<td class="center">{{goal.Weight}}</td>
+																	<td></td>
+																</tr>
+															</tbody>
+														</table>
+													</div>
+												</div>
+											<label>{{question.Title}}</label>
+											<div ng-show="question.Title" class="clearfix" style="height: 10px;"></div>
+											<label ng-hide="(question.QuestionDescripton).includes('Comments')" style="display: initial;">{{question.QuestionOrder}}. </label><label style="font-weight: initial; display: initial; margin-bottom: 0px;">{{question.QuestionDescripton}}</label>
+											<div class="clearfix" style="height: 10px;"></div>
+
+											<div class="radioButtondemoBasicUsage" style="display: inline; position: relative; font-style: italic;">
+												&nbsp;Possible Answers:&nbsp;
+												<label ng-if="question.QuestionTypeID != 2">{{question.TypeValues}}</label>
+												<label ng-if="question.QuestionTypeID == 2">(Text area)</label>
+											</div>
+											<div class="radioButtondemoBasicUsage" ng-attr-style="{{question.QuestionTypeID != 2 && question.QuestionTypeID != 4 ? 'display: inline; position: relative; font-style: italic; margin-left: 10%;' : 'font-style: italic;'}}">
+												<span style="border-radius: 9px 9px 9px 9px; background-color: #ececec;">&nbsp;Employee Answer:&nbsp;</span>
+												<label ng-if="question.QuestionTypeID != 2">{{question.EmpAnswer}}</label>
+												<span ng-if="question.QuestionTypeID == 2">{{question.EmpAnswer}}</span>
+											</div>
+											<div class="radioButtondemoBasicUsage" ng-attr-style="{{question.QuestionTypeID != 2 && question.QuestionTypeID != 4 ? 'display: inline; position: relative; font-style: italic; margin-left: 10%;' : 'font-style: italic;'}}">
+												<span style="border-radius: 9px 9px 9px 9px;background-color: #c5e0b6;">&nbsp;Evaluator Answer:&nbsp;</span>
+												<label ng-if="question.QuestionTypeID != 2">{{question.EvalAnswer}}</label>
+												<span ng-if="question.QuestionTypeID == 2">{{question.EvalAnswer}}</span>
+											</div>
+											<hr/>
+										</div>
+									</div>
+								<div class="clearfix page-break" style="height: 30px;"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+        </div>
+    </div>
+	<div class="container" ng-show="showExtraMessagePopup('loading')">
+		<div class="content"><br/>
+			<div class="circle "></div>
+			<div class="circle1 "></div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,75 @@
+<!doctype html>
+<div class="popup">
+	<div class="panel panel-primary" ng-show="showMessage('none')">
+        <div class="custom panel-heading">
+           <div class="iconContainer">
+                <div class="shine"><img class="imgicon" ng-src="{{photoUrl}}{{cycleGoal.Empno}}b.jpg"   err-src="{{photoUrl}}male.gif">
+                </div>
+            </div>
+            <div class="popupClose" ng-click="closeThisDialog();">
+                <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+            </div>
+            <h4 style="">Evaluation Form Preview<br /> {{cycleGoal.Empno}} - {{cycleGoal.employeeName}}</h4>
+        </div>
+        <div class="panel-body-preview" id="evaluationPreviewPopup">
+            <div class="container-fluid" ng-init="getSections(cycleGoal.EvaluationID,cycleGoal.GoalsState)">
+				<div class="row" ng-init="getQuestions(cycleGoal.EvaluationID,cycleGoal.GoalsState)">
+					<div class="form-group col-xs-12"  style="padding-right: 0px;padding-left: 0px;">
+						<div ng-repeat="section in questionnaireSections track by $index">
+							<div class="panel panel-success box-one" style="margin-bottom:10px; border:1px; box-shadow: 0px 0px 0px; border-radius: 5px; border-style: solid; border-color: #d6e9c6;">
+								<div class="panel-heading" style="min-height: 55px;">
+									<h3 class="panel-title pull-left">SECTION {{section.SectionOrder}} - {{section.SectionDescription}}</h3>
+								</div>
+								<div class="panel-body" ng-repeat="question in questions" ng-if="question.SectionID == section.SectionID">
+									<div class="form-group col-xs-12 col-md-12"  style="margin-top: -15px; margin-bottom: 0px;">
+
+										<div class="row" ng-init="getUserGoals(cycleGoal.Empno,cycleGoal.EvaluationID)" ng-if="section.SectionID == 3">
+												<div class="dataTable goals-table">
+													<table >
+														<thead>
+															<tr class="headerRowPopup">
+																<th style="width:1%;">Goal#</th>
+																<th style="width:20%; vertical-align: middle;">ATTRIBUTE</th>
+																<th style="width:70%; vertical-align: middle;">GOAL</th>
+																<th class="center" style="width:5%">WEIGHT %</th>
+																<th>&nbsp;</th>
+															</tr>
+														</thead>
+														<tbody>
+															<tr ng-repeat="goal in goals track by $index" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+																<td class="center">{{$index+1}}</td>
+																<td style="vertical-align: middle;" ><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}} - {{goal.CodeDescription}}</span></td>
+																<td style="vertical-align: middle;">{{goal.GoalDescription}}</td>
+																<td class="center">{{goal.Weight}}</td>
+																<td> </td>
+															</tr>
+														</tbody>
+													</table>
+												</div>
+											</div>
+										<label>{{question.Title}}</label><br/>
+										<label ng-hide="(question.QuestionDescripton).includes('Comments')" style="display: initial;">{{question.QuestionOrder}}. </label><label style="font-weight: initial; display: initial; margin-bottom: 0px;">{{question.QuestionDescripton}}</label>
+										<div class="clearfix" style="height: 30px;"></div>
+
+										<div class="radioButtondemoBasicUsage" style="width: 95%; display: inline-flex; position: relative; font-style: italic;">
+											Possible Answers:&nbsp;
+											<label ng-if="question.QuestionTypeID != 2">{{question.TypeValues}}</label>
+											<label ng-if="question.QuestionTypeID == 2">(Text area)</label>
+										</div>
+										<br/><hr/>
+									</div>
+								</div>
+							 </div>
+						</div>
+					</div>
+				</div>
+            </div>
+         </div>
+    </div>
+	<div class="container" ng-show="showMessage('loading')">
+		<div class="content"><br/>
+			<div class="circle "></div>
+			<div class="circle1 "></div>
+		</div>
+	</div>
+</div>

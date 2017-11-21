@@ -1,0 +1,123 @@
+<!doctype html>
+
+   <div class="panel panel-primary popup todo-popup devplan-popup" >
+		<div class="custom panel-heading">
+			<div class="popupClose" ng-click="closeThisDialog();">
+			   <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+			</div>
+			<h4 class="pop-up-header" >New Development Plan</h4>
+		</div>
+		<div class="panel-body" id="todoPopupBody">
+			<div class="formItems" ng-show="showExtraMessage('none')" >
+				<div class="container-fluid">
+				<form name="form" >
+					<div class="row">
+						<!-- CLEAR -->
+						<div class="col-md-12">
+							<div class="">
+								<div class="clear"> </div>
+								<!-- CLEAR -->
+								<div class="panel panel-default newPanelBodyDevplan">
+									<div class="panel-body">
+										<div class="col-md-12">
+											<label style="margin-top:15px; margin-left: 15px;">Developmental Action *</label>
+										</div>
+										<div class="col-md-12">
+											<select ng-model="devplan.Action">
+												<option value="1">On-the-job training</option>
+												<option value="2">Classroom training, formal learning or education</option>
+												<option value="3">Other action **</option>
+											</select>
+										</div>
+										<div class="col-md-6">
+											<label style="margin-left:15px;margin-top:15px;">Developmental Objective</label>
+											<textarea ng-model="devplan.Objective" rows="2" style="width: 95%;" required></textarea>
+										</div>
+										<div class="col-md-6">
+											<label style="margin-left:15px;margin-top:15px;">Additional Information/Clarifications</label>
+											<textarea ng-model="devplan.AdditionalInfo" rows="2" style="width: 95%;" ></textarea>
+										</div>
+										<div class="col-md-6">
+											<label style="margin-left:15px;margin-top:15px;">By When? </label>
+											<textarea ng-model="devplan.ByWhen" rows="2" style="width: 95%;" ></textarea>
+										</div>
+										<div class="col-md-6">
+											<label style="margin-left:15px;margin-top:15px;">By Whom? *** <span style="font-style: italic; font-weight: initial;">(where applicable)</span></label>
+											<textarea ng-model="devplan.ByWhom" rows="2" style="width: 95%;" ></textarea>
+										</div>
+
+										<div class="clear"> </div>
+											<br/>
+									  <!-- CLEAR -->
+
+										<div class="col-md-12">
+											* Developmental Action: Choose a developmental action based on the "Golden Rule" that says: "60% can be on-the-job training, 30% coaching from manager and only 10% classroom training".
+
+										</div>
+										<div class="clear"> </div>
+											<br/>
+										<div class="col-md-12">
+										** Other action: May include any developmental action not covered under the other two categories. For example, coaching from manager.
+
+										</div>
+										<div class="clear"> </div>
+											<br/>
+										<div class="col-md-12">
+											*** By Whom?: Refers to the person who is responsible for the implementation of the developmental action. For example, who is responsible to conduct the on-the-job training to the employee?
+										</div>
+									</div>
+								</div>
+							   <!-- end of popup buttons -->
+							</div>
+							<div class="clear"> </div>
+						</div>
+						<div class="popupButtons center">
+							<div class="popupButtonCancel" ng-click="closeThisDialog();">Cancel</div>
+							<input type="submit" value="Submit" class="popupButtonSave" ng-class="{ 'disabled': !form.$valid}" ng-click="addNewDevPlan(tempEvalID,devplan,tempState);" ng-disabled="!form.$valid"
+								ng-attr-uib-tooltip="{{devplan.Objective==null ? 'Button will become active only after Developmental Objective, which is required, has been filled.' : ''}}"  tooltip-placement="top" tooltip-trigger="'mouseenter'"/>
+						</div>
+						</form>
+					</div>
+				   <!--hidden value -->
+				</div>
+			</div>
+			<div class="message" ng-show="showExtraMessage('created')">
+				<div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/successIcon.svg"/></div>
+				<div class="popupMessage">Development Plan Added Successfully! </div>
+				<div class="popupButtonSave" ng-click="closeThisDialog();">OK</div>
+			</div>
+			<div class="message" ng-show="showExtraMessage('deleted')">
+                <div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/successIcon.svg" /></div>
+                <div class="popupMessage">Development Plan Deleted Successfully! </div>
+                <div class="popupButtonSave" ng-click="closeThisDialog();">OK!</div>
+            </div>
+			<div class="container" ng-show="showMessage('loading')" >
+				<div class="content">
+					<div class="circle"></div>
+					<div class="circle1"></div>
+				</div>
+			</div>
+			<div class="message" ng-show="showExtraMessage('error')">
+				<div class="popupError">
+					<div class="popupErrorIcon"><img class="popupErrorIconImg" src="assets/images/errorIcon.svg"/></div>
+					<div class="popupErrorText">Error!</div>
+					<div class="popupErrorMessage">{{extraMessageText}}</div>
+				</div>
+				<div class="popupButtonSave" ng-click="changeExtraMessage('none');">OK</div>
+			</div>
+		   <!-- end of popupcONTENT -->
+		</div>
+   </div>
+   <!-- end of popup -->
+
+   <!--bootstrap pop over-->
+   <script>
+$(document).ready(function(){
+
+	$(".panel").mouseover(function(){
+		$('[data-toggle="popover"]').popover();
+		$('[data-toggle="class-when-false"]').popover('disable');
+	});
+
+});
+</script>

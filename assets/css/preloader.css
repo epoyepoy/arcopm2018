@@ -1,0 +1,49 @@
+#preloader6{ display: inline-block; position:relative; width: 3em; height: 3em; 
+animation: preloader_6 5s infinite linear; }
+
+#preloader6 span{  width:20px; height:20px; position:absolute; background:red; display:block; 
+    animation: preloader_6_span 1s infinite linear; }
+#preloader6 span:nth-child(1){ background:#2ecc71; }
+#preloader6 span:nth-child(2){ left:22px; background:#9b59b6; animation-delay: .2s; }
+#preloader6 span:nth-child(3){ top:22px; background:#3498db; animation-delay: .4s; }
+#preloader6 span:nth-child(4){ top:22px; left:22px; background:#f1c40f; animation-delay: .6s; }
+
+@keyframes preloader_6_span {
+   0% { transform:scale(1); }
+   50% { transform:scale(0.5); }
+   100% { transform:scale(1); }
+}
+
+
+#preloaderWhite{ display: inline-block; position:relative; width: 3em; height: 3em; 
+animation: preloader_white 5s infinite linear; }
+
+#preloaderWhite span{  width:20px; height:20px; position:absolute;   display:block; 
+    animation: preloader_white_span 1s infinite linear; }
+#preloaderWhite span:nth-child(1){ background:#fff; }
+#preloaderWhite span:nth-child(2){ left:22px; background:#fff; animation-delay: .2s; }
+#preloaderWhite span:nth-child(3){ top:22px; background:#fff; animation-delay: .4s; }
+#preloaderWhite span:nth-child(4){ top:22px; left:22px; background:#fff; animation-delay: .6s; }
+
+@keyframes preloader_white_span {
+   0% { transform:scale(1); }
+   50% { transform:scale(0.5); }
+   100% { transform:scale(1); }
+}
+
+
+#preloaderBlue{ display: inline-block; position:relative; width: 3em; height: 3em; 
+animation: preloader_Blue 5s infinite linear; }
+
+#preloaderBlue span{  width:20px; height:20px; position:absolute;   display:block; 
+    animation: preloader_Blue_span 1s infinite linear; }
+#preloaderBlue span:nth-child(1){ background:#04a6e4; }
+#preloaderBlue span:nth-child(2){ left:22px; background:#04a6e4; animation-delay: .2s; }
+#preloaderBlue span:nth-child(3){ top:22px; background:#04a6e4; animation-delay: .4s; }
+#preloaderBlue span:nth-child(4){ top:22px; left:22px; background:#04a6e4; animation-delay: .6s; }
+
+@keyframes preloader_Blue_span {
+   0% { transform:scale(1); }
+   50% { transform:scale(0.5); }
+   100% { transform:scale(1); }
+}

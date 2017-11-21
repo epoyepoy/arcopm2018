@@ -1,0 +1,54 @@
+<!doctype html>
+<div class="panel panel-primary popup todo-popup devplan-popup" >
+	<div class="custom panel-heading">
+		<div class="popupClose" ng-click="closeThisDialog();">
+		   <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+		</div>
+		<h4 class="pop-up-header">{{resetgoals ? 'Reset Evaluation & Goals' : 'Reset Evaluation'}}</h4>
+	</div>
+	<div class="panel-body" id="createProjectPopupBody">
+		<div class="message" ng-show="showExtraMessage('resetted')">
+			<div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/successIcon.svg" /></div>
+			<div class="popupMessage">{{resetgoals ? 'Evaluation & Goals Reset Successfully!' : 'Evaluation Reset Successfully!'}}</div>
+			<div class="popupButtonSave" ng-click="closeThisDialog();">OK!</div>
+		</div>
+		<div class="message" ng-show="showExtraMessage('warning')">
+			<div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/warningIcon.svg"/></div>
+			<div class="popupMessage">
+				<span ng-show="resetgoals === 1">
+					By resetting evaluation & goals you are sending it back to the employee for<br/>
+				    Goal Setting & Configuration (In case the employee is grade less than 4 it will be sent<br/>
+					back to the evaluator for Goal Setting & Configuration ) deleting the related evaluation as well.<br/> Are you sure?
+				</span>
+				<span ng-show="resetgoals === 0">
+					By resetting evaluation you are sending it back to the employee<br/>
+					for self-evaluation (In case the employee is grade less than 4 the evaluation will be<br/>
+					sent back to the evaluator) without affecting the Goal Setting & Configuration Part.<br/> Are you sure?
+				</span>
+				<span ng-show="resetgoals === 2">
+					You are going to send back the evaluation to the previous state.<br/>
+					Are you sure?
+				</span>
+			</div>
+			<div class="popupButtonCancel" ng-click="closeThisDialog();">Cancel</div>
+			<div class="popupButtonSave" ng-click="resetEvaluation(evaluationObject,resetgoals)">Reset</div>
+		</div>
+
+		<div class="message " ng-show="showExtraMessage( 'error') ">
+
+			<div class="popupError ">
+				<div class="popupErrorIcon "><img class="popupErrorIconImg " src="assets/images/errorIcon.svg " /></div>
+				<div class="popupErrorText ">Error!</div>
+				<div class="popupErrorMessage ">{{messageText}}</div>
+			</div>
+
+			<div class="popupButtonSave" ng-click="closeThisDialog(); ">OK</div>
+		</div>
+		<div class="message" ng-show="showExtraMessage('loading')">
+			<div class="content"><br/>
+				<div class="circle "></div>
+				<div class="circle1 "></div>
+			</div>
+		</div>
+	 </div>
+</div>

@@ -1,0 +1,27 @@
+<!doctype html>
+
+<div id="loginWrapper" ng-controller="loginController" ng-show="!login">
+
+	<div id="login">
+
+        <!-- fake fields are a workaround for chrome autofill getting the wrong fields -->
+        <input style="display:none" type="text" name="fakeusernameremembered"/>
+        <input style="display:none" type="password" name="fakepasswordremembered"/>
+
+        <div id="loginLogo"><img id="loginLogoImg" src="assets/images/loginLogo.svg" /></div>
+
+    	<div id="loginUsername">
+            <input type="text" ng-model="username" placeholder="USERNAME/EMAIL"  />
+        </div>
+        <div id="loginPassword">
+            <input type="password" ng-model="password" placeholder="PASSWORD" />
+        </div>
+
+        <div id="loginButton" ng-click="signIn();"> SIGN IN </div>
+
+
+        <div id="loginMessage">{{message}}</div>
+
+    </div> <!-- end of login -->
+
+</div><!-- end of login wrapper -->

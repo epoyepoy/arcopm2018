@@ -1,0 +1,52 @@
+<!doctype html>
+
+   <div class="panel panel-primary popup todo-popup mobilization" >
+		<div class="custom panel-heading">
+			<div class="popupClose" ng-click="closeThisDialog();">
+			   <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+			</div>
+			<h4 class="pop-up-header" >Enable Employee</h4>
+		</div>
+		<div class="panel-body" id="todoPopupBody">
+			<div class="message" ng-show="showExtraMessage('reverted')">
+                <div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/successIcon.svg" /></div>
+                <div class="popupMessage">Reverted Successfully! </div>
+                <div class="popupButtonSave" ng-click="closeThisDialog();">OK!</div>
+            </div>
+			<div class="message" ng-show="showExtraMessage('warning')">
+				<div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/warningIcon.svg"/></div>
+				<div class="popupMessage">
+					Are you sure you want to enable this employee back to your Reporting Line?
+				</div>
+				<div class="popupButtonCancel" ng-click="closeThisDialog();">Cancel</div>
+				<div class="popupButtonSave" ng-click="revertManager(tempEvaluation);">Submit</div>
+			</div>
+			<div class="container" ng-show="showExtraMessage('loading')" >
+				<div class="content">
+					<div class="circle"></div>
+					<div class="circle1"></div>
+				</div>
+			</div>
+			<div class="message" ng-show="showExtraMessage('error')">
+				<div class="popupError">
+					<div class="popupErrorIcon"><img class="popupErrorIconImg" src="assets/images/errorIcon.svg"/></div>
+					<div class="popupErrorText">Error!</div>
+					<div class="popupErrorMessage">{{extraMessageText}}</div>
+				</div>
+				<div class="popupButtonSave" ng-click="changeExtraMessage('none');">OK</div>
+			</div>
+		   <!-- end of popupcONTENT -->    
+		</div>
+   </div>
+   <!-- end of popup -->
+   
+   
+   <!--bootstrap pop over-->
+   <script>
+$(document).ready(function(){
+	$(".panel").mouseover(function(){
+		$('[data-toggle="popover"]').popover(); 
+		$('[data-toggle="class-when-false"]').popover('disable'); 
+	});
+});
+</script>

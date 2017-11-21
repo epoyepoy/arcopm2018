@@ -1,0 +1,1135 @@
+<div id="evaluations" ng-controller="statisticsController" ng-init="init()">
+
+    <div class="col-lg-12" style="padding: 0">
+		<div class="col-lg-4" style="padding: 0">
+			<div class="pageHeader" style="display: inline-block;">Statistics</div>
+			<div style="display: inline-block;">
+				<label class="pageHeader" ng-show="reviewerStatistics" style="font-style: italic; font-size: 1.8em;"> &rarr; Reviewer's Statistics</label>
+				<label class="pageHeader" ng-show="myStatistics" style="font-style: italic; font-size: 1.8em;"> &rarr; My Statistics</label>
+				<label class="pageHeader" ng-show="companyStatistics" style="font-style: italic; font-size: 1.8em;"> &rarr; Company Statistics</label>
+				<label class="pageHeader" ng-show="dottedStatistics" style="font-style: italic; font-size: 1.8em;"> &rarr; Dotted Statistics</label>
+			</div>
+		</div>
+		<div class="col-lg-4" style="text-align: center; padding: 0;" ng-show="myStatistics || reviewerStatistics || companyStatistics || dottedStatistics">
+			<a href class="btn btn-sq-lg-back btn-warning warning-custom" ng-click="myStatistics=reviewerStatistics=companyStatistics=dottedStatistics=false; show = true; showstats = false;">
+				<i class="fa fa-arrow-left fa-2x"></i>
+				<span style="font-size: 1.5em; font-weight: bold;"> Back</span><br/>
+			</a>
+		</div>
+		<div class="col-lg-4" style="padding: 0"></div>
+	</div>
+	<br/><br/>
+
+	<div id="evaluations-categories">
+		<div class="row">
+			<div class="col-lg-12" style="text-align: center;" ng-hide="myStatistics || reviewerStatistics || companyStatistics || dottedStatistics">
+				<p>
+					<a href class="btn btn-sq-lg btn-warning warning-custom" ng-click="resetFilters(); myStatistics=true; getStatsForOneEval(); setEvaluator(); show = true; showstats = false;">
+						<i class="fa fa-user fa-5x"></i><br/>
+						<span style="font-size: 1.4em; font-weight: bold;">EVALUATOR STATISTICS</span><br/>
+						<span style="font-size: 1em; font-style: italic;">See statistics as evaluator.<br/>Analysis for all the evaluations that I have <br/>completed as evaluator.</span>
+					</a>
+					<a href class="btn btn-sq-lg btn-success success-custom" style="margin-left: 5px;" ng-click="resetFilters(); reviewerStatistics=true; show = true; showstats = false;">
+						<i class="fa fa-users fa-5x"></i><br/>
+						<span style="font-size: 1.4em; font-weight: bold;">REVIEWER STATISTICS</span><br/>
+						<span style="font-size: 1em; font-style: italic;">See statistics as reviewer.<br/>Analysis for all the evaluations that are completed </br>by the evaluators I manage.</span>
+					</a>
+				</p>
+			</div>
+		</div>
+		
+		<div class="row" >
+			<div class="col-lg-12" style="text-align: center;" ng-hide="myStatistics || reviewerStatistics || companyStatistics || dottedStatistics">
+				<p>
+					<a href class="btn btn-sq-lg btn-warning" style="font-size: 1.2em;" ng-click="resetFilters(); dottedStatistics=true; setEvaluator(); show = true; showstats = false;">
+						<i class="fa fa-users fa-5x"></i><br/>
+						<span style="font-size: 1.4em; font-weight: bold;">DOTTED STATISTICS</span><br/>
+						<span style="font-size: 1em; font-style: italic;">See statistics as dotted line manager.<br/>Analysis for all the evaluations that are completed </br>by the evaluators.</span>
+					</a>
+					<a href class="btn btn-sq-lg btn-info" style="font-size: 1.2em; margin-left: 5px;" ng-show="user.reportsAccess != ''" ng-click="resetFilters(); companyStatistics=true; getStatsForCompany(); show = true; showstats = false;">
+						<i class="fa fa-industry fa-5x"></i><br/>
+						<span style="font-size: 1.3em; font-weight: bold;">COMPANY / DEPARTMENT / <br/>REGION STATISTICS</span><br/>
+						<span style="font-size: 1em; font-style: italic;">See overall statistics by company, <br/> department or region.</span>
+					</a>
+				</p>
+			</div>
+		</div>
+	</div>
+	<div id="employeesToEvaluate" ng-show="reviewerStatistics || myStatistics || companyStatistics || dottedStatistics">
+		<div class="panel panel-success col-lg-12" style="padding: 0px; margin-top: 4vh;">
+			<div class="panel-heading" ng-click="showFilters()"><b>Filters</b>
+				<i ng-hide="show" class="fa fa-plus fa-2x" aria-hidden="true" style="float: right;"></i>
+				<i ng-show="show" class="fa fa-minus fa-2x" aria-hidden="true" style="float: right;"></i>
+			</div>
+			<div id="evals" class="panel-body" style="padding:5px !important;">
+			<form name="myForm">
+			 <div class="noteFilter">
+				<fieldset>
+					<!-- <legend class="scheduler-border" style="color: #6E6E6E; margin-top: 1.5em;">Main Filters</legend> -->
+					<div class="input-group col-lg-12">
+					
+					<b>Level 1</b>: Select Type Of Statistics and Evaluation Period.
+					</div>
+					<div class="input-group col-lg-4">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Type Of Statistics</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-if="companyStatistics" ng-click="getStatsForCompany()"><a href="">General Statistics</a></li>
+								<li ng-if="!companyStatistics" ng-click="getStatsForOneEval()"><a href="">Evaluator's Team Scores</a></li>
+								<li ng-if="!companyStatistics" ng-click="getStatsForEval()"><a href="">Gap Employee Self-Evaluation & Evaluator</a></li>
+								<li ng-if="reviewerStatistics" ng-click="getStatsForManyEvals()"><a href="">Evaluators' Comparison</a></li>
+								<!--<li ng-if="!myStatistics" ng-click="getStatsForManyEvals2()"><a href="">For Many Evaluators - tendency 2</a></li>-->
+							</ul>
+						</div>
+						<input ng-init="myStatistics" type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="typeStats" required><span style="color: red; font-size: 20px; margin-left: 5px;"> *</span>
+					</div>
+					<div class="input-group col-lg-4">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Evaluation Period</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-repeat="cycle in cycles" ng-click="setEvalPeriod(cycle)"><a href="">{{cycle.CycleDescription}}</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="selected_cycleid" required><span style="color: red; font-size: 20px; margin-left: 5px;"> *</span>
+					</div>
+					<div class="input-group col-lg-4">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Calibrated Results</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.calibrated = 1; calibrated_res = 'Yes'"><a href="">Yes</a></li>
+								<li ng-click="filters.calibrated = 0; calibrated_res = 'No'"><a href="">No</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="calibrated_res" required><span style="color: red; font-size: 20px; margin-left: 5px;"> *</span>
+					</div>
+					<div class="input-group col-lg-4" ng-show="companyStatistics">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Region</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-show="user.reportsAccess == 'all'" ng-click="filters.region = 'Select All'; region_descr = 'Select All'"><a href="">Select All</a></li>
+								<li ng-show="user.reportsAccess == 'ksa' || user.reportsAccess == 'all'" ng-click="filters.region = 'ksa'; region_descr = 'KSA'"><a href="">KSA</a></li>
+								<li ng-show="user.reportsAccess == 'na'  || user.reportsAccess == 'all'" ng-click="filters.region = 'na'; region_descr = 'NA(North Africa)'"><a href="">NA(North Africa)</a></li>
+								<li ng-show="user.reportsAccess == 'gulf' || user.reportsAccess == 'all'" ng-click="filters.region = 'gulf'; region_descr = 'GULF'"><a href="">GULF</a></li>
+								<li ng-show="user.reportsAccess == 'europe' || user.reportsAccess == 'all'" ng-click="filters.region = 'europe'; region_descr = 'EUROPE'"><a href="">EUROPE</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="region_descr" ng-required="companyStatistics"><span style="color: red; font-size: 20px; margin-left: 5px;"> *</span>
+					</div>
+					<div class="input-group col-lg-4" ng-show="companyStatistics">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Job Family</span><span class="caret"></span></button>
+							<ul class="dropdown-menu projects">
+								<li ng-show="families.length > 1" ng-click="filters.family = 'Select All'; selected_family = 'Select All'"><a href="">Select All</a></li>
+								<li ng-repeat="family in families" ng-click="setFamily(family)"><a href="">{{family.family_code}} - {{family.family_desc}}</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="selected_family" ng-required="companyStatistics"><span style="color: red; font-size: 20px; margin-left: 5px;"> *</span>
+					</div>
+					<div class="input-group col-lg-4" ng-show="companyStatistics">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" aria-expanded="false" style="pointer-events: none;"><span class="btn-label">Project Code</span></button>
+						</div>
+						<input type="text" class="form-control form-label" ng-model="filters.project">
+					</div>
+				</fieldset>
+				<fieldset ng-hide="statscompany">
+					<div class="input-group col-lg-12" ng-hide="statscompany">
+							
+							<b>Level 2:</b> Define which evaluation forms you want to see, either by specific employee, position or type of evaluation form.
+					</div>
+					<div class="input-group col-lg-4" ng-hide="statscompany">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Form</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.grade = 'Select All'; grade_descr = 'Select All'" ng-hide="res_type===0"><a href="">Select All</a></li>
+								<li ng-click="filters.grade = '1_3'; grade_descr = 'Grades 1-3'"><a href="">Grades 1-3</a></li>
+								<li ng-click="filters.grade = '4_9'; grade_descr = 'Grades 4-9'"><a href="">Grades 4-9</a></li>
+								<li ng-click="filters.grade = '10'; grade_descr = 'Grades 10+'"><a href="">Grades 10+</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="grade_descr" ng-required="formrequired && res_type===0"><span style="color: red; font-size: 20px; margin-left: 5px;" ng-show="formrequired && res_type===0"> *</span>
+					</div>
+					<div class="input-group col-lg-4" ng-hide="statscompany">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" aria-expanded="false" style="pointer-events: none;"><span class="btn-label">Employee ID/Name</span></button>
+						</div>
+						<input type="text" class="form-control form-label" ng-model="filters.employee">
+					</div>
+					<div class="input-group col-lg-4" ng-hide="statscompany">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" aria-expanded="false" style="pointer-events: none;"><span class="btn-label">Position</span></button>
+						</div>
+						<input type="text" class="form-control form-label" ng-model="filters.position">
+					</div>
+					<div class="input-group col-lg-4" ng-hide="statscompany">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" aria-expanded="false" style="pointer-events: none;"><span class="btn-label">Region</span></button>
+						</div>
+						<input type="text" class="form-control form-label" ng-model="filters.region">
+					</div>
+				</fieldset>
+				<fieldset>
+					<div class="input-group col-lg-12" ng-hide="statscompany">
+							
+							<b>Level 3</b>: Define {{statsforone ? '' : 'a specific evaluator (who evaluated the forms). Moreover define'}} how the evaluator scored, either by specific section or overall performance.
+					</div>
+					<div class="input-group col-lg-4" ng-hide="statscompany || myStatistics || dottedStatistics">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" ng-disabled="myStatistics"><span class="btn-label">Evaluator</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="selected_evaluator = 'Select All'; filters.evaluator = ''"><a href="">Select All</a></li>
+								<li ng-repeat="evaluator in evaluators" ng-click="setEvaluator(evaluator)"><a href="">{{evaluator.empNo}} , {{evaluator.empName}}</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="selected_evaluator">
+					</div>
+					<!-- <legend class="scheduler-border" style="color: #6E6E6E; margin-top: 1.5em;">Evaluator's Performance Evaluations Filters</legend> -->
+					<div class="input-group col-lg-4" ng-hide="statscompany">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Perf. Stand. Rating</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.perf_stand_descr = 'Select All'"><a href="">Select All</a></li>
+								<li ng-click="filters.perf_stand_descr = 'Performance Improvement Needed'"><a href="">PIS - Performance Improvement Needed</a></li>
+								<li ng-click="filters.perf_stand_descr = 'Building Capability'"><a href="">BC - Building Capability</a></li>
+								<li ng-click="filters.perf_stand_descr = 'Achieving Performance'"><a href="">AP - Achieving Performance</a></li>
+								<li ng-click="filters.perf_stand_descr = 'Leading Performance'"><a href="">LP - Leading Performance</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="filters.perf_stand_descr">
+					</div>
+					<div class="input-group col-lg-4" ng-hide="statscompany">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Goals Rating</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.goals_descr = 'Select All'"><a href="">Select All</a></li>
+								<li ng-click="filters.goals_descr = 'Performance Improvement Needed'"><a href="">PIS - Performance Improvement Needed</a></li>
+								<li ng-click="filters.goals_descr = 'Building Capability'"><a href="">BC - Building Capability</a></li>
+								<li ng-click="filters.goals_descr = 'Achieving Performance'"><a href="">AP - Achieving Performance</a></li>
+								<li ng-click="filters.goals_descr = 'Leading Performance'"><a href="">LP - Leading Performance</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="filters.goals_descr">
+					</div>
+					<div class="input-group col-lg-4" ng-hide="statscompany">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Core Comp. Rating</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.core_comp_descr = 'Select All'"><a href="">Select All</a></li>
+								<li ng-click="filters.core_comp_descr = 'Performance Improvement Needed'"><a href="">PIS - Performance Improvement Needed</a></li>
+								<li ng-click="filters.core_comp_descr = 'Building Capability'"><a href="">BC - Building Capability</a></li>
+								<li ng-click="filters.core_comp_descr = 'Achieving Performance'"><a href="">AP - Achieving Performance</a></li>
+								<li ng-click="filters.core_comp_descr = 'Leading Performance'"><a href="">LP - Leading Performance</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="filters.core_comp_descr">
+					</div><br/><br/>
+					<div class="input-group col-lg-4" style="margin-bottom: 15px;" ng-hide="statscompany">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Lead Comp. Rating</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.lead_comp_descr = 'Select All'"><a href="">Select All</a></li>
+								<li ng-click="filters.lead_comp_descr = 'Performance Improvement Needed'"><a href="">PIS - Performance Improvement Needed</a></li>
+								<li ng-click="filters.lead_comp_descr = 'Building Capability'"><a href="">BC - Building Capability</a></li>
+								<li ng-click="filters.lead_comp_descr = 'Achieving Performance'"><a href="">AP - Achieving Performance</a></li>
+								<li ng-click="filters.lead_comp_descr = 'Leading Performance'"><a href="">LP - Leading Performance</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="filters.lead_comp_descr">
+					</div>
+					<div class="input-group col-lg-4" ng-hide="statscompany">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Overall Perf. Rating</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.over_perf_descr = 'Select All'"><a href="">Select All</a></li>
+								<li ng-click="filters.over_perf_descr = 'Performance Improvement Needed'"><a href="">PIS - Performance Improvement Needed</a></li>
+								<li ng-click="filters.over_perf_descr = 'Building Capability'"><a href="">BC - Building Capability</a></li>
+								<li ng-click="filters.over_perf_descr = 'Achieving Performance'"><a href="">AP - Achieving Performance</a></li>
+								<li ng-click="filters.over_perf_descr = 'Leading Performance'"><a href="">LP - Leading Performance</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="filters.over_perf_descr">
+					</div>
+				</fieldset>
+				
+				<fieldset ng-show="statstendency1">
+					<div class="input-group col-lg-12" >
+						<b>Level 4:</b> <b>Actual</b> provides results based on the specific configuration criteria (i.e. Manages Employees, Has Goals, Type of Evaluation Form) and links them to the rating scale levels, while <b>Average</b> provides results as absolute numbers without linking them to the rating scale levels.
+					</div>
+					<div class="input-group col-lg-4" ng-show="statstendency1">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" ng-disabled="myStatistics"><span class="btn-label">Result Type</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="res_type = 0; res_descr = 'Actual'; filters.grade == 'Select All' ? filters.grade = grade_descr = '' : exit;"><a href="">Actual</a></li>
+								<li ng-click="res_type = 1; res_descr = 'Average'"><a href="">Average</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="res_descr" ng-required="statstendency1"><span style="color: red; font-size: 20px; margin-left: 5px;" ng-show="statstendency1"> *</span>
+					</div>
+					<div class="input-group col-lg-4" ng-show="statstendency1"></div>
+					<div class="col-lg-4" ng-show="statstendency1"></div>
+				</fieldset>
+				 
+				 <fieldset ng-show="statstendency1 && res_type===0">
+					<div class="input-group col-lg-12" >
+						<b>Level 5:</b> Define the type of configuration set on the Goal Setting & Configuration for each evaluation since different score scales apply accordingly. You need to also select the type of <b>Form</b> above.
+					</div>
+					<div class="input-group col-lg-4" ng-show="statstendency1 && res_type===0">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" ng-disabled="myStatistics"><span class="btn-label">Manages Employees</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.is_manager = 'Yes'"><a href="">Yes</a></li>
+								<li ng-click="filters.is_manager = 'No'"><a href="">No</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="filters.is_manager" ng-required="statstendency1 && res_type===0"><span style="color: red; font-size: 20px; margin-left: 5px;" ng-show="statstendency1 && res_type===0"> *</span>
+					</div>
+					<div class="input-group col-lg-4" ng-show="statstendency1 && res_type===0">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" ng-disabled="myStatistics"><span class="btn-label">Has Goals</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.has_goals = 'Yes'"><a href="">Yes</a></li>
+								<li ng-click="filters.has_goals = 'No'"><a href="">No</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="filters.has_goals" ng-required="statstendency1 && res_type===0"><span style="color: red; font-size: 20px; margin-left: 5px;" ng-show="statstendency1 && res_type===0"> *</span>
+					</div>
+					<div class="col-lg-4" ng-show="statstendency1 && res_type===0"></div>
+				</fieldset>
+				
+				
+				<fieldset  ng-show="statsselfeval">
+					<!-- <legend class="scheduler-border" style="color: #6E6E6E; margin-top: 1.5em;">Employees' Performance Evaluations Filters</legend> -->
+					<div class="input-group col-lg-12" >
+							
+						<b>Level 4:</b> Search by the <b>Employee's</b> self - evalution scores per section or based on the overall performance.
+					</div>
+					<div class="input-group col-lg-4">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Perf. Stand. Rating</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.emp_perf_stand_descr = 'Select All'"><a href="">Select All</a></li>
+								<li ng-click="filters.emp_perf_stand_descr = 'Performance Improvement Needed'"><a href="">PIS - Performance Improvement Needed</a></li>
+								<li ng-click="filters.emp_perf_stand_descr = 'Building Capability'"><a href="">BC - Building Capability</a></li>
+								<li ng-click="filters.emp_perf_stand_descr = 'Achieving Performance'"><a href="">AP - Achieving Performance</a></li>
+								<li ng-click="filters.emp_perf_stand_descr = 'Leading Performance'"><a href="">LP - Leading Performance</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="filters.emp_perf_stand_descr">
+					</div>
+					<div class="input-group col-lg-4">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Goals Rating</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.emp_goals_descr = 'Select All'"><a href="">Select All</a></li>
+								<li ng-click="filters.emp_goals_descr = 'Performance Improvement Needed'"><a href="">PIS - Performance Improvement Needed</a></li>
+								<li ng-click="filters.emp_goals_descr = 'Building Capability'"><a href="">BC - Building Capability</a></li>
+								<li ng-click="filters.emp_goals_descr = 'Achieving Performance'"><a href="">AP - Achieving Performance</a></li>
+								<li ng-click="filters.emp_goals_descr = 'Leading Performance'"><a href="">LP - Leading Performance</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="filters.emp_goals_descr">
+					</div>
+					<div class="input-group col-lg-4">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Core Comp. Rating</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.emp_core_comp_descr = 'Select All'"><a href="">Select All</a></li>
+								<li ng-click="filters.emp_core_comp_descr = 'Performance Improvement Needed'"><a href="">PIS - Performance Improvement Needed</a></li>
+								<li ng-click="filters.emp_core_comp_descr = 'Building Capability'"><a href="">BC - Building Capability</a></li>
+								<li ng-click="filters.emp_core_comp_descr = 'Achieving Performance'"><a href="">AP - Achieving Performance</a></li>
+								<li ng-click="filters.emp_core_comp_descr = 'Leading Performance'"><a href="">LP - Leading Performance</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="filters.emp_core_comp_descr">
+					</div><br/><br/>
+					<div class="input-group col-lg-4" style="margin-bottom: 15px;">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Lead Comp. Rating</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.emp_lead_comp_descr = 'Select All'"><a href="">Select All</a></li>
+								<li ng-click="filters.emp_lead_comp_descr = 'Performance Improvement Needed'"><a href="">PIS - Performance Improvement Needed</a></li>
+								<li ng-click="filters.emp_lead_comp_descr = 'Building Capability'"><a href="">BC - Building Capability</a></li>
+								<li ng-click="filters.emp_lead_comp_descr = 'Achieving Performance'"><a href="">AP - Achieving Performance</a></li>
+								<li ng-click="filters.emp_lead_comp_descr = 'Leading Performance'"><a href="">LP - Leading Performance</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="filters.emp_lead_comp_descr">
+					</div>
+					<div class="input-group col-lg-4">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Overall Perf. Rating</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-click="filters.emp_over_perf_descr = 'Select All'"><a href="">Select All</a></li>
+								<li ng-click="filters.emp_over_perf_descr = 'Performance Improvement Needed'"><a href="">PIS - Performance Improvement Needed</a></li>
+								<li ng-click="filters.emp_over_perf_descr = 'Building Capability'"><a href="">BC - Building Capability</a></li>
+								<li ng-click="filters.emp_over_perf_descr = 'Achieving Performance'"><a href="">AP - Achieving Performance</a></li>
+								<li ng-click="filters.emp_over_perf_descr = 'Leading Performance'"><a href="">LP - Leading Performance</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="filters.emp_over_perf_descr">
+					</div>
+					</fieldset>
+					<fieldset>
+						<div class="col-lg-6" style="text-align: right;"><button type="button" ng-click="resetFilters()" class="btn btn-info"> Reset Filters</button></div>
+						<div class="col-lg-6" style="text-align: left;"><button type="button" ng-click="getStatistics()" ng-disabled="!myForm.$valid" class="btn btn-success filters"
+										tooltip-placement="top" tooltip-trigger="'mouseenter'" ng-attr-uib-tooltip="{{!form.$valid ? 'Button will become active only after you fill all required filters.' : ''}}"> Submit Filters</button>
+						</div>
+					</fieldset>
+				</div>
+			</form>
+			</div>
+		</div>
+		<br/><br/>
+		<uib-tabset active="active" ng-show="showstats && !emptyTable">
+			<uib-tab index="0" heading="{{company ? 'Company\'s 2016 & 2017 Analysis Charts' : 'Charts'}}" ng-click="active=0;addSlideEffect==false ? addSlideEffect = true : '';">
+				<!-- for one evaluator charts -->
+				<div class="col-lg-12 charts animated {{addSlideEffect ? 'slideInRight' : ''}}" ng-show="showstats && forone" style="padding: 0;">
+					<div class="col-lg-6" style="padding-left: 0;">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>Evaluator's Performance Evaluations:
+									Average, Min and Max Scores per Performance,
+									for all Employees (N={{evalsCount}})</strong>
+							</div>
+							<div class="panel-body" ng-show="!showMessage('loading')">
+								<canvas id="bar" class="chart chart-bar" chart-legend = "true" chart-data="dataBar"
+										chart-series="seriesBar" chart-labels="labelsBar" chart-options="optionsBar"></canvas>
+							</div>
+							<div ng-show="showMessage('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-6" style="padding-right: 0;">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>Evaluator's Performance Evaluations:
+								Distribution Curve of Overall Performance,
+								for all Employees (N={{evalsCount}})
+								</strong>
+							</div>
+							<div class="panel-body" ng-show="!showMessage('loading')">
+								<canvas id="line" class="chart chart-line" chart-data="dataLineForOne"
+									chart-labels="labelsLine" chart-options="optionsLine"
+									chart-dataset-override="datasetOverride" chart-series="seriesLine">
+								</canvas>
+							</div>
+							<div ng-show="showMessage('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- gap self-evaluation charts -->
+				<div class="col-lg-12 animated {{addSlideEffect ? 'slideInRight' : ''}}" ng-show="showstats && selfeval" style="padding: 0;">
+					<div class="col-lg-6" style="padding-left: 0;">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>Gaps between Evaluator's Performance Evaluations & Employees' Self-Evaluations:
+								Average Score per Performance Element,
+								for all Employees (N={{evalsCount}})</strong>
+							</div>
+							<div class="panel-body" ng-show="!showMessage('loading')">
+								<canvas id="area" class="chart chart-radar" chart-data="dataRadar"
+									chart-series="seriesRadar" chart-labels="labelsRadar" chart-options="optionsRadar" 
+									chart-colors="colorsSelfEval" chart-legend = "true"></canvas>
+							</div>
+							<div ng-show="showMessage('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-6" style="padding-right: 0;">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>Gaps between Evaluator's Performance Evaluations & Employees' Self-Evaluations:
+								Distribution Curve of Overall Performance,
+								for all Employees (N={{evalsCount}})</strong>
+							</div>
+							<div class="panel-body" ng-show="!showMessage('loading')">
+								<canvas id="line" class="chart chart-line" chart-data="dataLineSelfEval"
+									chart-labels="labelsLine" chart-series="seriesRadar" chart-options="optionsLineSelfEval" chart-colors="colorsSelfEval"
+									chart-dataset-override="datasetOverride">
+								</canvas>
+							</div>
+							<div ng-show="showMessage('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- tendency 1 charts (Evaluator's Comparison)-->
+				<div class="col-lg-12 charts animated {{addSlideEffect ? 'slideInRight' : ''}}" ng-show="showstats && tendency1" style="padding: 0;">
+					<div class="col-lg-6" style="padding-left: 0;">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>Evaluators' Performance Evaluations:
+								Average, Min. and Max. Scores per Performance Element,
+								for all Evaluators (N={{evalsCount}})</strong>
+							</div>
+							<div class="panel-body" ng-show="!showMessage('loading')">
+								<canvas id="bar" class="chart chart-bar" chart-legend = "true" chart-data="dataBarTendency1"
+										chart-series="seriesBar" chart-labels="labelsBar" chart-options="optionsBar"></canvas>
+							</div>
+							<div ng-show="showMessage('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-6" style="padding-right: 0;">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>Evaluators' Performance Evaluations:
+								Distribution Curve of Overall Performance,
+								for all Evaluators (N={{evalsCount}})
+								</strong>
+							</div>
+							<div class="panel-body" ng-show="!showMessage('loading')">
+								<canvas id="line" class="chart chart-line" chart-data="dataLineTendency1"
+									chart-labels="labelsLineComparison" chart-options="optionsLineComparison"
+									chart-dataset-override="datasetOverrideComparison" chart-series="seriesLine">
+								</canvas>
+							</div>
+							<div ng-show="showMessage('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- General Statistics Charts (Company Statistics) -->
+				<div class="col-lg-12 charts animated {{addSlideEffect ? 'slideInRight' : ''}}" ng-show="showstats && company" style="padding: 0;">
+					<div class="col-lg-6" style="padding-right: 0;" >
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>{{currentPeriod}} Performance Evaluations' Completion Rate {{regionInTitles == 'Select All' ? '' : regionInTitles}}</strong>
+							</div>
+							<div class="panel-body col6_Chart" ng-show="!showMessage('loading')">
+								<canvas id="pie" ng-hide="noData" class="chart chart-pie" chart-legend = "true" chart-colors="colorsCompany"
+									chart-data="dataPieCurrent" chart-labels="labelsPie" chart-options="optionsPie">
+								</canvas>
+								<b class="no-data-available" ng-show="noData">No Data Available</b>
+							</div>
+							<div ng-show="showMessage('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div >
+					</div>
+					<div class="col-lg-6" style="padding-right: 0; ">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>{{nextPeriod}} Configuration & Goal Setting Completion Rate {{regionInTitles == 'Select All' ? '' : regionInTitles}}</strong>
+							</div>
+							<div class="panel-body col6_Chart" ng-show="!showMessage('loading')">
+								<canvas id="pie" ng-hide="noData" class="chart chart-pie" chart-legend = "true" chart-colors="colorsCompany"
+									chart-data="dataPieNext" chart-labels="labelsPie" chart-options="optionsPie">
+								</canvas>
+								<b class="no-data-available" ng-show="noData">No Data Available</b>
+							</div>
+							<div ng-show="showMessage('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				<!-- KSA current -->
+					<div ng-show="user.reportsAccess == 'all' && region_descr == 'Select All'">
+						<div class="col-lg-3" style="padding-right: 0;">
+							<div class="panel panel-success">
+								<div class="panel-heading" style="text-align:center;">
+									<strong>{{currentPeriod}} Performance Evaluations' Completion Rate<br/> KSA</strong>
+								</div>
+								<div class="panel-body col3_Chart" ng-show="!showExtraMessageKSA('loading')">
+									<canvas id="pie" ng-hide="noDataKSA" class="chart chart-pie" chart-legend = "true" chart-colors="colorsCompany"
+										chart-data="dataPieCurrentKSA" chart-labels="labelsPie" chart-options="optionsPie">
+									</canvas>
+									<b class="no-data-available" ng-show="noDataKSA">No Data Available</b>
+								</div>
+								<div ng-show="showExtraMessageKSA('loading')">
+									<div class="content">
+										<div class="circle"></div>
+										<div class="circle1"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					<!-- NA current -->
+						<div class="col-lg-3" style="padding-right: 0;">
+							<div class="panel panel-success">
+								<div class="panel-heading" style="text-align:center;">
+									<strong>{{currentPeriod}} Performance Evaluations' Completion Rate<br/> NA(North Africa)</strong>
+								</div>
+								<div class="panel-body col3_Chart" ng-show="!showExtraMessageNA('loading')">
+									<canvas id="pie" ng-hide="noDataNA" class="chart chart-pie" chart-legend = "true" chart-colors="colorsCompany"
+										chart-data="dataPieCurrentNA" chart-labels="labelsPie" chart-options="optionsPie">
+									</canvas>
+									<b class="no-data-available" ng-show="noDataNA">No Data Available</b>
+								</div>
+								<div ng-show="showExtraMessageNA('loading')">
+									<div class="content">
+										<div class="circle"></div>
+										<div class="circle1"></div>
+									</div>
+								</div>
+							</div >
+						</div>
+					<!-- KSA next -->
+						<div class="col-lg-3" style="padding-right: 0;">
+							<div class="panel panel-success">
+								<div class="panel-heading" style="text-align:center;">
+									<strong>{{nextPeriod}} Configuration & Goal Setting Completion Rate<br/> KSA</strong>
+								</div>
+								<div class="panel-body col3_Chart" ng-show="!showExtraMessageKSA('loading')">
+									<canvas id="pie" ng-hide="noDataKSA" class="chart chart-pie" chart-legend = "true" chart-colors="colorsCompany"
+										chart-data="dataPieNextKSA" chart-labels="labelsPie" chart-options="optionsPie">
+									</canvas>
+									<b class="no-data-available" ng-show="noDataKSA">No Data Available</b>
+								</div>
+								<div ng-show="showExtraMessageKSA('loading')">
+									<div class="content">
+										<div class="circle"></div>
+										<div class="circle1"></div>
+									</div>
+								</div>
+							</div >
+						</div>
+					<!-- NA next -->
+						<div class="col-lg-3" style="padding-right: 0;">
+							<div class="panel panel-success">
+								<div class="panel-heading" style="text-align:center;">
+									<strong>{{nextPeriod}} Configuration & Goal Setting Completion Rate <br/>NA(North Africa)</strong>
+								</div>
+								<div class="panel-body col3_Chart" ng-show="!showExtraMessageNA('loading')">
+									<canvas id="pie" ng-hide="noDataNA" class="chart chart-pie" chart-legend = "true" chart-colors="colorsCompany"
+										chart-data="dataPieNextNA" chart-labels="labelsPie" chart-options="optionsPie">
+									</canvas>
+									<b class="no-data-available" ng-show="noDataNA">No Data Available</b>
+								</div>
+								<div ng-show="showExtraMessageNA('loading')">
+									<div class="content">
+										<div class="circle"></div>
+										<div class="circle1"></div>
+									</div>
+								</div>
+							</div >
+						</div>
+
+					<!-- GULF current -->
+						<div class="col-lg-3" style="padding-right: 0;">
+							<div class="panel panel-success">
+								<div class="panel-heading" style="text-align:center;">
+									<strong>{{currentPeriod}} Performance Evaluations' Completion Rate<br/> GULF</strong>
+								</div>
+								<div class="panel-body col3_Chart" ng-show="!showExtraMessageGULF('loading')">
+									<canvas id="pie" ng-hide="noDataGULF" class="chart chart-pie" chart-legend = "true" chart-colors="colorsCompany"
+										chart-data="dataPieCurrentGULF" chart-labels="labelsPie" chart-options="optionsPie">
+									</canvas>
+									<b class="no-data-available" ng-show="noDataGULF">No Data Available</b>
+								</div>
+								<div ng-show="showExtraMessageGULF('loading')">
+									<div class="content">
+										<div class="circle"></div>
+										<div class="circle1"></div>
+									</div>
+								</div>
+							</div >
+						</div>
+					<!-- EURO current -->
+						<div class="col-lg-3" style="padding-right: 0;">
+							<div class="panel panel-success">
+								<div class="panel-heading" style="text-align:center;">
+									<strong>{{currentPeriod}} Performance Evaluations' Completion Rate<br/> EUROPE</strong>
+								</div>
+								<div class="panel-body col3_Chart" ng-show="!showExtraMessageEURO('loading')">
+									<canvas id="pie" ng-hide="noDataEURO" class="chart chart-pie" chart-legend = "true" chart-colors="colorsCompany"
+										chart-data="dataPieCurrentEURO" chart-labels="labelsPie" chart-options="optionsPie">
+									</canvas>
+									<b class="no-data-available" ng-show="noDataEURO">No Data Available</b>
+								</div>
+								<div ng-show="showExtraMessageEURO('loading')">
+									<div class="content">
+										<div class="circle"></div>
+										<div class="circle1"></div>
+									</div>
+								</div>
+							</div >
+						</div>
+					<!-- GULF next -->
+						<div class="col-lg-3" style="padding-right: 0;">
+							<div class="panel panel-success">
+								<div class="panel-heading" style="text-align:center;">
+									<strong>{{nextPeriod}} Configuration & Goal Setting Completion Rate <br/>GULF</strong>
+								</div>
+								<div class="panel-body col3_Chart" ng-show="!showExtraMessageGULF('loading')">
+									<canvas id="pie" ng-hide="noDataGULF" class="chart chart-pie" chart-legend = "true" chart-colors="colorsCompany"
+										chart-data="dataPieNextGULF" chart-labels="labelsPie" chart-options="optionsPie">
+									</canvas>
+									<b class="no-data-available" ng-show="noDataGULF">No Data Available</b>
+								</div>
+								<div ng-show="showExtraMessageGULF('loading')">
+									<div class="content">
+										<div class="circle"></div>
+										<div class="circle1"></div>
+									</div>
+								</div>
+							</div >
+						</div>
+					<!-- EURO next -->
+						<div class="col-lg-3" style="padding-right: 0;">
+							<div class="panel panel-success">
+								<div class="panel-heading" style="text-align:center;">
+									<strong>{{nextPeriod}} Configuration & Goal Setting Completion Rate <br/>EUROPE</strong>
+								</div>
+								<div class="panel-body col3_Chart" ng-show="!showExtraMessageEURO('loading')">
+									<canvas id="pie" ng-hide="noDataEURO" class="chart chart-pie" chart-legend = "true" chart-colors="colorsCompany"
+										chart-data="dataPieNextEURO" chart-labels="labelsPie" chart-options="optionsPie">
+									</canvas>
+									<b class="no-data-available" ng-show="noDataEURO">No Data Available</b>
+								</div>
+								<div ng-show="showExtraMessageEURO('loading')">
+									<div class="content">
+										<div class="circle"></div>
+										<div class="circle1"></div>
+									</div>
+								</div>
+							</div >
+						</div>
+					</div>
+					<div class="col-lg-6" style="padding-right: 0;">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>{{currentPeriod}} Overall Score <br/>Distribution</strong>
+							</div>
+							<div class="panel-body col6_Chart" ng-show="!showMessage('loading')">
+								<canvas id="line" ng-hide="noData" class="chart chart-line" chart-data="dataLineCompany"
+									chart-labels="labelsLine" chart-options="optionsLineCompany"
+									chart-dataset-override="datasetOverride">
+								</canvas>
+								<b class="no-data-available" ng-show="noData">No Data Available</b>
+							</div>
+							<div ng-show="showMessage('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-6" style="padding-right: 0;" ng-show="region_descr == 'Select All'">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>{{currentPeriod}} Score Distribution<br/> By Region</strong>
+							</div>
+							<div class="panel-body col6_Chart" ng-show="!showMessageDestrRegion('loading')">
+								<canvas id="line" ng-hide="noData" class="chart chart-line" chart-data="dataLineStatsByRegion"
+									chart-labels="labelsLine" chart-series="seriesLineStatsByRegion" chart-options="optionsLineStatsByRegion"
+									chart-dataset-override="datasetOverride">
+								</canvas>
+								<b class="no-data-available" ng-show="noData">No Data Available</b>
+							</div>
+							<div ng-show="showMessageDestrRegion('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-6" style="padding-right: 0;">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>{{currentPeriod}} Score Distribution <br/>By Performance Element</strong>
+							</div>
+							<div class="panel-body col6_Chart" ng-show="!showMessagePerfEle('loading')">
+								<canvas id="line" ng-hide="noData" class="chart chart-line" chart-data="dataLineCompanySection"
+									chart-labels="labelsLine" chart-series="seriesLineCompanySection" chart-options="optionsLineScoresPerSection"
+									chart-dataset-override="datasetOverride">
+								</canvas>
+								<b class="no-data-available" ng-show="noData">No Data Available</b>
+							</div>
+							<div ng-show="showMessagePerfEle('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-6" style="padding-right: 0;">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>{{currentPeriod}} Satisfaction Rate <br/>By Question</strong>
+							</div>
+							<div class="panel-body col6_Chart" ng-show="!showExtraPlusMessage('loading')">
+								<canvas id="line" ng-hide="noDataSatisfByQuest" class="chart chart-line" chart-data="dataLineCompanySatisf"
+									chart-labels="labelsLineCompanySatisf" chart-series="seriesLineCompanySatisf" chart-options="optionsLineCompanySatisf"
+									chart-dataset-override="datasetOverride">
+								</canvas>
+								<b class="no-data-available" ng-show="noDataSatisfByQuest">No Data Available</b>
+							</div>
+							<div ng-show="showExtraPlusMessage('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="col-lg-6" style="padding-right: 0;">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>{{currentPeriod}} Satisfaction Rate by Grade for Question: "To what extent are you satisfied with your present job<br/> at ARCHIRODON?"</strong>
+							</div>
+							<div class="panel-body col6_Chart" ng-show="!showExtraPlusMessage('loading')">
+								<canvas id="line" ng-hide="noDataSatisfByGradeQuest12" class="chart chart-line" chart-data="dataLineCompanySatisf12"
+									chart-labels="labelsLineCompanySatisf" chart-series="seriesLineCompanySatisf12" chart-options="optionsLineCompanySatisf"
+									chart-dataset-override="datasetOverride">
+								</canvas>
+								<b class="no-data-available" ng-show="noDataSatisfByGradeQuest12">No Data Available</b>
+							</div>
+							<div ng-show="showExtraPlusMessage('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-6" style="padding-right: 0;">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>{{currentPeriod}} Satisfaction Rate by Grade for Question: "To which extent are you satisfied with the way you are using<br/> your competencies in your current position?"</strong>
+							</div>
+							<div class="panel-body col6_Chart" ng-show="!showExtraPlusMessage('loading')">
+								<canvas id="line" ng-hide="noDataSatisfByGradeQuest14" class="chart chart-line" chart-data="dataLineCompanySatisf14"
+									chart-labels="labelsLineCompanySatisf" chart-series="seriesLineCompanySatisf14" chart-options="optionsLineCompanySatisf"
+									chart-dataset-override="datasetOverride">
+								</canvas>
+								<b class="no-data-available" ng-show="noDataSatisfByGradeQuest14">No Data Available</b>
+							</div>
+							<div ng-show="showExtraPlusMessage('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-6" style="padding-right: 0;">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong> Section: Performance Standards Average Score<br/> per Question</strong>
+							</div>
+							<div class="panel-body col6_Chart" ng-show="!showMessage('loading')">
+								<canvas id="bar" class="chart chart-bar" chart-legend = "true"
+										chart-data="dataBarByQuestionId2" chart-colors=""
+										chart-labels="labelsBarByQuestionId2" chart-options="optionsBarCompanyPS">
+								</canvas>
+							</div>
+							<div ng-show="showMessage('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-6" style="padding-right: 0;">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong> Section: Core Competencies Average Score<br/> per Question</strong>
+							</div>
+							<div class="panel-body col6_Chart" ng-show="!showMessage('loading')">
+								<canvas id="bar" class="chart chart-bar" chart-legend = "true" 
+										chart-data="dataBarByQuestionId4" chart-colors=""
+										chart-labels="labelsBarByQuestionId4" chart-options="optionsBarCompanyCC">
+								</canvas>
+							</div>
+							<div ng-show="showMessage('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-6" style="padding-right: 0;">
+						<div class="panel panel-success">
+							<div class="panel-heading" style="text-align:center;">
+								<strong>Section: Leadership Competencies Average Score<br/> per Question</strong>
+							</div>
+							<div class="panel-body col6_Chart" ng-show="!showMessage('loading')">
+								<canvas id="bar" class="chart chart-bar" chart-legend = "true" 
+										chart-data="dataBarByQuestionId5" chart-colors=""
+										chart-labels="labelsBarByQuestionId5" chart-options="optionsBarCompanyLC">
+								</canvas>
+							</div>
+							<div ng-show="showMessage('loading')">
+								<div class="content">
+									<div class="circle"></div>
+									<div class="circle1"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</uib-tab>
+			<uib-tab index="1" heading="Table" ng-click="active=1; addSlideEffect==false ? addSlideEffect = true : '';" ng-show="!company" >
+				<div class="note col-lg-12 animated {{addSlideEffect ? 'slideInRight' : ''}}" style="margin:0" ng-hide="company">
+					<span ng-show="tendency1">* All scores displayed on this table are the averages between the employees evaluated.</span>
+					<div class="dataTable statisticsTable" style="padding-left: 0; overflow-x: auto; width: 92vw;" ng-hide="tendency1">
+
+						<table class="table table-condensed table-bordered table-striped">
+							<thead>
+								<tr>
+									<th rowspan="2" class="center">Lno</th>
+									<th rowspan="2" class="center">Employee</th>
+									<th rowspan="2" class="center">Form</th>
+									<th rowspan="2" class="center">Position</th>
+									<th rowspan="2" class="center">Evaluator</th>
+									<th colspan="5" class="center">Evaluator's Performance Evaluations</th>
+									<th colspan="5" class="center" ng-show="selfeval">Employees' Self-Evaluations</th>
+									<th colspan="5" class="center" ng-show="selfeval">GAPS</th>
+								</tr>
+								<tr>
+									<!-- Evaluator's Performance Evaluations-->
+									<th class="center perf-stand">Perf. Stand.</th>
+									<th class="center goals">Goals</th>
+									<th class="center core-comp">Core Comp.</th>
+									<th class="center lead-comp">Lead. Comp.</th>
+									<th class="center over-perf">Overall Perf.</th>
+									<!-- Employees' Self-Evaluations -->
+									<th class="center perf-stand" ng-show="selfeval">Perf. Stand.</th>
+									<th class="center goals" ng-show="selfeval">Goals</th>
+									<th class="center core-comp" ng-show="selfeval">Core Comp.</th>
+									<th class="center lead-comp" ng-show="selfeval">Lead. Comp.</th>
+									<th class="center over-perf" ng-show="selfeval">Overall Perf.</th>
+									<!-- GAPS -->
+									<th class="center perf-stand" ng-show="selfeval">Perf. Stand.</th>
+									<th class="center goals" ng-show="selfeval">Goals</th>
+									<th class="center core-comp" ng-show="selfeval">Core Comp.</th>
+									<th class="center lead-comp" ng-show="selfeval">Lead. Comp.</th>
+									<th class="center over-perf" ng-show="selfeval">Overall Perf.</th>
+								</tr>
+							</thead>
+							<tbody ng-show="!showMessage('loading')">
+								<tr ng-repeat="evaluation in evaluations" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+									<td class="center">{{$index+1}} </td>
+									<td  filter="{empno: 'text'}" class="center">{{evaluation.empno}}<br/>{{evaluation.Name}}</td>
+									<td class="center">{{evaluation.Form}}</td>
+									<td class="center">{{evaluation.job_desc}}</td>
+									<td class="center">{{evaluation.Evaluator}}<br/>{{evaluation.EvalName}}</td>
+									<!-- Evaluator's Performance Evaluations -->
+									<td class="center perf-stand">{{evaluation.EVPScore}}<br/>{{initialLetters(evaluation.EVPSDescr)}}</td>
+									<td class="center goals">{{evaluation.EVGscore}}<br/>{{initialLetters(evaluation.EVGSDescr)}}</td>
+									<td class="center core-comp">{{evaluation.EVCScore}}<br/>{{initialLetters(evaluation.EVCSDescr)}}</td>
+									<td class="center lead-comp">{{evaluation.EVLScore}}<br/>{{initialLetters(evaluation.EVLSDescr)}}</td>
+									<td class="center over-perf">{{evaluation.EVOScore}}<br/>{{initialLetters(evaluation.EVODescr)}}</td>
+									<!-- Employees' Self-Evaluations -->
+									<td class="center perf-stand" ng-show="selfeval">{{evaluation.EPScore}}<br/>{{initialLetters(evaluation.EPSDescr)}}</td>
+									<td class="center goals" ng-show="selfeval">{{evaluation.EGScore}}<br/>{{initialLetters(evaluation.EGSDescr)}}</td>
+									<td class="center core-comp" ng-show="selfeval">{{evaluation.ECScore}}<br/>{{initialLetters(evaluation.ECSDescr)}}</td>
+									<td class="center lead-comp" ng-show="selfeval">{{evaluation.ELScore}}<br/>{{initialLetters(evaluation.ELSDescr)}}</td>
+									<td class="center over-perf" ng-show="selfeval">{{evaluation.EOScore}}<br/>{{initialLetters(evaluation.EOSDescr)}}</td>
+									<!-- GAPS -->
+									<td class="center perf-stand" ng-show="selfeval">{{evaluation.PGap}}</td>
+									<td class="center goals" ng-show="selfeval">{{evaluation.GGap}}</td>
+									<td class="center core-comp" ng-show="selfeval">{{evaluation.CGap}}</td>
+									<td class="center lead-comp" ng-show="selfeval">{{evaluation.LGap}}</td>
+									<td  ng-show="selfeval"  ng-class="{'over-perf bldRed center':(evaluation.OGap>=1), 'center over-perf' :(evaluation.OGap<1)}">{{evaluation.OGap}}</td>
+								</tr>
+							</tbody>
+						</table>
+						<div ng-show="showMessage('loading')">
+							<div class="content">
+								<div class="circle"></div>
+								<div class="circle1"></div>
+							</div>
+						</div>
+					</div>
+					<div class="dataTable statisticsTable" style="padding-left: 0; overflow-x: auto; width: 92vw;" ng-show="tendency1">
+						<table class="table table-condensed table-bordered table-striped">
+							<thead>
+								<tr>
+									<th rowspan="3" class="center">Lno</th>
+									<th rowspan="3" class="center">Evaluator</th>
+									<th rowspan="3" class="center">No. of<br/> Employees<br/> Evaluated</th>
+									<th ng-attr-colspan="{{filters.res_type ? 4 : 8}}" class="center">Performance Standards</th>
+									<th ng-attr-colspan="{{filters.res_type ? 4 : 8}}" class="center">Goals</th>
+									<th ng-attr-colspan="{{filters.res_type ? 4 : 8}}" class="center">Core Competencies</th>
+									<th ng-attr-colspan="{{filters.res_type ? 4 : 8}}" class="center">Leadership Competencies</th>
+									<th ng-attr-colspan="{{filters.res_type ? 4 : 8}}" class="center">Overall Performance</th>
+								</tr>
+								<tr>
+									<!-- Performance Standards -->
+									<th colspan="3" class="center">Scores</th>
+									<th colspan="4" class="center" ng-show="!filters.res_type">Distribution</th>
+									<th rowspan="2" class="center">Gap</th>
+									<!-- Goals -->
+									<th colspan="3" class="center">Scores</th>
+									<th colspan="4" class="center" ng-show="!filters.res_type">Distribution</th>
+									<th rowspan="2" class="center">Gap</th>
+									<!-- Core Competencies -->
+									<th colspan="3" class="center">Scores</th>
+									<th colspan="4" class="center" ng-show="!filters.res_type">Distribution</th>
+									<th rowspan="2" class="center">Gap</th>
+									<!-- Leadership Competencies -->
+									<th colspan="3" class="center">Scores</th>
+									<th colspan="4" class="center" ng-show="!filters.res_type">Distribution</th>
+									<th rowspan="2" class="center">Gap</th>
+									<!-- Overall Performance -->
+									<th colspan="3" class="center">Scores</th>
+									<th colspan="4" class="center" ng-show="!filters.res_type">Distribution</th>
+									<th rowspan="2" class="center">Gap</th>
+								</tr>
+								<tr>
+									<!-- Performance Standards -->
+									<th class="center perf-stand">Avg</th>
+									<th class="center perf-stand">Min</th>
+									<th class="center perf-stand">Max</th>
+									<th class="center perf-stand" ng-show="!filters.res_type">PIN</th>
+									<th class="center perf-stand" ng-show="!filters.res_type">BC</th>
+									<th class="center perf-stand" ng-show="!filters.res_type">AP</th>
+									<th class="center perf-stand" ng-show="!filters.res_type">LP</th>
+									<!-- Goals -->
+									<th class="center goals">Avg</th>
+									<th class="center goals">Min</th>
+									<th class="center goals">Max</th>
+									<th class="center goals" ng-show="!filters.res_type">PIN</th>
+									<th class="center goals" ng-show="!filters.res_type">BC</th>
+									<th class="center goals" ng-show="!filters.res_type">AP</th>
+									<th class="center goals" ng-show="!filters.res_type">LP</th>
+									<!-- Core Competencies -->
+									<th class="center core-comp">Avg</th>
+									<th class="center core-comp">Min</th>
+									<th class="center core-comp">Max</th>
+									<th class="center core-comp" ng-show="!filters.res_type">PIN</th>
+									<th class="center core-comp" ng-show="!filters.res_type">BC</th>
+									<th class="center core-comp" ng-show="!filters.res_type">AP</th>
+									<th class="center core-comp" ng-show="!filters.res_type">LP</th>
+									<!-- Leadership Competencies -->
+									<th class="center lead-comp">Avg</th>
+									<th class="center lead-comp">Min</th>
+									<th class="center lead-comp">Max</th>
+									<th class="center lead-comp" ng-show="!filters.res_type">PIN</th>
+									<th class="center lead-comp" ng-show="!filters.res_type">BC</th>
+									<th class="center lead-comp" ng-show="!filters.res_type">AP</th>
+									<th class="center lead-comp" ng-show="!filters.res_type">LP</th>
+									<!-- Overall Performance -->
+									<th class="center over-perf">Avg</th>
+									<th class="center over-perf">Min</th>
+									<th class="center over-perf">Max</th>
+									<th class="center over-perf" ng-show="!filters.res_type">PIN</th>
+									<th class="center over-perf" ng-show="!filters.res_type">BC</th>
+									<th class="center over-perf" ng-show="!filters.res_type">AP</th>
+									<th class="center over-perf" ng-show="!filters.res_type">LP</th>
+								</tr>
+							</thead>
+							<tbody ng-show="!showMessage('loading')">
+								<tr ng-repeat="evaluation in evaluations" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+									<td class="center">{{$index+1}} </td>
+									<td filter="{empno: 'text'}" class="center">{{evaluation.Evaluator}}<br/>{{evaluation.Name}}</td>
+									<td class="center">{{evaluation.EvaluatedCount}}</td>
+									<!-- Performance Standards -->
+									<td class="center perf-stand">{{evaluation.AVGPScore}}<br/>{{!filters.res_type ? initialLetters(evaluation.AVGPDesc) : 'N/A'}}</td>
+									<td class="center perf-stand">{{evaluation.MINPScore}}</td>
+									<td class="center perf-stand">{{evaluation.MAXPScore}}</td>
+									<td class="center perf-stand" ng-show="!filters.res_type">{{evaluation.PPerfImproNeededCount}}</td>
+									<td class="center perf-stand" ng-show="!filters.res_type">{{evaluation.PBuildingCapabilityCount}}</td>
+									<td class="center perf-stand" ng-show="!filters.res_type">{{evaluation.PAchievingPerformanceCount}}</td>
+									<td class="center perf-stand" ng-show="!filters.res_type">{{evaluation.PLeadingPerformanceCount}}</td>
+									<td class="center perf-stand">{{evaluation.PGap}}</td>
+									<!-- Goals -->
+									<td class="center goals">{{evaluation.AVGGScore}}<br/>{{!filters.res_type ? initialLetters(evaluation.AVGGDesc) : 'N/A'}}</td>
+									<td class="center goals">{{evaluation.MINGScore}}</td>
+									<td class="center goals">{{evaluation.MAXGScore}}</td>
+									<td class="center goals" ng-show="!filters.res_type">{{evaluation.GPerfImproNeededCount}}</td>
+									<td class="center goals" ng-show="!filters.res_type">{{evaluation.GBuildingCapabilityCount}}</td>
+									<td class="center goals" ng-show="!filters.res_type">{{evaluation.GAchievingPerformanceCount}}</td>
+									<td class="center goals" ng-show="!filters.res_type">{{evaluation.GLeadingPerformanceCount}}</td>
+									<td class="center goals">{{evaluation.GGap}}</td>
+									<!-- Core Competencies -->
+									<td class="center core-comp">{{evaluation.AVGCScore}}<br/>{{!filters.res_type ? initialLetters(evaluation.AVGCDesc) : 'N/A'}}</td>
+									<td class="center core-comp">{{evaluation.MINCScore}}</td>
+									<td class="center core-comp">{{evaluation.MAXCScore}}</td>
+									<td class="center core-comp" ng-show="!filters.res_type">{{evaluation.CPerfImproNeededCount}}</td>
+									<td class="center core-comp" ng-show="!filters.res_type">{{evaluation.CBuildingCapabilityCount}}</td>
+									<td class="center core-comp" ng-show="!filters.res_type">{{evaluation.CAchievingPerformanceCount}}</td>
+									<td class="center core-comp" ng-show="!filters.res_type">{{evaluation.CLeadingPerformanceCount}}</td>
+									<td class="center core-comp">{{evaluation.CGap}}</td>
+									<!-- Leadership Competencies -->
+									<td class="center lead-comp">{{evaluation.AVGLScore}}<br/>{{!filters.res_type ? initialLetters(evaluation.AVGLDesc) : 'N/A'}}</td>
+									<td class="center lead-comp">{{evaluation.MINLScore}}</td>
+									<td class="center lead-comp">{{evaluation.MAXLScore}}</td>
+									<td class="center lead-comp" ng-show="!filters.res_type">{{evaluation.LPerfImproNeededCount}}</td>
+									<td class="center lead-comp" ng-show="!filters.res_type">{{evaluation.LBuildingCapabilityCount}}</td>
+									<td class="center lead-comp" ng-show="!filters.res_type">{{evaluation.LAchievingPerformanceCount}}</td>
+									<td class="center lead-comp" ng-show="!filters.res_type">{{evaluation.LLeadingPerformanceCount}}</td>
+									<td class="center lead-comp">{{evaluation.LGap}}</td>
+									<!-- Overall Performance -->
+									<td class="center over-perf">{{evaluation.AVGOScore}}<br/>{{!filters.res_type ? initialLetters(evaluation.AVGODesc) : 'N/A'}}</td>
+									<td class="center over-perf">{{evaluation.MINOScore}}</td>
+									<td class="center over-perf">{{evaluation.MAXOScore}}</td>
+									<td class="center over-perf" ng-show="!filters.res_type">{{evaluation.OPerfImproNeededCount}}</td>
+									<td class="center over-perf" ng-show="!filters.res_type">{{evaluation.OBuildingCapabilityCount}}</td>
+									<td class="center over-perf" ng-show="!filters.res_type">{{evaluation.OAchievingPerformanceCount}}</td>
+									<td class="center over-perf" ng-show="!filters.res_type">{{evaluation.OLeadingPerformanceCount}}</td>
+									<td class="center over-perf">{{evaluation.OGap}}</td>
+								</tr>
+							</tbody>
+						</table>
+						<div ng-show="showMessage('loading')">
+							<div class="content">
+								<div class="circle"></div>
+								<div class="circle1"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+			</uib-tab>
+			
+				
+			
+		</uib-tabset>
+		<div style="text-align: -moz-center; margin-top: 6%;" ng-show="showstats && emptyTable">
+			<div class="center" style="width: 65%;">
+				<div class="alert alert-warning">
+					<strong>Based on the filters you applied, there are currently no results to display.</strong>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- end of evaluations -->
+
+<script>
+	$(document).ready(function(){
+		$('.btn-sq-lg, .btn-sq-lg-back').click(function(){
+			$('#evals').show();
+		});
+	});
+</script>

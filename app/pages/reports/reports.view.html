@@ -1,0 +1,158 @@
+<div id="evaluations" ng-controller="reportsController" ng-init="init()">
+
+    <div class="col-lg-12" style="padding: 0">
+		<div class="col-lg-4" style="padding: 0">
+			<div class="pageHeader" style="display: inline-block;">Reports</div>
+			<div style="display: inline-block;">
+				<label class="pageHeader" ng-show="myReportingLine" style="font-style: italic; font-size: 1.8em;"> &rarr; My Reporting Line</label>
+				<!--<label class="pageHeader" ng-show="myStatistics" style="font-style: italic; font-size: 1.8em;"> &rarr; My Statistics</label>
+				<label class="pageHeader" ng-show="companyStatistics" style="font-style: italic; font-size: 1.8em;"> &rarr; Company Statistics</label>
+				<label class="pageHeader" ng-show="dottedStatistics" style="font-style: italic; font-size: 1.8em;"> &rarr; Dotted Statistics</label>-->
+			</div>
+		</div>
+		<!--<div class="col-lg-4" style="text-align: center; padding: 0;" ng-show="myStatistics || reviewerStatistics || companyStatistics || dottedStatistics">-->
+		<div class="col-lg-4" style="text-align: center; padding: 0;" ng-show="myReportingLine">
+			<!--<a href class="btn btn-sq-lg-back btn-warning warning-custom" ng-click="myStatistics=reviewerStatistics=companyStatistics=dottedStatistics=false; show = true; showreps = false;">-->
+			<a href class="btn btn-sq-lg-back btn-warning warning-custom" ng-click="myReportingLine=false; show = true; showreps = false;">
+				<i class="fa fa-arrow-left fa-2x"></i>
+				<span style="font-size: 1.5em; font-weight: bold;"> Back</span><br/>
+			</a>
+		</div>
+		<div class="col-lg-4" style="padding: 0"></div>
+	</div>
+
+	<div id="evaluations-categories">
+		<div class="row">
+			<!--<div class="col-lg-12" style="text-align: center;" ng-hide="myStatistics || reviewerStatistics || companyStatistics || dottedStatistics">-->
+			<div class="col-lg-12" style="text-align: center; margin-top: 30px;" ng-hide="myReportingLine">
+				<div class="col-lg-3">
+					<a href class="btn btn-success" ng-click="resetFilters(); myReportingLine=true; setEvaluator(); show = true; showreps = false;" style="float: left; width: 100%;">
+						<i class="fa fa-sitemap fa-2x"></i><span style="font-size: 1.4em; font-weight: bold;">&nbsp;&nbsp;&nbsp;My Reporting Line</span>
+					</a>
+				</div>
+				<div class="col-lg-3"></div>
+				<div class="col-lg-3"></div>
+				<div class="col-lg-3"></div>
+			</div>
+		</div>
+		
+		<div class="row" >
+			<div class="col-lg-12" style="text-align: center;" ng-hide="myReportingLine">
+				<div class="col-lg-3"></div>
+				<div class="col-lg-3"></div>
+				<div class="col-lg-3"></div>
+				<div class="col-lg-3"></div>
+			</div>
+		</div>
+	</div>
+
+
+	<!--<div id="employeesToEvaluate" ng-show="reviewerStatistics || myStatistics || companyStatistics || dottedStatistics">-->
+	<div id="employeesToEvaluate" ng-show="myReportingLine">
+		<div class="panel panel-success col-lg-12" style="padding: 0px; margin-top: 4vh;">
+			<div class="panel-heading" ng-click="showFilters()"><b>Filters</b>
+				<i ng-hide="show" class="fa fa-plus fa-2x" aria-hidden="true" style="float: right;"></i>
+				<i ng-show="show" class="fa fa-minus fa-2x" aria-hidden="true" style="float: right;"></i>
+			</div>
+			<div id="evals" class="panel-body" style="padding:5px !important;">
+			<form name="myForm">
+			 <div class="noteFilter">
+				<fieldset>
+					<div class="input-group col-lg-4">
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Evaluation Period</span><span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-repeat="cycle in cycles" ng-click="setEvalPeriod(cycle)"><a href="">{{cycle.CycleDescription}}</a></li>
+							</ul>
+						</div>
+						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="selected_cycleid" required><span style="color: red; font-size: 20px; margin-left: 5px;"> *</span>
+					</div>
+				</fieldset>
+				<fieldset>
+					<div class="col-lg-6" style="text-align: right;"><button type="button" ng-click="resetFilters()" class="btn btn-info"> Reset Filters</button></div>
+					<div class="col-lg-6" style="text-align: left;"><button type="button" ng-click="getReports()" ng-disabled="!myForm.$valid" class="btn btn-success filters"
+									tooltip-placement="top" tooltip-trigger="'mouseenter'" ng-attr-uib-tooltip="{{!form.$valid ? 'Button will become active only after you fill all required filters.' : ''}}"> Submit Filters</button>
+					</div>
+				</fieldset>
+				</div>
+			</form>
+			</div>
+		</div>
+		<br/><br/>
+		<uib-tabset active="active" ng-show="showreps && !emptyTable">
+			<uib-tab index="0" heading="Table" ng-click="active=0; addSlideEffect==false ? addSlideEffect = true : '';">
+				<div class="note col-lg-12 animated {{addSlideEffect ? 'slideInRight' : ''}}" style="margin:0">
+					<div class="dataTable statisticsTable" style="padding-left: 0; overflow-x: auto; width: 92vw;">
+						<table class="table table-condensed table-bordered table-striped">
+							<thead>
+								<tr>
+									<th class="center">Lno</th>
+									<th class="center">Relationship</th>
+									<th class="center">Employee<br/> Code</th>
+									<th class="center">Employee<br/> Name</th>
+									<th class="center">Department</th>
+									<th class="center">Position</th>
+									<th class="center">Site</th>
+									<th class="center" style="width: 15%;">Progress of Non-Calibrated Evaluations</th>
+									<th class="center" style="width: 15%;">Progress of Calibrated Evaluations</th>
+								</tr>
+							</thead>
+							<tbody ng-show="!showMessage('loading')">
+								<tr ng-repeat="repline in myReportingLine" ng-if="repline.ParentRelation !== 'REV DOTTED'" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+									<td class="center">{{$index+1}} </td>
+									<td class="center">{{repline.ParentRelation}}</td>
+									<td class="center">{{repline.empNo}}</td>
+									<td class="center">{{repline.empName}}</td>
+									<td class="center">{{repline.empDepartment}}</td>
+									<td class="center">{{repline.empPosition}}</td>
+									<td class="center">{{repline.empSite}} - {{repline.empSiteDesc}}</td>
+									<td class="center">
+										<uib-progressbar max="repline.AssignedEvaluations" value="repline.CompletedEvaluations" type="success" ng-show="repline.AssignedEvaluations!=0 || repline.CompletedEvaluations!=0">
+											<span style="color:{{repline.AssignedEvaluations!=0 && repline.CompletedEvaluations==0 ? '#6F6F6F': 'white'}}; white-space:nowrap;">
+												{{repline.CompletedEvaluations}} / {{repline.AssignedEvaluations}} {{percentage(repline.AssignedEvaluations,repline.CompletedEvaluations)}}
+											</span>
+										</uib-progressbar>
+										<span ng-show="repline.AssignedEvaluations==0 && repline.CompletedEvaluations==0">N/A</span>
+									</td>
+									<td class="center">
+										<uib-progressbar max="repline.AssignedEvaluations" value="repline.Calibrated" type="warning" ng-show="repline.AssignedEvaluations!=0 || repline.Calibrated!=0">
+											<span style="color:{{repline.AssignedEvaluations!=0 && repline.Calibrated==0 ? '#6F6F6F': 'white'}}; white-space:nowrap;">
+												{{repline.Calibrated}} / {{repline.AssignedEvaluations}} {{percentage(repline.AssignedEvaluations,repline.Calibrated)}}
+											</span>
+										</uib-progressbar>
+										<span ng-show="repline.AssignedEvaluations==0 && repline.Calibrated==0">N/A</span>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<div ng-show="showMessage('loading')">
+							<div class="content">
+								<div class="circle"></div>
+								<div class="circle1"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</uib-tab>
+			<uib-tab index="1" heading="Chart" ng-click="active=1; addSlideEffect==false ? addSlideEffect = true : '';">
+				<div class="col-lg-12" style="text-align: center;" ng-show="!showMessage('loading')"><button type="button" ng-click="showAllImages()" id="showallimages" class="btn btn-info" value="{{mode}}"> {{mode}} All Images</button></div>
+				<div id="chart-container" class="col-lg-12 animated {{addSlideEffect ? 'slideInRight' : ''}}" ng-show="!showMessage('loading')" style="margin:0"></div>
+				<div ng-show="showMessage('loading')">
+					<div class="content">
+						<div class="circle"></div>
+						<div class="circle1"></div>
+					</div>
+				</div>
+			</uib-tab>
+		</uib-tabset>
+		
+		<div style="text-align: -moz-center; margin-top: 6%;" ng-show="showreps && emptyTable">
+			<div class="center" style="width: 65%;">
+				<div class="alert alert-warning">
+					<strong>Based on the filters you applied, there are currently no results to display.</strong>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+</div>

@@ -1,0 +1,23 @@
+<div id="support" ng-controller="helpController" ng-init="init()">
+	<div class="popupClose" ng-click="closeThisDialog();">
+		<img class="popupCloseImg" src="assets/images/closeIconGrey.svg" alt="close" style="margin-right: 5px; vertical-align: initial;" />
+	</div>
+	<div class="slider">
+		<label ng-repeat="slide in slides" class="slide slide-animation nonDraggableImage"
+			style="font-size: 20px;" ng-swipe-right="nextSlide()" ng-swipe-left="prevSlide()"
+			ng-hide="!isCurrentSlideIndex($index)">{{slide.description}}
+			<img ng-src="{{slide.image}}">
+		</label>
+	
+    <a class="arrow prev" href ng-hide="currentIndex == 0" ng-click="nextSlide()"></a>
+    <a class="arrow next" href ng-hide="(slides.length - 1) == currentIndex" ng-click="prevSlide()"></a>
+    <nav class="nav">
+        <div class="wrapper">
+            <ul class="dots">
+                <li class="dot" ng-repeat="slide in slides">
+                    <a href ng-class="{'active':isCurrentSlideIndex($index)}"
+                       ng-click="setCurrentSlideIndex($index);">{{slide.description}}</a></li>
+            </ul>
+        </div>
+    </nav>
+</div>

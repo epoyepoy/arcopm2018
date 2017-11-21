@@ -1,0 +1,216 @@
+<div id="support" ng-controller="helpController" ng-init="init()">
+
+    <div class="pageHeader">Help</div>
+	<br />
+
+	<div class="panel-body">
+		<div class="panel-group" id="accordion">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h4 class="panel-title">
+						<a data-toggle="collapse" data-parent="#accordion" data-target="#collapse0" href>Video Tutorials</a>
+					</h4>
+				</div>
+				<div id="collapse0" class="panel-collapse collapse in">
+					<div class="panel-body" stylqe="padding: 15px 32px; ">
+						<table  width='100%' cellspacing="10">
+							<tr style="padding-bottom: 3em;">
+								<td>
+										<a href ng-click="downloadFile('templates/scripts/ARCOPM_VideoScript_1_HomePage-MainMenu_Final_NP090617.docx')">1. ARCOPM INTRO</a>
+								</td>
+								<td>
+										<a href ng-click="downloadFile('templates/scripts/ARCOPM_VideoScript_2_HowtoGetStartedConf&GoalSetting-EmployeesSide_Final_NP090617.docx')">2. How to Get Started, Conf. & Goal Setting - Employee's Side</a>
+								</td>
+							</tr>
+								<tr>
+									<td>
+										<video width="620" height="340" controls>
+						   					<source src="{{url1}}" type="video/mp4">
+									</td>
+
+									<td>
+										<video width="620" height="330" controls>
+											<source src="{{url2}}" type="video/mp4">
+									</td>
+								</tr>
+								<tr>
+									<td colspan="2">
+									</br></br>
+									</td>
+								</tr>
+								<tr>
+									<td>
+											<a href ng-click="downloadFile('templates/scripts/ARCOPM_VideoScript_3_HowtoGetStartedConf.&GoalSetting-EvaluatorsSide_Final_NP090617.docx')">3. How to Get Started, Conf. & Goal Setting - Evaluator's Side</a>
+									</td>
+									<td>
+											<a href ng-click="downloadFile('templates/scripts/ARCOPM_VideoScript_4_PerformanceEvaluation-EmployeesSide(Self-Evaluation)_Final_NP090617.docx')">4. Performance Evaluation, Employee's Side (Self-Evaluation)</a>
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<video width="620" height="330" controls>
+											<source src="{{url3}}" type="video/mp4">
+									</td>
+									<td>
+										<video width="620" height="330" controls>
+											<source src="{{url4}}" type="video/mp4">
+									</td>
+								</tr>
+								<tr>
+									<td colspan="2">
+									</br></br>
+									</td>
+								</tr>
+								<tr>
+									<td>
+											<a href ng-click="downloadFile('templates/scripts/ARCOPM_VideoScript_5_PerformanceEvaluation-EvaluatorsSide_Final_NP090617.docx')">5. Performance Evaluation, Evaluator's Side</a>
+									</td>
+									<td>
+											<a href ng-click="downloadFile('templates/scripts/ARCOPM_VideoScript_6_Performance Evaluation-Dotted-LineManagersSide_Final_NP090617.docx')">6. Performance Evaluation, Dotted-Line Manager's Side</a>
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<video width="620" height="330" controls>
+											<source src="{{url5}}" type="video/mp4">
+									</td>
+									<td>
+										<video width="620" height="330" controls>
+											<source src="{{url6}}" type="video/mp4">
+									</td>
+								</tr>
+
+							</table>
+					</div>
+				</div>
+			</div>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h4 class="panel-title">
+						<a data-toggle="collapse" data-parent="#accordion" data-target="#collapse1" href>Employee's Guide</a>
+					</h4>
+				</div>
+				<div id="collapse1" class="panel-collapse collapse">
+					<div class="panel-body" style="padding: 15px 32px;">
+						<ul class="custom-bullet">
+							<li><a href ng-click="showHelpPopup('emp_pending')">Pending Evaluations</a></li>
+							<li><a href ng-click="showHelpPopup('emp_config')">Configuration/Setting Goals</a></li>
+							<li><a href ng-click="showHelpPopup('emp_fillin')">Fill in Evaluations</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h4 class="panel-title">
+						<a data-toggle="collapse" data-parent="#accordion" data-target="#collapse2" href>Evaluator's Guide</a>
+					</h4>
+				</div>
+				<div id="collapse2" class="panel-collapse collapse">
+					<div class="panel-body" style="padding: 15px 32px;">
+						<ul class="custom-bullet">
+							<li><a href ng-click="showHelpPopup('eval_pending')">Pending Evaluations</a></li>
+							<li><a href ng-click="showHelpPopup('eval_config')">Configuration/Setting Goals</a></li>
+							<li><a href ng-click="showHelpPopup('eval_fillin_onbehalf')">Fill in Evaluation on behalf of Employee</a></li>
+							<li><a href ng-click="showHelpPopup('eval_fillin')">Fill in Evaluations</a></li>
+							<li><a href ng-click="showHelpPopup('eval_revise')">Revise Evaluations</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h4 class="panel-title">
+						<a data-toggle="collapse" data-parent="#accordion" data-target="#collapse3" href>Dotted Line Manager Guide</a>
+					</h4>
+				</div>
+				<div id="collapse3" class="panel-collapse collapse">
+					<div class="panel-body" style="padding: 15px 32px;">
+						<ul class="custom-bullet">
+							<li><a href ng-click="showHelpPopup('dot_pending')">Pending Evaluations</a></li>
+							<li><a href ng-click="showHelpPopup('dot_fillin')">Fill in Evaluations</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h4 class="panel-title">
+						<a data-toggle="collapse" data-parent="#accordion" data-target="#collapse8" href>Statistics Guide</a>
+					</h4>
+				</div>
+				<div id="collapse8" class="panel-collapse collapse">
+					<div class="panel-body" style="padding: 15px 32px;">
+						<ul class="custom-bullet">
+							<li><a href ng-click="downloadFile('templates/ARCOPM Statistics for Evaluators & Reviewers 201017.pptx')">Statistics for Evaluators & Reviewers</a></li>
+							<li><a href ng-click="downloadFile('templates/ARCOPM Statistics for Evaluators 201017.pptx')">Statistics for Evaluators Only</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h4 class="panel-title">
+						<a data-toggle="collapse" data-parent="#accordion" data-target="#collapse4" href>Change Password</a>
+					</h4>
+				</div>
+				<div id="collapse4" class="panel-collapse collapse">
+					<div class="panel-body" style="padding: 15px 32px;">
+						<ul class="custom-bullet">
+							<li><a href ng-click="showHelpPopup('loc_passchange')">Change Password (only for Local Users)</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<!-- <div class="panel panel-default">
+				<div class="panel-heading">
+					<h4 class="panel-title">
+						<a data-toggle="collapse" data-parent="#accordion" data-target="#collapse5" href>Evaluation Status</a>
+					</h4>
+				</div>
+				<div id="collapse5" class="panel-collapse collapse">
+					<div class="panel-body" style="padding: 15px 32px;">
+						<ul class="custom-bullet">
+							<li>Configure By Evaluator:</li>
+							<li>Complete By Employee:</li>
+							<li>Complete By Evaluator:</li>
+							<li>Complete By Dotted Line Manager:</li>
+							<li>Revise By Evaluator:</li>
+							<li>Evaluation Complete:</li>
+						</ul>
+					</div>
+				</div>
+			</div> -->
+			<!-- we temporary hide this section until IMS is updated -->
+			<!--<div class="panel panel-default">
+				<div class="panel-heading">
+					<h4 class="panel-title">
+						<a data-toggle="collapse" data-parent="#accordion" data-target="#collapse6" href>IMS Procedure</a>
+					</h4>
+				</div>
+				<div id="collapse6" class="panel-collapse collapse">
+					<div class="panel-body" style="padding: 15px 32px;">
+						<ul class="custom-bullet">
+							<li><a href="http://intranet.archirodon.net/IMS%20Content/Human%20Resources/Procedures%20(PRO)/HRD-PRO-04%200.0%20-%20Employees'%20Performance%20Management.pdf" target="_blank">IMS Procedure</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>-->
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h4 class="panel-title">
+						<a data-toggle="collapse" data-parent="#accordion" data-target="#collapse7" href>Demo & Time Plan</a>
+					</h4>
+				</div>
+				<div id="collapse7" class="panel-collapse collapse">
+					<div class="panel-body" style="padding: 15px 32px;">
+						<ul class="custom-bullet">
+							<li><a href ng-click="downloadFile('templates/ARCOPM Demo_Final_NP 090617.pptx')">Final Presentation</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+<!-- end of dashboard -->

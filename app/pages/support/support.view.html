@@ -1,0 +1,56 @@
+<div id="support" ng-controller="supportController" ng-init="init()">
+
+    <div class="pageHeader">Support</div>
+	<br />
+	<div ng-repeat="supportUser in supportUsers">
+		<div class="row col-xs-12" ng-if="$index==0" style="margin-bottom: 40px;">
+			<div class="col-xs-6" ng-repeat="supUser in [supportUsers[$index],supportUsers[$index+2]]" ng-if="supUser" style="padding-right: 75px;">
+				<!-- we create a card for 2 people for Greece -->
+				<div class="w3-card-4 col-xs-12" ng-if="supUser.Region=='GREECE' && supUser.countGR!=1" style="width:100%; border-top-left-radius: 6px; border-top-right-radius: 6px; padding: 0;">
+					<header class="w3-container business-card">
+						<h3>{{supUser.Region}}</h3>
+					</header>
+					<div ng-repeat="supportUserGR in supportUsersGR" class="w3-container col-xs-6">
+						<p style="font-size: 18px; margin: 10px 0px -10px 0px;">{{supportUserGR.family_name}}, {{supportUserGR.first_name}} </p>
+						<hr style="margin-bottom: 10px;">
+						<img src="{{photoUrl}}{{supportUserGR.empno}}b.jpg" alt="Avatar" class="w3-left w3-margin-right" style="width:80px; margin-bottom: 10px;">
+						<p>Position: {{supportUserGR.jobPositionName}}</p>
+						<p>Cisco: {{supportUserGR.Cisco}}</p>
+						<p>Email: {{supportUserGR.email}}</p><br/>
+					</div>
+				</div>
+				<div class="w3-card-4" ng-if="supUser.Region!='GREECE'" style="width:100%; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+					<header class="w3-container business-card">
+						<h3>{{supUser.Region}}</h3>
+					</header>
+					<div class="w3-container">
+						<p style="font-size: 18px; margin: 10px 0px -10px 0px;">{{supUser.family_name}}, {{supUser.first_name}} </p>
+						<hr style="margin-bottom: 10px;">
+						<img src="{{photoUrl}}{{supUser.empno}}b.jpg" alt="Avatar" class="w3-left w3-margin-right" style="width:80px; margin-bottom: 10px;">
+						<p>Position: {{supUser.jobPositionName}}</p>
+						<p>Cisco: {{supUser.Cisco}}</p>
+						<p>Email: {{supUser.email}}</p><br/>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row col-xs-12" ng-if="$index==3" style="margin-bottom: 40px;">
+			<div class="col-xs-6" ng-repeat="supUser in [supportUsers[$index],supportUsers[$index+1]]" ng-if="supUser" style="padding-right: 75px;">
+				<div class="w3-card-4" style="width:100%; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+					<header class="w3-container business-card">
+						<h3>{{supUser.Region}}</h3>
+					</header>
+					<div class="w3-container">
+						<p style="font-size: 18px; margin: 10px 0px -10px 0px;">{{supUser.family_name}}, {{supUser.first_name}} </p>
+						<hr style="margin-bottom: 10px;">
+						<img src="{{photoUrl}}{{supUser.empno}}b.jpg" alt="Avatar" class="w3-left w3-margin-right" style="width:80px; margin-bottom: 10px;">
+						<p>Position: {{supUser.jobPositionName}}</p>
+						<p>Cisco: {{supUser.Cisco}}</p>
+						<p>Email: {{supUser.email}}</p><br/>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- end of dashboard -->

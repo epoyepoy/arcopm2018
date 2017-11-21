@@ -1,0 +1,38 @@
+<!doctype html>
+<div class="panel panel-primary popup todo-popup devplan-popup" >
+	<div class="custom panel-heading">
+		<div class="popupClose" ng-click="closeThisDialog();">
+		   <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+		   
+		</div> 
+		<h4 class="pop-up-header">{{'Delete User from ARCOPM'}}</h4>
+	</div>
+	<div class="panel-body" id="createProjectPopupBody">
+		<div class="message" ng-show="showExtraMessage('success')">
+				<div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/successIcon.svg" /></div>
+				<div class="popupMessage">{{'User Removed Successfully!'}}</div>
+				<div class="popupButtonSave" ng-click="closeThisDialog();">OK!</div>
+		</div>
+		<div class="message" ng-show="showExtraMessage('none')">
+			<div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/warningIcon.svg"/></div>
+			<div class="popupMessage">
+				<span>
+					By deleting this employee from ARCOPM you are permanently deleting all data related to this employee:<br/>
+				    Evaluations, Goals, and Reporting Line<br/>Are you sure?
+				</span>
+			</div>
+			<div class="popupButtonCancel" ng-click="closeThisDialog();">Cancel</div>
+			<div class="popupButtonSave" ng-click="deleteFromARCOPM(selectedRepline)">Delete</div>
+		</div>
+
+		<div class="message " ng-show="showExtraMessage( 'error') ">
+
+			<div class="popupError ">
+				<div class="popupErrorIcon "><img class="popupErrorIconImg " src="assets/images/errorIcon.svg " /></div>
+				<div class="popupErrorText ">Error!</div>
+				<div class="popupErrorMessage ">{{messageText}}</div>
+			</div>
+			<div class="popupButtonSave" ng-click="closeThisDialog(); ">OK</div>
+		</div>
+	 </div>
+</div> 

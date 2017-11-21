@@ -20,7 +20,7 @@ if ( !isset($_SESSION) || !isset($_SESSION["login"]) || $_SESSION["login"] === f
    	die();
 }
 
-    $server = "http://arcodevel.cloudapp.net/arcopm";
+    $server = "http://arcodevel.cloudapp.net/arcopm18";
 
     $data["login"] = $_SESSION["login"];
     $data["user"] = $_SESSION["user"];

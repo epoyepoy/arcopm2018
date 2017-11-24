@@ -1160,6 +1160,23 @@ class EvaluationsDAO{
 			Declare @answerCount as int;
 			--Declare @goalsWeight as int = 100;
 			Declare @onBehalf as int =:onbehalf;
+			Declare @hasDotted as int;
+			--Define if employee has dotted required only if state less than 4
+			IF @state<4
+			BEGIN
+				IF (SELECT count(*) FROM dbo.ReportingLineExceptions 
+					WHERE empnosource = (SELECT EmployeeID FROM dbo.Evaluations WHERE EvaluationID=@evalid) AND goalCycle=@cycleid)>0
+					BEGIN
+						@hasDotted = SELECT CASE WHEN count(*)>0 THEN 1 ELSE 0 END FROM dbo.ReportingLineExceptions 
+						WHERE empnosource = (SELECT EmployeeID FROM dbo.Evaluations WHERE EvaluationID=@evalid) AND goalCycle=@cycleid AND State=4
+					END
+				ELSE
+					BEGIN
+						@hasDotted = SELECT CASE WHEN count(*)>0 THEN 1 ELSE 0 END FROM dbo.ReportingLine 
+						WHERE empnosource = (SELECT EmployeeID FROM dbo.Evaluations WHERE EvaluationID=@evalid) AND excludeFromCycles<>@cycleid AND State=4
+					END
+			END
+
 
 			SELECT @evalid=E.EvaluationID, @state=E.State, @grade=HR.Grade
 			FROM Evaluations E
@@ -1172,18 +1189,33 @@ class EvaluationsDAO{
 			--missing, goals validation to update when state is 1 and goals are required to allow you to go ahead.
 			UPDATE dbo.Evaluations SET State=
 			CASE
-				WHEN @state=0 AND @onBehalf=1 THEN 2
-				WHEN @state=0 AND @grade<4 THEN 4 --Sent Directly to Evaluator
-				--WHEN @state=4 AND @grade<4 THEN 5 --Set Evaluation as finished if grade <4. Other steps not required
-				--WHEN @state=2 AND @goalsWeight=100 @state+1
-
-				WHEN @state in (0,1) THEN @state+1
-				WHEN @state in (2,3,4) AND @answerCount>0 THEN @state+1
-				ELSE @state
+				WHEN @state=0 AND @onBehalf=1 AND @hasDotted=0 THEN 2
+				WHEN @state=0 AND @hasDotted=0 THEN 2
+				WHEN @state=0 AND @grade<4 THEN 5 --Sent Directly to Evaluator, shouldnt have dotted to go to
+				WHEN @state in (0,1,2) THEN @state+1
+				--WHEN @state in (3,4,5,6) AND @answerCount>0 THEN @state+1
+				--ELSE @state
 			END,
 			StateDate=getdate()
 			OUTPUT Inserted.EvaluationID
-            WHERE EvaluationID=@evalid;
+			WHERE EvaluationID=@evalid;
+			
+			--Once Update is done, go and insert history for goals if state between 0 and 3
+			IF @state<4
+			BEGIN
+			INSERT INTO dbo.GoalsHistory
+			(
+				GoalID,
+				EvaluationID,
+				GoalDescription,
+				Weight,
+				UserID,
+				AttributeCode,
+				State,
+				Date
+			)
+			SELECT GoalID, EvaluationID, GoalDescription, Weight, UserID, AttributeCode, State, GETDATE() FROM dbo.Goals WHERE State=@state
+			END
 		    ";
 			$query = $this->connection->prepare($queryString);
             $query->bindValue(':userid', $userid, PDO::PARAM_STR);

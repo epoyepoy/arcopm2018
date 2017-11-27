@@ -1172,7 +1172,7 @@ class EvaluationsDAO{
 					END
 				ELSE
 					BEGIN
-						@hasDotted = SELECT CASE WHEN count(*)>0 THEN 1 ELSE 0 END FROM dbo.ReportingLine 
+						SELECT @hasDotted = CASE WHEN count(*)>0 THEN 1 ELSE 0 END FROM dbo.ReportingLine 
 						WHERE empnosource = (SELECT EmployeeID FROM dbo.Evaluations WHERE EvaluationID=@evalid) AND excludeFromCycles<>@cycleid AND State=4
 					END
 			END

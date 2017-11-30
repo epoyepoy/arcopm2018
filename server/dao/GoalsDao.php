@@ -361,6 +361,44 @@ class GoalsDAO{
 			return $result;
 	}
 
+
+	/*****
+    *	Save Comment
+    *
+    */
+    public function sendComment($evalid, $userid, $state, $comment)
+	{
+			$queryString = "
+			INSERT INTO dbo.EvaluationComments
+			VALUES (   :evalid, :userid, GETDATE(), :state, :comment)";
+			$query = $this->connection->prepare($queryString);
+			$query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
+			$query->bindValue(':state', $evalid, PDO::PARAM_INT);
+			$query->bindValue(':userid', $evalid, PDO::PARAM_STR);
+			$query->bindValue(':comment', $evalid, PDO::PARAM_STR);
+			$result["success"] = $query->execute();
+			$result["errorMessage"] = $query->errorInfo();
+			return $result;
+	}
+
+	/*****
+    *	Get Evaluation's Comments
+    *
+    */
+    public function getComments($evalid)
+	{
+			$queryString = "
+			SELECT EC.CommentDate, EC.State, EC.UserID+' - '+E.first_name+' ' +E.family_name AS 'By', EC.Comment 
+			FROM dbo.EvaluationComments EC
+			INNER JOIN dbo.vw_arco_employee E ON E.empno=EC.UserID
+			WHERE EC.EvaluationID=:evalid
+			ORDER BY 1, 2";
+			$query = $this->connection->prepare($queryString);
+			$query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
+			$result["success"] = $query->execute();
+			$result["errorMessage"] = $query->errorInfo();
+			return $result;
+	}
 } // END OF CLASS
 
 ?>

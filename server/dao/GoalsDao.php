@@ -242,7 +242,7 @@ class GoalsDAO{
 				   OUTPUT INSERTED.EvaluationID
 				   VALUES (@cycleid,  @empno, @grade, 0, getdate(), 0, @userid, NULL, NULL);
 
-				   SELECT @evalid = EvaluationID FROM Evaluations WHERE CycleID=@cycleid AND EmployeeID=@empno;
+				   SELECT @evalid = EvaluationID, @evalstate=State FROM Evaluations WHERE CycleID=@cycleid AND EmployeeID=@empno;
 
 				   INSERT INTO dbo.Goals
 				   VALUES(@evalid, :goaldescr1, :weight1, @userid, :attributeCode1, @evalstate);
@@ -366,16 +366,16 @@ class GoalsDAO{
     *	Save Comment
     *
     */
-    public function sendComment($evalid, $userid, $state, $comment)
+    public function saveComment($evalid, $userid, $state, $comment)
 	{
 			$queryString = "
 			INSERT INTO dbo.EvaluationComments
-			VALUES (   :evalid, :userid, GETDATE(), :state, :comment)";
+			VALUES ( :evalid, :userid, GETDATE(), :state, :comment)";
 			$query = $this->connection->prepare($queryString);
 			$query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
-			$query->bindValue(':state', $evalid, PDO::PARAM_INT);
-			$query->bindValue(':userid', $evalid, PDO::PARAM_STR);
-			$query->bindValue(':comment', $evalid, PDO::PARAM_STR);
+			$query->bindValue(':state', $state, PDO::PARAM_INT);
+			$query->bindValue(':userid', $userid, PDO::PARAM_STR);
+			$query->bindValue(':comment', $comment, PDO::PARAM_STR);
 			$result["success"] = $query->execute();
 			$result["errorMessage"] = $query->errorInfo();
 			return $result;
@@ -397,6 +397,8 @@ class GoalsDAO{
 			$query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
 			$result["success"] = $query->execute();
 			$result["errorMessage"] = $query->errorInfo();
+			$query->setFetchMode(PDO::FETCH_ASSOC);
+			$result["comments"] = $query->fetchAll();
 			return $result;
 	}
 } // END OF CLASS

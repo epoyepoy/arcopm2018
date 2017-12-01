@@ -388,7 +388,8 @@ class GoalsDAO{
     public function getComments($evalid)
 	{
 			$queryString = "
-			SELECT EC.CommentDate, EC.State, EC.UserID+' - '+E.first_name+' ' +E.family_name AS 'By', EC.Comment 
+			SELECT CONVERT(DATETIME2(0),EC.CommentDate) AS   
+			'CommentDate', EC.State, EC.UserID+' - '+E.first_name+' ' +E.family_name AS 'By', EC.Comment 
 			FROM dbo.EvaluationComments EC
 			INNER JOIN dbo.vw_arco_employee E ON E.empno=EC.UserID
 			WHERE EC.EvaluationID=:evalid

@@ -17,9 +17,10 @@
     function goalsController($scope, Auth, loginData, global, EvaluationsFactory, ngDialog, dataService, $state, $stateParams) {
         $scope.message = "none";
 		$scope.extraMessage = "none";
+		$scope.plusMessage = "none";
 		$scope.myGoals = false;
 		$scope.employeesGoals = false;
-
+		$scope.selected = [];
 		$scope.goal = {};
 		$scope.parseInt = parseInt;
 
@@ -133,6 +134,15 @@
 
 		$scope.showExtraMessage = function (message) {
             if ($scope.extraMessage === message) {
+                return true;
+            }
+
+            return false;
+        };
+		
+		
+		$scope.showPlusMessage = function (message) {
+            if ($scope.plusMessage === message) {
                 return true;
             }
 
@@ -295,7 +305,7 @@
 				if((i == goalLimit || weight == 100) && i != 0){
 					$scope.showAddNewGoalButton = false;
 				}
-				
+				//console.log(weight);
 				$scope.message = "none";
             });
 		};
@@ -594,6 +604,32 @@
 			});
 		};
 		
+		
+		$scope.toggle = function (item, list) {
+			var idx = list.indexOf(item);
+			if (idx > -1) {
+			  list.splice(idx, 1);
+			}
+			else {
+			  list.push(item);
+			}
+		};
+		
+		$scope.exists = function (item, list) {
+			return list.indexOf(item) > -1;
+		};
+
+//THIS 2 FUNCTIONS IS ONLY FOR SELECT/DESELECT ALL. WE WILL ADD THEM ONLY IF WE ADD SELECT/DESELECT ALL
+//		$scope.isIndeterminate = function() {
+//			return ($scope.selected.length !== 0 &&
+//			$scope.selected.length !== $scope.status5Evals1_3.length);
+//		};
+//
+//		$scope.isChecked = function() {
+//			return $scope.selected.length === $scope.status5Evals1_3.length;
+//		};
+		
+		
 		$scope.showGoalPreviewPopup = function(goals,cycleGoal){
 			if (!$scope.checkLogin()) {
                 return;
@@ -607,6 +643,76 @@
                 className: 'ngdialog-theme-default',
                 scope: $scope
             });
+		};
+		
+		
+		$scope.showGoalsHistoryPopup = function(goals,cycleGoal){
+			if (!$scope.checkLogin()) {
+                return;
+            }
+            $scope.extraPlusMessage = 'loading';
+			$scope.tempGoals= goals;
+			$scope.tempCycleGoal= cycleGoal;
+
+            $scope.todoPopup = ngDialog.open({
+                template: 'app/pages/goals/popup/goals.history.popup.html',
+                className: 'ngdialog-theme-default',
+                scope: $scope
+            });
+		};
+		
+		
+		// Shows comments popup
+        $scope.showCommentsPopup = function (goal,mode) {
+            if (!$scope.checkLogin()) {
+                return;
+            }
+            $scope.extraMessage = 'loading';
+			$scope.textComment = false;
+			$scope.tempGoal = goal;
+			$scope.commentsMode = mode;
+
+            $scope.todoPopup = ngDialog.open({
+                template: 'app/pages/goals/popup/goals.comments.popup.html',
+                className: 'ngdialog-theme-default',
+                scope: $scope
+            });
+        };
+		
+		
+		$scope.getComments = function(evalid){
+			if (!$scope.checkLogin()) {
+                return;
+            }
+			EvaluationsFactory.GetComments(evalid).then(function (result) {
+				$scope.checkifLoggedout(result);
+				$scope.comments = result.comments;
+				$scope.extraMessage = 'none';
+            });
+		};
+		
+		
+		$scope.saveComment = function(goal,newcomment){
+			if (!$scope.checkLogin()) {
+                return;
+            }
+            $scope.extraMessage = 'loading';
+
+			EvaluationsFactory.SaveComment(goal.EvaluationID,loginData.user.id,goal.GoalsState,newcomment).then(function (result) {
+				$scope.checkifLoggedout(result);
+				if (result.success) {
+//					$scope.cycleGoal.GoalsState = result.evaluation.State;
+//					$scope.cycleGoal.EvaluationID = result.evaluation.EvaluationID;
+					$scope.getComments(goal.EvaluationID);
+					$scope.extraMessage = 'none';
+					$scope.commentsMode = 'show';
+				} else {
+					$scope.message = 'error';
+					$scope.messageText = 'Something went wrong while creating a new Goal. Please contact your administrator.';
+
+				}
+			});
+			return;
 		};
 		
 

@@ -47,8 +47,8 @@
 	                </ul>
 	            </div>
 				<input type="text" class="form-control" aria-label="" ng-readonly='true' ng-model="filterDesc" style="font-weight: bold;font-size: 16px;padding-left: 10px;width: 100px; text-align:right;">
-				<span ng-show="filterDesc.trim() == '2016' && myGoals" style="padding: 10px;vertical-align: middle;position: absolute;font-style: italic;"> *Goal setting for 2016 is optional for employees.</span>
-				<span ng-show="filterDesc.trim() == '2017' && myGoals" style="padding: 10px;vertical-align: middle;position: absolute;font-style: italic;"> *Goal setting for 2017 is optional for employees.</span>
+				<!--<span ng-show="filterDesc.trim() == '2016' && myGoals" style="padding: 10px;vertical-align: middle;position: absolute;font-style: italic;"> *Goal setting for 2016 is optional for employees.</span>
+				<span ng-show="filterDesc.trim() == '2017' && myGoals" style="padding: 10px;vertical-align: middle;position: absolute;font-style: italic;"> *Goal setting for 2017 is optional for employees.</span>-->
 		 	</div>
 			<div class="dataTable" ng-show="personalCycleGoals.length != 0">
 				<table>
@@ -75,7 +75,7 @@
 							<td class="center">{{myCycleGoal.ManagesTeam == 1 ? 'Yes' : myCycleGoal.ManagesTeam == 0 ? 'No' : ''}}</td>
 							<td class="center">{{myCycleGoal.CycleDescription}}</td>
 							<td class="center">
-								{{myCycleGoal.GoalsState == 0 && myCycleGoal.goalsInputStatus == 1 ? 'To Be Set By Employee' : myCycleGoal.GoalsState == 1 ? 'To Be Set By Evaluator' : myCycleGoal.GoalsState == 2 ? 'Configuration Complete' : 'Configuration Complete'}}
+								{{myCycleGoal.GoalsState == 0 && myCycleGoal.goalsInputStatus == 1 ? 'To Be Set By Employee' : myCycleGoal.GoalsState == 1 ? 'To Be Set By Dotted Line Manager' : myCycleGoal.GoalsState == 2 ? 'To Be Set By Evaluator' : myCycleGoal.GoalsState == 3 ? 'Configuration Complete' : 'Configuration Complete'}}
 							</td>
 							<td class="center">
 								<span ng-if="myCycleGoal.GoalsState == 0 && myCycleGoal.goalsInputStatus == 1 && myCycleGoal.onBehalfFlag==0">
@@ -115,8 +115,8 @@
 	                </ul>
 	            </div>
 				<input type="text" class="form-control" aria-label="" ng-readonly='true' ng-model="filterDesc1" style="font-weight: bold;font-size: 16px;padding-left: 10px;width: 100px; text-align:right;">
-				<span ng-show="filterDesc1.trim() == '2016' && !myGoals" style="padding: 10px;vertical-align: middle;position: absolute;font-style: italic;"> *Goal setting for 2016 is optional for evaluators.</span>
-				<span ng-show="filterDesc1.trim() == '2017' && !myGoals" style="padding: 10px;vertical-align: middle;position: absolute;font-style: italic;"> *Goal setting for 2017 is obligatory for evaluators.</span>
+				<!--<span ng-show="filterDesc1.trim() == '2016' && !myGoals" style="padding: 10px;vertical-align: middle;position: absolute;font-style: italic;"> *Goal setting for 2016 is optional for evaluators.</span>
+				<span ng-show="filterDesc1.trim() == '2017' && !myGoals" style="padding: 10px;vertical-align: middle;position: absolute;font-style: italic;"> *Goal setting for 2017 is obligatory for evaluators.</span>-->
 		 	</div>
 			<div class="dataTable" >
 				<table>
@@ -144,29 +144,29 @@
 							<td class="center">{{cycleGoal.ManagesTeam == 1 ? 'Yes' : cycleGoal.ManagesTeam == 0 ? 'No' : ''}}</td>
 							<td class="center">{{cycleGoal.CycleDescription}}</td>
 							<td class="center">
-								{{cycleGoal.GoalsState == 0 && cycleGoal.goalsInputStatus == 1 ? 'To Be Set By Employee' : cycleGoal.GoalsState == 1 ? 'To Be Set By Evaluator' : cycleGoal.GoalsState == 2 ? 'Configuration Complete' : 'Configuration Complete'}}
+								{{cycleGoal.GoalsState == 0 && cycleGoal.goalsInputStatus == 1 ? 'To Be Set By Employee' : cycleGoal.GoalsState == 1 ? 'To Be Set By Dotted Line Manager' : cycleGoal.GoalsState == 2 ? 'To Be Set By Evaluator' : cycleGoal.GoalsState == 3 ? 'Configuration Complete' : 'Configuration Complete'}}
 							</td>
 							<td class="center">
 								<div ng-if="cycleGoal.wrongManager==0">
 									
-									<span ng-if=" (cycleGoal.GoalsState == 1 || cycleGoal.GoalsState == 2) && cycleGoal.grade > 3 && cycleGoal.flagEvalAnswers == 0">
-											<button class="sitesBtn" ng-click="showSendBackPopup(cycleGoal)" uib-tooltip="Send Back Goals & Configuration for Review" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-step-backward" aria-hidden="true"></i></button>
+									<span ng-if=" (cycleGoal.GoalsState == 1 || cycleGoal.GoalsState == 2 || cycleGoal.GoalsState == 3) && cycleGoal.grade > 3 && cycleGoal.flagEvalAnswers == 0">
+											<button class="sitesBtn" ng-click="showSendBackPopup(cycleGoal)" style="width: 38px;" uib-tooltip="Send Back Goals & Configuration for Review" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-step-backward" aria-hidden="true"></i></button>
 									</span>
 									
-									<span ng-if="cycleGoal.GoalsState == 1 && cycleGoal.onBehalfFlag==0">
+									<span ng-if="(cycleGoal.GoalsState == 1 || cycleGoal.GoalsState == 2) && cycleGoal.onBehalfFlag==0">
 										<button class="sitesBtn" ng-click="showEvalConfiguration(cycleGoal,'emplist',0)" uib-tooltip="Configuration" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-wrench" aria-hidden="true"  ></span></button>
 									</span>
 									
-									<span ng-if="cycleGoal.GoalsState>=2">
+									<span ng-if="cycleGoal.GoalsState >= 3">
 										<button class="sitesBtn" ng-click="showEvalConfiguration(cycleGoal,'emplist',0)" uib-tooltip="View Configuration/Goals" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-crosshairs" aria-hidden="true"></i></button>
 									</span>
-									<span ng-if="cycleGoal.GoalsState>=2">
+									<span ng-if="cycleGoal.GoalsState>=3">
 										<button class="sitesBtn" ng-click="showEvalPreview(cycleGoal)" uib-tooltip="Evaluation Form Template Preview" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"  ></span></button>
 									</span>
 									<span ng-if="cycleGoal.GoalsState == 0 && cycleGoal.onBehalfFlag==0">
 										<button class="sitesBtn" ng-click="showEvalConfiguration(cycleGoal,'emplist',1)" uib-tooltip="Configure on behalf of Employee" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-cog" aria-hidden="true"  ></span></button>
 									</span>
-									<span ng-if="cycleGoal.GoalsState<2">
+									<span ng-if="cycleGoal.GoalsState < 3">
 										<button class="sitesBtn" ng-click="showRejectManagerPopup(cycleGoal)" uib-tooltip="Reject Action" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="fa fa-flag text-danger" aria-hidden="true"  ></span></button>
 									</span>
 									<span ng-if="cycleGoal.onBehalfFlag==1">

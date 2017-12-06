@@ -47,6 +47,8 @@
 		factory.RevertWrongManager = RevertWrongManager;
 		factory.SendGoalsBack = SendGoalsBack;
 		factory.ReviseEvaluations = ReviseEvaluations;
+		factory.SaveComment = SaveComment;
+		factory.GetComments = GetComments;
 
 		return factory;
 
@@ -243,6 +245,14 @@
 		function ReviseEvaluations(evals,empid) {
             return $http.post(api + '/evaluations/revise/'+empid,evals).then(handleSuccess, handleError);
         }
+		
+		function SaveComment(evalid, userid, state, comment) {
+            return $http.post(api + '/evaluations/goalssavecomment/'+evalid+'/'+userid+'/'+state,comment).then(handleSuccess, handleError);
+        }
+		
+		function GetComments(evalid){
+			return $http.get(api + '/evaluations/goalscomments/'+evalid).then(handleSuccess, handleError);
+		}
 		
 		// Handle a succesful response [ Status code: 200 ]
 		function handleSuccess(response)

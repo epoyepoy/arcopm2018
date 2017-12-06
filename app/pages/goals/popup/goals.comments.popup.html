@@ -1,0 +1,79 @@
+<!doctype html>
+
+   <div class="panel panel-primary popup todo-popup" >
+		<div class="custom panel-heading">
+			<div class="popupClose" ng-click="closeThisDialog();">
+			   <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+			</div>
+			<h4 class="pop-up-header" >Comments History</h4>
+		</div>
+		<div class="panel-body" id="todoPopupBody">
+			<div class="formItems" ng-show="showExtraMessage('none')" >
+				<div class="container-fluid" ng-init="getComments(tempGoal.EvaluationID);" ng-show="commentsMode == 'show'">
+					<div class="dataTable goals-table">
+						<table>
+							<thead>
+								<tr class="headerRowPopup">
+									<th style="width:3vw;"></th>
+									<th class="center" style="width:10vw">BY</th>
+									<th class="center" style="width:10vw">DATE</th>
+									<th class="center" style="width:30vw">COMMENT</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="comment in comments" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+									<td class="center">{{$index+1}}</td>
+									<td class="center">{{comment.By}}</td>
+									<td class="center">{{comment.CommentDate}}</td>
+									<td class="center">{{comment.Comment}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<hr>
+				</div>
+				<div class="col-md-12" ng-init="newcomment.description=''" ng-show="commentsMode == 'add'" style="text-align: center;">
+					<textarea ng-model="newcomment.description" rows="2" style="width: 100%"></textarea><br/><br/>
+					<input type="button" value="Save" class="btn btn-info" ng-click="saveComment(tempGoal,newcomment);"/>
+				</div>
+			</div>
+			<div class="message" ng-show="showExtraMessage('warning')">
+				<div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/errorIcon.svg"/></div>
+				<div class="popupMessage">
+					You cannot add weight for this goal more than <b>{{remainingWeight}}</b>
+					<br/>
+					Weight of all Goals cannot exceed the value of <b>100</b>
+				</div>
+				<div class="popupButtonSave" ng-click="changeExtraMessage('none');">OK</div>
+			</div>
+			<div class="message" ng-show="showExtraMessage('loading')" >
+				<div class="content">
+					<div class="circle"></div>
+					<div class="circle1"></div>
+				</div>
+			</div>
+			<div class="message" ng-show="showExtraMessage('error')">
+				<div class="popupError">
+					<div class="popupErrorIcon"><img class="popupErrorIconImg" src="assets/images/errorIcon.svg"/></div>
+					<div class="popupErrorText">Error!</div>
+					<div class="popupErrorMessage">{{extraMessageText}}</div>
+				</div>
+				<div class="popupButtonSave" ng-click="changeExtraMessage('none');">OK</div>
+			</div>
+		   <!-- end of popupcONTENT -->
+		</div>
+   </div>
+   <!-- end of popup -->
+
+
+   <!--bootstrap pop over-->
+<script>
+$(document).ready(function(){
+
+	$(".panel").mouseover(function(){
+		$('[data-toggle="popover"]').popover();
+		$('[data-toggle="class-when-false"]').popover('disable');
+	});
+
+});
+</script>

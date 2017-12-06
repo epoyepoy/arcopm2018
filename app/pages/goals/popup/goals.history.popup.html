@@ -1,0 +1,55 @@
+<!doctype html>
+<div class="popup">
+	<div class="panel panel-primary" ng-show="showPlusMessage('none')">
+        <div class="custom panel-heading">
+            <div class="popupClose" ng-click="closeThisDialog();">
+                <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
+            </div>
+            <h4 style="">Goals History<br /> {{tempCycleGoal.Empno}} - {{tempCycleGoal.employeeName}}</h4>
+        </div>
+        <div id="evaluationPreviewPopup">
+			<!--<table style="width: 100%">
+				<tr>
+					<td style="width: 93%"><h3 style="text-align: center; margin-top: 0px;">Goals Form Preview<br/>Period: {{(tempCycleGoal.CycleDescription).trim()}}<br/>{{tempCycleGoal.Empno}} - {{tempCycleGoal.employeeName}}</h3></td>
+					<td style="width: 7%;vertical-align: middle;"><img id="logoImg" src="assets/images/logo3.png" alt="logo"></td>
+				</tr>
+			</table>
+			<div class="clearfix page-break" style="height: 30px;"></div>-->
+			<div class="dataTable goals-table">
+				<table>
+					<thead>
+						<tr class="headerRowPopup">
+							<th style="width:3vw"></th>
+							<th class="center" style="width:10vw">ATTRIBUTE</th>
+							<th class="center" style="width:30vw">GOAL</th>
+							<th class="center" style="width:5vw">WEIGHT %</th>
+							<th class="center" style="width:10vw">BY</th>
+							<th class="center" style="width:5vw"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="goal in tempGoals" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+							<td class="center">{{$index+1}}</td>
+							<td class="center"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}}&nbsp;-&nbsp;{{goal.CodeDescription}}</span></td>
+							<td class="center">{{goal.GoalDescription}}</td>
+							<td class="center">{{goal.Weight}}</td>
+							<td class="center"></td>
+							<td class="center">
+								<md-checkbox md-no-ink aria-label="Select" ng-checked="exists(goal.GoalID, selected)" ng-click="toggle(goal.GoalID, selected)" class="md-green"></md-checkbox>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+        </div>
+		<div class="popupButtons center">
+			<input type="submit" value="Review Goals" class="popupButtonSave" ng-click="saveComment();"  />
+		</div>
+    </div>
+	<div class="container" ng-show="showPlusMessage('loading')">
+		<div class="content"><br/>
+			<div class="circle "></div>
+			<div class="circle1 "></div>
+		</div>
+	</div>
+</div>

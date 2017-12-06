@@ -474,5 +474,16 @@ $app->get('/reportsevaluationperiods/', function ($request, $response, $args) {
     require 'actions/reportsevaluationperiods.get.php';
 });
 
+//Get Goals' Comments
+$app->get('/evaluations/goalscomments/{evalid}', function ($request, $response, $args) {
+    require 'actions/goalscomments.get.php';
+});
+
+//save Comment in Goals
+$app->post('/evaluations/goalssavecomment/{evalid}/{userid}/{state}', function ($request, $response, $args) {
+    require 'actions/goalssavecomment.create.php';
+});
+
+
 # Run the Slim application
 $app->run();

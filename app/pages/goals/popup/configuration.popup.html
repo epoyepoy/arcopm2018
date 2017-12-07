@@ -19,11 +19,11 @@
 							{{cycleGoal.GoalsState==0 && from == 'mylist' ? 'Do you manage any direct reports (subordinates)?' : 'Does the employee manage any direct reports (subordinates)?'}}
 						</div>
 						<div class="panel-body">
-							<div class="btn-group" ng-if="(cycleGoal.GoalsState == 0 && from == 'mylist') || (cycleGoal.GoalsState == 1 && from == 'emplist') || (cycleGoal.GoalsState == 0 && from == 'emplist' && cycleGoal.onBehalfFlag  == 0)">
+							<div class="btn-group" ng-if="(cycleGoal.GoalsState == 0 && from == 'mylist') || (cycleGoal.GoalsState == 2 && from == 'emplist') || (cycleGoal.GoalsState == 0 && from == 'emplist' && cycleGoal.onBehalfFlag  == 0)">
 							   <label ng-class="(cycleGoal.ManagesTeam == 0) ? 'btn btn-default active' : 'btn btn-default'"  uib-btn-radio="0" ng-model="cycleGoal.ManagesTeam" ng-click="updateEvaluation(cycleGoal.ManagesTeam,cycleGoal.Empno,cycleGoal.CycleID);" required>No</label>
 							   <label ng-class="(cycleGoal.ManagesTeam == 1) ? 'btn btn-default active' : 'btn btn-default'"  uib-btn-radio="1" ng-model="cycleGoal.ManagesTeam" ng-click="updateEvaluation(cycleGoal.ManagesTeam,cycleGoal.Empno,cycleGoal.CycleID);" required>Yes</label>
 							</div>
-							<div ng-if="(cycleGoal.GoalsState == 1 && from == 'mylist') || (cycleGoal.GoalsState >= 2)">
+							<div ng-if="(cycleGoal.GoalsState == 2 && from == 'mylist') || (cycleGoal.GoalsState >= 3)">
 								<label>{{cycleGoal.ManagesTeam == 1 ? 'Yes' : cycleGoal.ManagesTeam == 0 ? 'No' : ''}}</label>
 							</div>
 						</div>
@@ -228,7 +228,7 @@
 					</div>
 					
 					
-					<div class="popupButtons center" ng-if="(cycleGoal.GoalsState == 0 && from == 'mylist') || (cycleGoal.GoalsState == 1 && from == 'emplist') || (cycleGoal.GoalsState == 0 && from == 'emplist' && cycleGoal.onBehalfFlag  == 0)">
+					<div class="popupButtons center" ng-if="(cycleGoal.GoalsState == 0 && from == 'mylist') || ((cycleGoal.GoalsState == 1 || cycleGoal.GoalsState == 2)  && from == 'emplist') || (cycleGoal.GoalsState == 0 && from == 'emplist' && cycleGoal.onBehalfFlag  == 0)">
 						<div class="popupButtonCancel" ng-click="closeThisDialog();">Exit</div>
 						<!-- Start Evaluation button will be activate only if we choose in 'Employee Manages Team' and Goals' Total Weight is 100%.  -->
 						<!--<input type="submit" value="Submit Goals" class="popupButtonSave" ng-attr-uib-tooltip="{{remainingWeight!=0  ? 'Button will become active only after total Goals Weight will be 100% and Employee Manages Team has been chosen.' : ''}}"

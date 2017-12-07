@@ -95,10 +95,10 @@ class GoalsDAO{
 			SELECT EvCycle.ID as CycleID, EvCycle.CycleDescription, EvCycle.goalsInputStatus, Ev.ManagesTeam, RL.empnosource AS Empno, HR.job_desc,
 			rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'employeeName', HR.grade,
 			CASE
-				WHEN HR.GRADE<4 AND ISNULL(Ev.State, 0)=0 THEN 1
+				WHEN HR.GRADE<4 AND ISNULL(Ev.State, 0)=0 THEN 2
 				ELSE ISNULL(Ev.State, 0)
 			END as GoalsState,
-			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, 4 as yourActionState, isnull(RL.wrongManager,0) as wrongManager,EvalAnswers.flagEvalAnswers
+			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, isnull(RL.wrongManager,0) as wrongManager,EvalAnswers.flagEvalAnswers
 	        FROM dbo.ReportingLine RL
 			LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
 			LEFT JOIN  dbo.Evaluations Ev on Ev.EmployeeID=RL.empnosource AND Ev.CycleID=@cycleid
@@ -113,7 +113,19 @@ class GoalsDAO{
 				SELECT case when count(*) >0 then 1 else 0 end as 'flagEvalAnswers' FROM ANSWERS 
 				WHERE EvaluationID=Ev.EvaluationID
 				) EvalAnswers
-	        WHERE RL.empnotarget=@userid AND RL.state=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid
+			OUTER APPLY
+			(
+				SELECT TOP 1
+				CASE
+				WHEN state=4 THEN 'Complete as Dotted Line Manager'
+				WHEN state=5 THEN 'Complete as Evaluator' END
+					 as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+				FROM ReportingLine WHERE
+				State>=isnull(Ev.State,0)
+				and empnotarget=@userid and empnosource=HR.empno
+				ORDER BY state asc
+			) yourAction
+	        WHERE RL.empnotarget=@userid AND ISNULL(RL.excludeFromCycles,0)<>@cycleid --AND RL.state=5
 			AND Rl.empnosource NOT IN (SELECT RLE2.empnosource FROM dbo.ReportingLineExceptions RLE2 --exclude employees that are in the ReportingLineException, keep employee in case user is
 			INNER JOIN dbo.ReportingLine RL2 ON RL2.empnosource=RLE2.empnosource AND  RLE2.state=5 WHERE RL2.empnotarget=@userid AND RLE2.empnotarget<>@userid AND RLE2.goalCycle=@cycleid)
 			UNION
@@ -123,7 +135,7 @@ class GoalsDAO{
 				WHEN HR.GRADE<4 AND ISNULL(Ev.State, 0)=0 THEN 2 --check it was 1
 				ELSE ISNULL(Ev.State, 0)
 			END as GoalsState,
-			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, 5 as yourActionState, isnull(RL.wrongManager,0) as wrongManager,EvalAnswers.flagEvalAnswers
+			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, isnull(RL.wrongManager,0) as wrongManager,EvalAnswers.flagEvalAnswers
 	        FROM dbo.ReportingLineExceptions RL
 			LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
 			LEFT JOIN  dbo.Evaluations Ev on Ev.EmployeeID=RL.empnosource AND Ev.CycleID=@cycleid
@@ -138,7 +150,19 @@ class GoalsDAO{
 				SELECT case when count(*) >0 then 1 else 0 end as 'flagEvalAnswers' FROM ANSWERS 
 				WHERE EvaluationID=Ev.EvaluationID
 				) EvalAnswers
-	        WHERE RL.empnotarget=@userid AND RL.state=5 --AND ISNULL(RL.excludeFromCycles,0)<>@cycleid
+				OUTER APPLY
+				(
+					SELECT TOP 1
+					CASE
+						WHEN state=4 THEN 'Complete as Dotted Line Manager'
+						WHEN state=5 THEN 'Complete as Evaluator' END
+						 as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+					FROM ReportingLine WHERE
+					State>=isnull(Ev.State,0)
+					and empnotarget=@userid and empnosource=HR.empno
+					ORDER BY state asc
+				) yourAction
+	        WHERE RL.empnotarget=@userid --AND RL.state=5 --AND ISNULL(RL.excludeFromCycles,0)<>@cycleid
 			ORDER BY HR.grade ASC
 		END
 		ELSE
@@ -149,7 +173,7 @@ class GoalsDAO{
 				WHEN HR.GRADE<4 AND ISNULL(Ev.State, 0)=0 THEN 2 --check it was 1
 				ELSE ISNULL(Ev.State, 0)
 			END as GoalsState,
-			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, 5 as yourActionState, isnull(RL.wrongManager,0) as wrongManager, EvalAnswers.flagEvalAnswers
+			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, isnull(RL.wrongManager,0) as wrongManager, EvalAnswers.flagEvalAnswers
 	        FROM dbo.ReportingLine RL
 			LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
 			LEFT JOIN  dbo.Evaluations Ev on Ev.EmployeeID=RL.empnosource AND Ev.CycleID=@cycleid
@@ -164,7 +188,19 @@ class GoalsDAO{
 				SELECT case when count(*) >0 then 1 else 0 end as 'flagEvalAnswers' FROM ANSWERS 
 				WHERE EvaluationID=Ev.EvaluationID
 				) EvalAnswers
-	        WHERE RL.empnotarget=@userid AND RL.state=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid
+				OUTER APPLY
+				(
+					SELECT TOP 1
+					CASE
+						WHEN state=4 THEN 'Complete as Dotted Line Manager'
+						WHEN state=5 THEN  'Complete as Evaluator'
+						END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+					FROM ReportingLine WHERE
+					State>=isnull(Ev.State,0)
+					and empnotarget=@userid and empnosource=HR.empno
+					ORDER BY state asc
+				) yourAction
+	        WHERE RL.empnotarget=@userid AND ISNULL(RL.excludeFromCycles,0)<>@cycleid --AND RL.state=5
 			AND RL.empnosource NOT IN (SELECT RLE2.empnosource FROM dbo.ReportingLineExceptions RLE2 --exclude employees that are in the ReportingLineException, keep employee in case user is
 			INNER JOIN dbo.ReportingLine RL2 ON RL2.empnosource=RLE2.empnosource AND  RLE2.state=5 WHERE RL2.empnotarget=@userid AND RLE2.empnotarget<>@userid AND RLE2.goalCycle=@cycleid)
 			ORDER BY HR.grade ASC

@@ -1214,7 +1214,7 @@ class EvaluationsDAO{
 				State,
 				Date
 			)
-			SELECT GoalID, EvaluationID, GoalDescription, Weight, UserID, AttributeCode, State, GETDATE() FROM dbo.Goals WHERE State=@state
+			SELECT GoalID, EvaluationID, GoalDescription, Weight, UserID, AttributeCode, State, GETDATE() FROM dbo.Goals WHERE State=@state AND UserID=@userid
 			END
 		    ";
 			$query = $this->connection->prepare($queryString);

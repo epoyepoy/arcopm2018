@@ -219,7 +219,7 @@ class GoalsDAO{
 	{
 		$queryString="
 		SELECT G.GoalID, E.CycleID as CycleID, G.GoalDescription, cast(G.Weight as int) as Weight, G.AttributeCode, GA.CodeDescription, GA.AttDescription as AttributeFullDescription,
-		E.EmployeeID as Empno, E.State as GoalState, G.UserID
+		E.EmployeeID as Empno, E.State as EvalState, G.UserID, G.State as GoalState
 		FROM dbo.GOALS G
 		INNER JOIN Evaluations E ON E.EvaluationID=G.EvaluationID
 		INNER JOIN GoalAttributes GA on GA.AttributeCode=G.AttributeCode

@@ -60,7 +60,7 @@ class GoalsDAO{
 		Declare @empno as varchar(5) = :empno;
 		Declare @cycleid as int = :cycleid;
 		SELECT EC.ID as CycleID, EC.CycleDescription, EC.goalsInputStatus, E.ManagesTeam, ISNULL(E.EmployeeID, @empno) AS Empno, HR.job_desc,
-		rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'employeeName', HR.grade, ISNULL(E.State, 0) as GoalsState, E.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag
+		rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'employeeName', HR.grade, ISNULL(E.State, 0) as EvalState, E.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag
 		FROM EvaluationsCycle EC
 		LEFT JOIN Evaluations E ON E.CycleID=EC.ID AND E.EmployeeID=@empno
 		LEFT JOIN Goals G on G.EvaluationID=E.EvaluationID
@@ -97,7 +97,7 @@ class GoalsDAO{
 			CASE
 				WHEN HR.GRADE<4 AND ISNULL(Ev.State, 0)=0 THEN 2
 				ELSE ISNULL(Ev.State, 0)
-			END as GoalsState,
+			END as EvalState,
 			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, isnull(RL.wrongManager,0) as wrongManager,EvalAnswers.flagEvalAnswers
 	        FROM dbo.ReportingLine RL
 			LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
@@ -134,7 +134,7 @@ class GoalsDAO{
 			CASE
 				WHEN HR.GRADE<4 AND ISNULL(Ev.State, 0)=0 THEN 2 --check it was 1
 				ELSE ISNULL(Ev.State, 0)
-			END as GoalsState,
+			END as EvalState,
 			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, isnull(RL.wrongManager,0) as wrongManager,EvalAnswers.flagEvalAnswers
 	        FROM dbo.ReportingLineExceptions RL
 			LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
@@ -172,7 +172,7 @@ class GoalsDAO{
 			CASE
 				WHEN HR.GRADE<4 AND ISNULL(Ev.State, 0)=0 THEN 2 --check it was 1
 				ELSE ISNULL(Ev.State, 0)
-			END as GoalsState,
+			END as EvalState,
 			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, isnull(RL.wrongManager,0) as wrongManager, EvalAnswers.flagEvalAnswers
 	        FROM dbo.ReportingLine RL
 			LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource

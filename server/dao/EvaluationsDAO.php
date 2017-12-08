@@ -874,8 +874,15 @@ class EvaluationsDAO{
 					INSERT INTO dbo.Answers
 					(EvaluationID,QuestionID,Answer,State,UserID,GoalID,Date,Finished)
 					SELECT  EvaluationID, QuestionID, Answer, 5, @userid, GoalID, Date, Finished FROM dbo.Answers 
+					WHERE EvaluationID=@evalid AND State=4 AND
+					(ISNULL(QuestionID,'')<>'' AND QuestionID NOT IN (SELECT QuestionID FROM dbo.Answers WHERE state=5 and EvaluationID=@evalid AND ISNULL(QuestionID,'')<>'')
+					)
+					union
+					SELECT  EvaluationID, QuestionID, Answer, 5, @userid, GoalID, Date, Finished FROM dbo.Answers 
 					WHERE EvaluationID=@evalid AND State=4 AND 
-					QuestionID NOT IN (SELECT QuestionID FROM dbo.Answers WHERE state=5 and EvaluationID=@evalid)
+					(
+					ISNULL(GoalID,'')<>'' AND GoalID NOT IN (SELECT GoalID FROM dbo.Answers WHERE state=5 and EvaluationID=@evalid AND ISNULL(GoalID,'')<>'')
+					)
 				END
 
 

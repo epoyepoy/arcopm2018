@@ -1914,7 +1914,7 @@ public function GetEvaluators($reviewer)
 		SELECT DISTINCT EMP.family_code, EMP.family_desc, DA.empno 
 		FROM dbo.ReportingLine RL
 		INNER JOIN dbo.vw_arco_employee EMP ON EMP.empno=RL.empnosource 
-		LEFT JOIN dbo.userdepartmentAccess DA ON DA.family_code=EMP.family_code
+		LEFT JOIN dbo.userdepartmentAccess DA ON DA.family_code=EMP.family_code AND DA.empno=@empno
 		WHERE ISNULL(DA.empno, '')= CASE WHEN (SELECT COUNT(*) FROM userDepartmentAccess WHERE empno=@empno)>0 THEN @empno ELSE '' END
 		ORDER BY 1
 		";

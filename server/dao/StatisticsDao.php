@@ -1387,12 +1387,12 @@ CAST(ROUND(CAST (
 	CAST(
 		SUM(regions_CTE.OPerfImproNeededCount)+SUM(regions_CTE.OBuildingCapabilityCount)+
 		SUM(regions_CTE.OAchievingPerformanceCount)+SUM(regions_CTE.OLeadingPerformanceCount) 
-		AS float
+		AS FLOAT
 		)
-	AS DECIMAL(5,5)
+	AS FLOAT
 	)
 * 100
-,2) as DECIMAL(4,2)) 
+,2) as FLOAT) 
 AS OPerfImproNeededPerc,
 SUM(regions_CTE.OBuildingCapabilityCount) AS OBuildingCapabilityCount,
 	CAST(ROUND(CAST (
@@ -1402,10 +1402,10 @@ SUM(regions_CTE.OBuildingCapabilityCount) AS OBuildingCapabilityCount,
 			SUM(regions_CTE.OAchievingPerformanceCount)+SUM(regions_CTE.OLeadingPerformanceCount) 
 			AS float
 			)
-		AS DECIMAL(5,5)
+		AS FLOAT
 		)
 	* 100
-	,2) as DECIMAL(4,2)) 
+	,2) as FLOAT) 
 	AS OBuildingCapabilityPerc,
 SUM(regions_CTE.OAchievingPerformanceCount) AS OAchievingPerformanceCount,
 CAST(ROUND(CAST (
@@ -1415,10 +1415,10 @@ CAST(ROUND(CAST (
 		SUM(regions_CTE.OAchievingPerformanceCount)+SUM(regions_CTE.OLeadingPerformanceCount) 
 		AS float
 		)
-	AS DECIMAL(5,5)
+	AS FLOAT
 	)
 * 100
-,2) as DECIMAL(4,2)) 
+,2) as FLOAT) 
 AS OAchievingPerformancePerc,
 SUM(regions_CTE.OLeadingPerformanceCount) AS OLeadingPerformanceCount,
 CAST(ROUND(CAST (
@@ -1428,10 +1428,10 @@ CAST(ROUND(CAST (
 		SUM(regions_CTE.OAchievingPerformanceCount)+SUM(regions_CTE.OLeadingPerformanceCount) 
 		AS float
 		)
-	AS DECIMAL(5,5)
+	AS FLOAT
 	)
 * 100
-,2) as DECIMAL(4,2)) 
+,2) as FLOAT) 
 AS OLeadingPerformancePerc
 FROM Regions_CTE
 GROUP BY regions_CTE.regionCode

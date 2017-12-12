@@ -75,16 +75,16 @@
 							<td class="center">{{myCycleGoal.ManagesTeam == 1 ? 'Yes' : myCycleGoal.ManagesTeam == 0 ? 'No' : ''}}</td>
 							<td class="center">{{myCycleGoal.CycleDescription}}</td>
 							<td class="center">
-								{{myCycleGoal.GoalsState == 0 && myCycleGoal.goalsInputStatus == 1 ? 'To Be Set By Employee' : myCycleGoal.GoalsState == 1 ? 'To Be Set By Dotted Line Manager' : myCycleGoal.GoalsState == 2 ? 'To Be Set By Evaluator' : myCycleGoal.GoalsState == 3 ? 'Configuration Complete' : 'Configuration Complete'}}
+								{{myCycleGoal.EvalState == arcopmState.GoalsByEmployee && myCycleGoal.goalsInputStatus == 1 ? 'To Be Set By Employee' : myCycleGoal.EvalState == arcopmState.GoalsByDotted ? 'To Be Set By Dotted Line Manager' : myCycleGoal.EvalState == arcopmState.GoalsByEvaluator ? 'To Be Set By Evaluator' : myCycleGoal.EvalState == arcopmState.EvalByEmployee ? 'Configuration Complete' : 'Configuration Complete'}}
 							</td>
 							<td class="center">
-								<span ng-if="myCycleGoal.GoalsState == 0 && myCycleGoal.goalsInputStatus == 1 && myCycleGoal.onBehalfFlag==0">
+								<span ng-if="myCycleGoal.EvalState == arcopmState.GoalsByEmployee && myCycleGoal.goalsInputStatus == 1 && myCycleGoal.onBehalfFlag==0">
 									<button class="sitesBtn" ng-click="showEvalConfiguration(myCycleGoal,'mylist',0)" uib-tooltip="Configuration" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-wrench" aria-hidden="true"  ></span></button>
 								</span>
-								<span ng-if="myCycleGoal.GoalsState!=0 || myCycleGoal.goalsInputStatus == 0">
+								<span ng-if="myCycleGoal.EvalState!= arcopmState.GoalsByEmployee || myCycleGoal.goalsInputStatus == 0">
 									<button class="sitesBtn" ng-click="showEvalConfiguration(myCycleGoal,'mylist',0)" uib-tooltip="View Configuration/Goals" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-crosshairs" aria-hidden="true"></i></button>
 								</span>
-								<span ng-if="myCycleGoal.GoalsState!=0 || myCycleGoal.goalsInputStatus == 0">
+								<span ng-if="myCycleGoal.EvalState!= arcopmState.GoalsByEmployee || myCycleGoal.goalsInputStatus == 0">
 									<button class="sitesBtn" ng-click="showEvalPreview(myCycleGoal)" uib-tooltip="Evaluation Form Template Preview" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"  ></span></button>
 								</span>
 								<span ng-if="myCycleGoal.onBehalfFlag==1">
@@ -122,13 +122,13 @@
 				<table>
 					<thead>
 						<tr class="headerRow">
-							<th class="center" style="width:50px">Line Number</th>
-							<th class="center" style="width:50px">Employee<br/>Number</th>
-							<th class="center" style="width:30%">Employee Name</th>
+							<th class="center" style="width:4%">Line Number</th>
+							<th class="center" style="width:4%">Employee<br/>Number</th>
+							<th class="center" style="width:20%">Employee Name</th>
 							<th class="center" style="width:30%">Position</th>
-							<th class="center" style="width:50px">Grade</th>
-							<th class="center" style="width:50px">Manages Team</th>
-							<th class="center" style="width:50px">Evaluation Period</th>
+							<th class="center" style="width:4%">Grade</th>
+							<th class="center" style="width:4%">Manages Team</th>
+							<th class="center" style="width:4%">Evaluation Period</th>
 							<th class="center" style="width:20%"> Goal Action</th>
 							<th style="width:10%"></th>
 						</tr>
@@ -144,29 +144,29 @@
 							<td class="center">{{cycleGoal.ManagesTeam == 1 ? 'Yes' : cycleGoal.ManagesTeam == 0 ? 'No' : ''}}</td>
 							<td class="center">{{cycleGoal.CycleDescription}}</td>
 							<td class="center">
-								{{cycleGoal.GoalsState == 0 && cycleGoal.goalsInputStatus == 1 ? 'To Be Set By Employee' : cycleGoal.GoalsState == 1 ? 'To Be Set By Dotted Line Manager' : cycleGoal.GoalsState == 2 ? 'To Be Set By Evaluator' : cycleGoal.GoalsState == 3 ? 'Configuration Complete' : 'Configuration Complete'}}
+								{{cycleGoal.EvalState == arcopmState.GoalsByEmployee && cycleGoal.goalsInputStatus == 1 ? 'To Be Set By Employee' : cycleGoal.EvalState == arcopmState.GoalsByDotted ? 'To Be Set By Dotted Line Manager' : cycleGoal.EvalState == arcopmState.GoalsByEvaluator ? 'To Be Set By Evaluator' : cycleGoal.EvalState == arcopmState.EvalByEmployee ? 'Configuration Complete' : 'Configuration Complete'}}
 							</td>
 							<td class="center">
 								<div ng-if="cycleGoal.wrongManager==0">
 									
-									<span ng-if=" (cycleGoal.GoalsState == 1 || cycleGoal.GoalsState == 2 || cycleGoal.GoalsState == 3) && cycleGoal.grade > 3 && cycleGoal.flagEvalAnswers == 0">
+									<span ng-if=" (cycleGoal.EvalState == arcopmState.GoalsByDotted || cycleGoal.EvalState == arcopmState.GoalsByEvaluator || cycleGoal.EvalState == arcopmState.EvalByEmployee) && cycleGoal.grade > 3 && cycleGoal.flagEvalAnswers == 0">
 											<button class="sitesBtn" ng-click="showSendBackPopup(cycleGoal)" style="width: 38px;" uib-tooltip="Send Back Goals & Configuration for Review" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-step-backward" aria-hidden="true"></i></button>
 									</span>
 									
-									<span ng-if="(cycleGoal.GoalsState == 1 || cycleGoal.GoalsState == 2) && cycleGoal.onBehalfFlag==0">
+									<span ng-if="(cycleGoal.EvalState == arcopmState.GoalsByDotted || cycleGoal.EvalState == arcopmState.GoalsByEvaluator) && cycleGoal.onBehalfFlag==0">
 										<button class="sitesBtn" ng-click="showEvalConfiguration(cycleGoal,'emplist',0)" uib-tooltip="Configuration" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-wrench" aria-hidden="true"  ></span></button>
 									</span>
 									
-									<span ng-if="cycleGoal.GoalsState >= 3">
+									<span ng-if="cycleGoal.EvalState >= arcopmState.EvalByEmployee">
 										<button class="sitesBtn" ng-click="showEvalConfiguration(cycleGoal,'emplist',0)" uib-tooltip="View Configuration/Goals" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-crosshairs" aria-hidden="true"></i></button>
 									</span>
-									<span ng-if="cycleGoal.GoalsState>=3">
+									<span ng-if="cycleGoal.EvalState >= arcopmState.EvalByEmployee">
 										<button class="sitesBtn" ng-click="showEvalPreview(cycleGoal)" uib-tooltip="Evaluation Form Template Preview" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"  ></span></button>
 									</span>
-									<span ng-if="cycleGoal.GoalsState == 0 && cycleGoal.onBehalfFlag==0">
+									<span ng-if="cycleGoal.EvalState == arcopmState.GoalsByEmployee && cycleGoal.onBehalfFlag==0">
 										<button class="sitesBtn" ng-click="showEvalConfiguration(cycleGoal,'emplist',1)" uib-tooltip="Configure on behalf of Employee" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-cog" aria-hidden="true"  ></span></button>
 									</span>
-									<span ng-if="cycleGoal.GoalsState < 3">
+									<span ng-if="cycleGoal.EvalState < arcopmState.EvalByEmployee">
 										<button class="sitesBtn" ng-click="showRejectManagerPopup(cycleGoal)" uib-tooltip="Reject Action" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="fa fa-flag text-danger" aria-hidden="true"  ></span></button>
 									</span>
 									<span ng-if="cycleGoal.onBehalfFlag==1">

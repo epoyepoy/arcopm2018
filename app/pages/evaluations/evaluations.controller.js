@@ -186,6 +186,7 @@
 			if (!$scope.checkLogin()) {
                 return;
             }
+			$scope.extraMessage = "loading";
 			EvaluationsFactory.ReviseEvaluations(selectedEvals,loginData.user.id).then(function (result) {
 				$scope.checkifLoggedout(result);
 				//if revised successfully, then we reload evaluations in order to get new states

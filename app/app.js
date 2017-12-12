@@ -30,8 +30,21 @@
                     return Array(+(zero > 0 && zero)).join("0") + input;
                   }
               });
+			  
+			  
+		//STATES of Arcopm	  
+		app.constant('arcopmState', {
+			'GoalsByEmployee':  0,
+			'GoalsByDotted':    1,
+			'GoalsByEvaluator': 2,
+			'EvalByEmployee':   3,
+			'EvalByDotted':     4,
+			'EvalByEvaluator':  5,
+			'EvalByReviewer':   6,
+			'EvalComplete':     7
+		})
 
-       app.directive('errSrc', function() {
+		app.directive('errSrc', function() {
           return {
             link: function(scope, element, attrs) {
 

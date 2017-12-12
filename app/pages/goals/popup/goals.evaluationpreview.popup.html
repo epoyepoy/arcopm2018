@@ -12,8 +12,8 @@
             <h4 style="">Evaluation Form Preview<br /> {{cycleGoal.Empno}} - {{cycleGoal.employeeName}}</h4>
         </div>
         <div class="panel-body-preview" id="evaluationPreviewPopup">
-            <div class="container-fluid" ng-init="getSections(cycleGoal.EvaluationID,cycleGoal.GoalsState)">
-				<div class="row" ng-init="getQuestions(cycleGoal.EvaluationID,cycleGoal.GoalsState)">
+            <div class="container-fluid" ng-init="getSections(cycleGoal.EvaluationID,cycleGoal.EvalState)">
+				<div class="row" ng-init="getQuestions(cycleGoal.EvaluationID,cycleGoal.EvalState)">
 					<div class="form-group col-xs-12"  style="padding-right: 0px;padding-left: 0px;">
 						<div ng-repeat="section in questionnaireSections track by $index">
 							<div class="panel panel-success box-one" style="margin-bottom:10px; border:1px; box-shadow: 0px 0px 0px; border-radius: 5px; border-style: solid; border-color: #d6e9c6;">

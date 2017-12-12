@@ -490,6 +490,7 @@
 			$scope.message = "none";
 			$scope.getEmpDetails(evalid);
 			$scope.getScores(evalid, state);
+			$scope.getScoreScales(evalid,state);
 			console.log($scope.getEmpDetails);
 			$scope.todoPopup = ngDialog.open({
 				template: 'app/pages/evaluations/popup/evaluations.evalpreviewPDF.popup.html',

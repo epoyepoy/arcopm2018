@@ -32,7 +32,7 @@
 								<th class="center" style="width:30vw">GOAL</th>
 								<!--<th class="center" style="width:10%"> TARGET </th>-->
 								<th class="center" style="width:5vw">WEIGHT %</th>
-								<th class="center" style="width:20vw" ng-if="tempCycleGoal.GoalsState >= 2"></th>
+								<th class="center" style="width:20vw" ng-if="tempCycleGoal.EvalState >= arcopmState.EvalByEmployee"></th>
 							</tr>
 						</thead>
 						<tbody>
@@ -42,7 +42,7 @@
 								<td class="center">{{goal.GoalDescription}}</td>
 								<!--<td class="center">{{goal.Target}}</td>-->
 								<td class="center">{{goal.Weight}}</td>
-								<td class="center" ng-if="tempCycleGoal.GoalsState >= 2"></td>
+								<td class="center" ng-if="tempCycleGoal.EvalState >= arcopmState.EvalByEmployee"></td>
 							</tr>
 						</tbody>
 					</table>

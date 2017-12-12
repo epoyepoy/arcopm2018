@@ -7,14 +7,14 @@
 
     // Inject services to the Controller
 
-    goalsController.$inject = ["$scope", "Auth", "loginData",  "global", "EvaluationsFactory", "ngDialog", "dataService", "$state", "$stateParams"];
+    goalsController.$inject = ["$scope", "Auth", "loginData",  "global", "EvaluationsFactory", "ngDialog", "dataService", "$state", "$stateParams", "arcopmState"];
 
 
 
     // Controller Logic
 
 
-    function goalsController($scope, Auth, loginData, global, EvaluationsFactory, ngDialog, dataService, $state, $stateParams) {
+    function goalsController($scope, Auth, loginData, global, EvaluationsFactory, ngDialog, dataService, $state, $stateParams, arcopmState) {
         $scope.message = "none";
 		$scope.extraMessage = "none";
 		$scope.plusMessage = "none";
@@ -23,6 +23,7 @@
 		$scope.selected = [];
 		$scope.goal = {};
 		$scope.parseInt = parseInt;
+		$scope.arcopmState = arcopmState;
 
 
         // Initialize the evaluations
@@ -433,7 +434,7 @@
 			EvaluationsFactory.UpdateState(0,goal.CycleID,loginData.user.id,goal.Empno,onbehalf).then(function (result) {
 				$scope.checkifLoggedout(result);
 				if (result.success) {
-					$scope.cycleGoal.GoalsState = result.evaluation.State;
+					$scope.cycleGoal.EvalState = result.evaluation.State;
 					$scope.cycleGoal.EvaluationID = result.evaluation.EvaluationID;
 					$scope.extraMessage = 'none';
 					$scope.message = 'created';
@@ -506,7 +507,7 @@
 				$scope.checkifLoggedout(result);
 				if (result.success) {
 					$scope.extraMessage = 'Updated';
-					cycleGoal.GoalsState  = 0;
+					cycleGoal.EvalState  = 0;
 				} else {
 					$scope.extraMessage = 'error';
 					$scope.extraMessageText = 'Something went wrong while saving your selection. Please contact your administrator.';
@@ -698,14 +699,11 @@
             }
             $scope.extraMessage = 'loading';
 
-			EvaluationsFactory.SaveComment(goal.EvaluationID,loginData.user.id,goal.GoalsState,newcomment).then(function (result) {
+			EvaluationsFactory.SaveComment(goal.EvaluationID,loginData.user.id,goal.EvalState,newcomment).then(function (result) {
 				$scope.checkifLoggedout(result);
 				if (result.success) {
-//					$scope.cycleGoal.GoalsState = result.evaluation.State;
-//					$scope.cycleGoal.EvaluationID = result.evaluation.EvaluationID;
 					$scope.getComments(goal.EvaluationID);
 					$scope.extraMessage = 'none';
-					$scope.commentsMode = 'show';
 				} else {
 					$scope.message = 'error';
 					$scope.messageText = 'Something went wrong while creating a new Goal. Please contact your administrator.';
@@ -715,6 +713,12 @@
 			return;
 		};
 		
+		
+		$scope.goalsState = function(state){
+			return function(item){
+				return item.GoalState == state;
+			};
+		};
 
     }
 

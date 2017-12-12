@@ -18,6 +18,7 @@
 						<tr class="headerRow">
 							<th></th>
 							<th class="center">Period</th>
+							<th class="center">Stage</th>
 							<th class="center">Status</th>
 							<th class="center">Status Date</th>
 							<th class="center">Is Manager</th>
@@ -31,6 +32,7 @@
 						<tr ng-repeat="evaluation in employeeEvaluations" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
 							<td class="center">{{evaluation.ID}}</td>
 							<td class="center">{{evaluation.EvaluationPeriod}}</td>
+							<td class="center">{{evaluation.State>1 ? 'Evaluation' : 'Goal Setting & Configuration' }}</td>
 							<td class="center">{{evaluation.StateDescription ? evaluation.StateDescription : '-' }}</td>
 							<td class="center">{{evaluation.StateDate ? evaluation.StateDate : '-' }}</td>
 							<td class="center">{{evaluation.ManagesTeam ? evaluation.ManagesTeam==1 ? 'Yes' : 'No' : '-' }}</td>
@@ -47,6 +49,9 @@
 									</span>
 									<span ng-if="evaluation.State" style="margin-left: 5px;">
 										<button class="sitesBtn" ng-click="showResetEvaluationConfirmPopup(evaluation,1)" uib-tooltip="Reset Evaluation & Goals" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-reply-all" aria-hidden="true"></i></button>
+									</span>
+									<span ng-if="evaluation.State > 4 && user.id=='45909'" style="margin-left: 5px;">
+										<button class="sitesBtn" ng-click="showEvalPreviewForPDF(evaluation.EvaluationID,evaluation.State)" uib-tooltip="Print Summary" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-print" aria-hidden="true"></i></button>
 									</span>
 								</div>
 							</td>

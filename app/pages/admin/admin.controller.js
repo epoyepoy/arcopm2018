@@ -20,7 +20,8 @@
 		$scope.show = true;
 		$scope.formMessage = true;
 		$scope.successMessage = false;
-
+		$scope.scoreClasses = ['info','active','warning','danger'];
+		$scope.scoreDefinition = ['Performance Improvement Needed','Building Capability','Achieving Performance','Leading Performance'];
 
 		// Initialize the dashboard
 		$scope.init = function () {
@@ -485,6 +486,83 @@
 			return false;
 		};
 
+		$scope.showEvalPreviewForPDF = function (evalid,state) {
+			$scope.message = "none";
+			$scope.getEmpDetails(evalid);
+			$scope.getScores(evalid, state);
+			console.log($scope.getEmpDetails);
+			$scope.todoPopup = ngDialog.open({
+				template: 'app/pages/evaluations/popup/evaluations.evalpreviewPDF.popup.html',
+				className: 'ngdialog-theme-default eval-prev-pdf',
+				scope: $scope
+			});
+		};
+		
+		$scope.roundUp = function(score){
+		return (Math.round(score * 100) / 100).toFixed(2);
+		};
+		
+		$scope.getEmpDetails = function(evalid){
+			if (!$scope.checkLogin()) {
+                return;
+            }
+			EvaluationsFactory.GetEmpDetails(evalid).then(function (result) {
+				$scope.checkifLoggedout(result);
+				$scope.empDetails = result.empDetails;
+				$scope.employeeGrade = $scope.empDetails.empGrade;
+            });
+		};
+		
+		$scope.generatePdf = function(){
+			kendo.drawing.drawDOM($("#exportthis"),{paperSize:"A3"	}).then(function(group) {
+				kendo.drawing.pdf.saveAs(group, "evaluation.pdf");
+			});
+		};
+
+		
+		$scope.showScoresMessage = function (message) {
+            if ($scope.scoresMessage === message) {
+                return true;
+            }
+
+            return false;
+        };
+		
+		$scope.getScores = function(evalid,state){
+			if (!$scope.checkLogin()) {
+                return;
+            }
+			$scope.scoresMessage = 'loading';
+			EvaluationsFactory.GetScores(evalid,loginData.user.id,state).then(function (result) {
+				$scope.checkifLoggedout(result);
+				$scope.scoresMessage = 'none';
+				$scope.scores = result.evalScores;
+				var totalEmpScore = 0; var totalEmpWeightScore = 0;
+				var totalEvalScore = 0; var totalEvalWeightScore = 0;
+				var totalRevScore = 0; var totalRevWeightScore = 0;
+				var totalWeight = 0;
+				var tempCalc=0;
+				var tempCalc1=0;
+				var i = 0;
+				angular.forEach(result.evalScores, function(value) {
+					i++;
+					totalWeight += parseFloat(value.ScoreWeight);
+					totalEmpScore += parseFloat(value.EmpScore);
+					totalEvalScore += parseFloat(value.EvalScore);
+					totalRevScore += parseFloat(value.RevScore);
+					totalEmpWeightScore +=  parseFloat($scope.roundUp(value.EmpScore * value.ScoreWeight));
+					totalEvalWeightScore +=  parseFloat($scope.roundUp(parseFloat(value.EvalScore * value.ScoreWeight)));
+					totalRevWeightScore +=   parseFloat($scope.roundUp(parseFloat(value.RevScore * value.ScoreWeight)));
+				});
+				$scope.totalWeight = totalWeight;
+				$scope.averageEmpScore = totalEmpScore/i;
+				$scope.averageEvalScore = totalEvalScore/i;
+				$scope.averageRevScore = totalRevScore/i;
+				$scope.totalEmpWeightScore = totalEmpWeightScore;
+				$scope.totalEvalWeightScore = totalEvalWeightScore;
+				$scope.totalRevWeightScore = totalRevWeightScore;
+            });
+		};
 
 	}
 

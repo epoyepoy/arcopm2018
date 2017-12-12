@@ -528,6 +528,17 @@
             return false;
         };
 		
+		
+		$scope.getScoreScales = function(evalid,state){
+			if (!$scope.checkLogin()) {
+                return;
+            }
+			$scope.scoresMessage = 'loading';
+			EvaluationsFactory.GetScoreScales(evalid).then(function (result) {
+				$scope.scoreScales = result.scoreScales[0];
+            });
+		};
+		
 		$scope.getScores = function(evalid,state){
 			if (!$scope.checkLogin()) {
                 return;

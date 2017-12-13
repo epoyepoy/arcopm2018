@@ -588,8 +588,8 @@ class EvaluationsDAO{
 
 	 $queryString = "
 	    DECLARE @evalid INT =:evalID;
-		SELECT RL.state, CASE WHEN RL.state=4 THEN 'EMPLOYEE''S EVALUATOR'
-		WHEN RL.state=3 THEN 'EMPLOYEE''S DOTTED LINE MANAGER'
+		SELECT RL.state, CASE WHEN RL.state=5 THEN 'EMPLOYEE''S EVALUATOR'
+		WHEN RL.state=4 THEN 'EMPLOYEE''S DOTTED LINE MANAGER'
 		END as 'RelationshipDesc', VEM.empno as 'empNo', rtrim(ltrim(VEM.family_name))+' '+rtrim(ltrim(VEM.first_name)) as 'empName', VEM.job_desc as 'empPosition',
 		VEM.family_desc as 'empDepartment', VEM.pay_cs as 'empSite', VEM.site_desc as 'empSiteDesc'
 		FROM ReportingLine RL
@@ -605,8 +605,8 @@ class EvaluationsDAO{
 		LEFT JOIN vw_arco_employee EMP on EMP.empno=RL.empnosource
 		LEFT JOIN vw_arco_employee VEM on VEM.empno=RL.empnotarget
 		WHERE RL.empnosource =(SELECT RL2.empnotarget FROM dbo.ReportingLine RL2  
-		INNER JOIN dbo.Evaluations E2 ON E2.EmployeeID=RL2.empnosource AND RL2.state=4
-		WHERE E2.EvaluationID=@evalid) AND RL.state=4
+		INNER JOIN dbo.Evaluations E2 ON E2.EmployeeID=RL2.empnosource AND RL2.state=5
+		WHERE E2.EvaluationID=@evalid) AND RL.state=5
 		ORDER BY 1 ASC
         ";
         $query = $this->connection->prepare($queryString);
@@ -633,17 +633,17 @@ class EvaluationsDAO{
 		   LEFT JOIN dbo.ReportingLineExceptions RLE ON VEM.empno=RLE.empnotarget AND RLE.empnosource=@empno AND RLE.goalCycle=@CycleID
 		   LEFT JOIN dbo.ReportingLine RL ON VEM.empno=RL.empnotarget AND RL.empnosource=@empno AND RL.empnosource NOT IN
 		   (SELECT empnosource FROM dbo.ReportingLineExceptions WHERE empnosource=@empno AND goalCycle=@CycleID)
-		   WHERE (COALESCE(RLE.empnosource, Rl.empnosource)=@empno) AND (COALESCE(RLE.State, RL.state) =4)
+		   WHERE (COALESCE(RLE.empnosource, Rl.empnosource)=@empno) AND (COALESCE(RLE.State, RL.state) =5)
 		) -- end of delclration to get evaluator of the employee
-		SELECT COALESCE(RLE.STATE,RL.STATE), CASE WHEN COALESCE(RLE.STATE,RL.STATE)=4 THEN 'EMPLOYEE''S EVALUATOR'
-					WHEN COALESCE(RLE.STATE,RL.STATE)=3 THEN 'EMPLOYEE''S DOTTED LINE MANAGER'
+		SELECT COALESCE(RLE.STATE,RL.STATE), CASE WHEN COALESCE(RLE.STATE,RL.STATE)=5 THEN 'EMPLOYEE''S EVALUATOR'
+					WHEN COALESCE(RLE.STATE,RL.STATE)=4 THEN 'EMPLOYEE''S DOTTED LINE MANAGER'
 				END as 'RelationshipDesc', VEM.empno as 'empNo', rtrim(ltrim(VEM.family_name))+' - '+rtrim(ltrim(VEM.first_name)) as 'empName', VEM.job_desc as 'empPosition',
 		VEM.family_desc as 'empDepartment', VEM.pay_cs as 'empSite', VEM.site_desc as 'empSiteDesc'
 		FROM  vw_arco_employee VEM
 		LEFT JOIN dbo.ReportingLineExceptions RLE ON VEM.empno=RLE.empnotarget AND RLE.empnosource=@empno AND RLE.goalCycle=@CycleID
 		LEFT JOIN dbo.ReportingLine RL ON VEM.empno=RL.empnotarget AND RL.empnosource=@empno AND RL.empnosource NOT IN
 		(SELECT empnosource FROM dbo.ReportingLineExceptions WHERE empnosource=@empno AND goalCycle=@CycleID)
-		WHERE (COALESCE(RLE.empnosource, Rl.empnosource)=@empno) AND (COALESCE(RLE.State, RL.state) in (3,4))
+		WHERE (COALESCE(RLE.empnosource, Rl.empnosource)=@empno) AND (COALESCE(RLE.State, RL.state) in (4,5))
 		-- union to get reviwer
 		UNION
 		 SELECT 2, 'REVIEWER' as 'RelationshipDesc', VEM.empno as 'empNo', rtrim(ltrim(VEM.family_name))+' - '+rtrim(ltrim(VEM.first_name)) as 'empName', VEM.job_desc as 'empPosition',
@@ -652,7 +652,7 @@ class EvaluationsDAO{
 		LEFT JOIN dbo.ReportingLineExceptions RLE ON VEM.empno=RLE.empnotarget AND RLE.empnosource=@evaluator AND RLE.goalCycle=@CycleID
 		LEFT JOIN dbo.ReportingLine RL ON VEM.empno=RL.empnotarget AND RL.empnosource=@evaluator AND RL.empnosource NOT IN
 		(SELECT empnosource FROM dbo.ReportingLineExceptions WHERE empnosource=@evaluator AND goalCycle=@CycleID)
-		WHERE (COALESCE(RLE.empnosource, Rl.empnosource)=@evaluator) AND (COALESCE(RLE.State, RL.state) =4)
+		WHERE (COALESCE(RLE.empnosource, Rl.empnosource)=@evaluator) AND (COALESCE(RLE.State, RL.state) =5)
 	 ";
 	//  $queryString = "
 	// 	 Declare @empno as varchar(5) = :empno;

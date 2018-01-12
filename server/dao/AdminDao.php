@@ -544,35 +544,35 @@ class AdminDAO{
 		BEGIN
 			SELECT @wrongemp+=' '+@empid
 		END
-		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@currenteval AND empstatus='A') =0 AND @currenteval<>''
+		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@currenteval) =0 AND @currenteval<>''
 		BEGIN
 			SELECT @wrongemp+=' '+@currenteval
 		END
-		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@nexteval AND empstatus='A') =0 AND @nexteval<>''
+		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@nexteval) =0 AND @nexteval<>''
 		BEGIN
 			SELECT @wrongemp+=' '+@nexteval
 		END
-		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@dot1 AND empstatus='A') =0 AND @dot1<>''
+		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@dot1) =0 AND @dot1<>''
 		BEGIN
 			SELECT @wrongemp+=' '+@dot1
 		END
-		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@dot2 AND empstatus='A') =0 AND @dot2<>''
+		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@dot2) =0 AND @dot2<>''
 		BEGIN
 			SELECT @wrongemp+=' '+@dot2
 		END
-		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@dot3 AND empstatus='A') =0 AND @dot3<>''
+		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@dot3) =0 AND @dot3<>''
 		BEGIN
 			SELECT @wrongemp+=' '+@dot3
 		END
-		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@ndot1 AND empstatus='A') =0 AND @ndot1<>''
+		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@ndot1) =0 AND @ndot1<>''
 		BEGIN
 			SELECT @wrongemp+=' '+@ndot1
 		END
-		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@ndot2 AND empstatus='A') =0 AND @ndot2<>''
+		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@ndot2) =0 AND @ndot2<>''
 		BEGIN
 			SELECT @wrongemp+=' '+@ndot2
 		END
-		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@ndot3 AND empstatus='A') =0 AND @ndot3<>''
+		IF (SELECT COUNT(*) FROM dbo.vw_arco_employee WHERE empno=@ndot3) =0 AND @ndot3<>''
 		BEGIN
 			SELECT @wrongemp+=' '+@ndot3
 		END

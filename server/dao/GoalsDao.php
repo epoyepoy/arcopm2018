@@ -218,11 +218,18 @@ class GoalsDAO{
 	public function getGoals($empno, $cycleid)
 	{
 		$queryString="
-		SELECT G.GoalID, E.CycleID as CycleID, G.GoalDescription, cast(G.Weight as int) as Weight, G.AttributeCode, GA.CodeDescription, GA.AttDescription as AttributeFullDescription,
-		E.EmployeeID as Empno, E.State as EvalState, G.UserID, G.State as GoalState
+		SELECT G.GoalID, E.CycleID as CycleID, G.GoalDescription, cast(G.Weight as int) as Weight, G.AttributeCode, GA.CodeDescription, 
+		GA.AttDescription as AttributeFullDescription,
+		E.EmployeeID as Empno, E.State as EvalState, G.UserID as CreatedByID, rtrim(ltrim(by.family_name))+' '+rtrim(ltrim(by.first_name)) as 'CreatedByName', G.State as GoalState, 
+		CASE 
+		WHEN G.State=0 THEN 'By Employee' 
+		WHEN G.State=1 THEN 'By Dotted'
+		WHEN G.State=2 THEN 'By Evaluator'
+		END as AddedBy
 		FROM dbo.GOALS G
 		INNER JOIN Evaluations E ON E.EvaluationID=G.EvaluationID
 		INNER JOIN GoalAttributes GA on GA.AttributeCode=G.AttributeCode
+		LEFT JOIN dbo.vw_arco_employee by on by.empno=G.UserID
 		WHERE E.CycleID=:cycleid AND E.EmployeeID=:empno
 		";
         $query = $this->connection->prepare($queryString);
@@ -264,7 +271,7 @@ class GoalsDAO{
 		   BEGIN TRY
 		   --SELECT @cycleid = ID FROM EvaluationsCycle WHERE status=1;
 		   SELECT @evalid = EvaluationID, @evalstate=State FROM Evaluations WHERE CycleID=@cycleid AND EmployeeID= @empno;
-			   IF (@evalid > 0 AND (ISNULL(@evalstate,0) in (0,1))) BEGIN
+			   IF (@evalid > 0 AND (ISNULL(@evalstate,0) in (0,1,2))) BEGIN
 				   INSERT INTO dbo.Goals
 				   OUTPUT INSERTED.EvaluationID
 				   VALUES(@evalid, :goaldescr, :weight, @userid, :attributeCode, @evalstate);

@@ -24,6 +24,8 @@
 		$scope.goal = {};
 		$scope.parseInt = parseInt;
 		$scope.arcopmState = arcopmState;
+		$scope.loggedinUser = loginData.user.id;
+		$scope.addSlideEffect = false;
 
 
         // Initialize the evaluations
@@ -165,6 +167,16 @@
 			$scope.cycleGoal = goal;
 			$scope.from = from;
 			$scope.onbehalf = onbehalf;
+			if(goal.yourActionState == 4){
+				$scope.role = 'dotted';
+				$scope.active = 1;
+			}else if(goal.yourActionState == 5){
+				$scope.role = 'eval';
+				$scope.active = 2;
+			}else{
+				$scope.role = 'emp';
+				$scope.active = 0;
+			}
 
             $scope.goalConfigurationPopup = ngDialog.open({
                 template: 'app/pages/goals/popup/configuration.popup.html',
@@ -176,7 +188,7 @@
 
 
 		// Shows add New goal popup
-        $scope.showAddNewGoalPopup = function (cycleGoal) {
+        $scope.showAddNewGoalPopup = function (goals,cycleGoal,role) {
             if (!$scope.checkLogin()) {
                 return;
             }
@@ -184,6 +196,8 @@
 			$scope.goal = cycleGoal;
 			$scope.goal.Weight = 1;
 			$scope.goal.attributeCode = 'N';
+			$scope.tempRole = role;
+			$scope.tempGoals = goals;
 			$scope.getGoalAttributes();
 
             $scope.todoPopup = ngDialog.open({
@@ -218,12 +232,13 @@
 
 
 		// Shows delete goal popup
-        $scope.showDeleteGoalPopup = function (goal) {
+        $scope.showDeleteGoalPopup = function (goal,role) {
             if (!$scope.checkLogin()) {
                 return;
             }
             $scope.extraMessage = 'warning';
 			$scope.tempGoal = goal;
+			$scope.tempRole = role;
 
             $scope.todoPopup = ngDialog.open({
                 template: 'app/pages/goals/popup/goals.delete.goal.popup.html',
@@ -273,25 +288,42 @@
 		};
 
 		//retrieve all goals of employee
-		$scope.getGoals = function(cycleGoalObj){
+		$scope.getGoals = function(cycleGoalObj,role){
 			if (!$scope.checkLogin()) {
                 return;
             }
-			var weight = 0;
+			var weightEmp = 0, weightDotted = 0, weightEval = 0;
 			var goalLimit = 0;
 			var empno = cycleGoalObj.Empno;
 			var cycleid = cycleGoalObj.CycleID;
-			$scope.showAddNewGoalButton = true;
+			$scope.showAddNewGoalButtonEmp = true;
+			$scope.showAddNewGoalButtonDotted = true;
+			$scope.showAddNewGoalButtonEval = true;
 			EvaluationsFactory.GetGoals(empno,cycleid).then(function (result) {
 				$scope.checkifLoggedout(result);
 				$scope.goals = result.EmpGoals;
-				var i=0;
+				var empGoalsCnt=0, dottedGoalsCnt=0, evalGoalsCnt=0;
 				angular.forEach(result.EmpGoals, function(value) {
-					weight = weight + parseInt(value.Weight);
-					i++;
+					if(value.GoalState==0){
+						weightEmp = weightEmp + parseInt(value.Weight);
+						empGoalsCnt++;
+					}else if(value.GoalState==1){
+						weightDotted = weightDotted + parseInt(value.Weight);
+						dottedGoalsCnt++;
+					}else if(value.GoalState==2){
+						weightEval = weightEval + parseInt(value.Weight);
+						evalGoalsCnt++;
+					}
 				});
-
-				$scope.remainingWeight = 100 - weight;
+				
+				//if role is dotted we don't care about remaining weight
+				if(role == 'emp'){
+					$scope.remainingWeight = 100 - weightEmp;
+				}else if(role=='eval'){
+					$scope.remainingWeight = 100 - weightEval;
+				}else{
+					$scope.remainingWeight = 100;
+				}
 				//Grades 1-3 cannot have goals, so i make remainingWeight=0 in order to activate the 'Start Evaluation' button.
 				//Grades 4-9 can have 5 goals. Grades 10+ can have 6 goals.
 				if(cycleGoalObj.grade <= 3){
@@ -303,8 +335,19 @@
 				}
 
 				//Add new goal button must disappear when goals have reached goalLimit or totalWeight is equal to 100 and we have at least one goal added.
-				if((i == goalLimit || weight == 100) && i != 0){
-					$scope.showAddNewGoalButton = false;
+				//apart from dotted in whom the only limit is the number of goals
+				if(role == 'emp'){
+					if((empGoalsCnt == goalLimit || weightEmp == 100) && empGoalsCnt != 0){
+						$scope.showAddNewGoalButtonEmp = false;
+					}
+				}else if(role == 'dotted'){
+					if(dottedGoalsCnt == goalLimit){
+						$scope.showAddNewGoalButtonDotted = false;
+					}
+				}else if(role == 'eval'){
+					if((evalGoalsCnt == goalLimit || weightEval == 100) && evalGoalsCnt != 0){
+						$scope.showAddNewGoalButtonEval = false;
+					}
 				}
 				//console.log(weight);
 				$scope.message = "none";
@@ -344,7 +387,7 @@
 
 
         //Create new Goal function
-        $scope.addNewGoal = function (tempGoal) {
+        $scope.addNewGoal = function (tempGoal,role) {
             if (!$scope.checkLogin()) {
                 return;
             }
@@ -358,7 +401,7 @@
 					$scope.checkifLoggedout(result);
 					if (result.success) {
 						//evalObj.EvaluationID = result.evalid;
-						$scope.getGoals(tempGoal);
+						$scope.getGoals(tempGoal,role);
 						$scope.extraMessage = 'created';
 					} else {
 						$scope.extraMessage = 'error';
@@ -373,7 +416,7 @@
         };
 
 		//Delete goal function
-		$scope.deleteGoal = function(goal){
+		$scope.deleteGoal = function(goal,role){
 			if (!$scope.checkLogin()) {
                 return;
             }
@@ -382,7 +425,7 @@
 			EvaluationsFactory.DeleteGoal(goal.GoalID).then(function (result) {
 				$scope.checkifLoggedout(result);
                 if (result.success) {
-                    $scope.getGoals(goal);
+                    $scope.getGoals(goal,role);
                     $scope.extraMessage = 'deleted';
                 } else {
                     $scope.extraMessage = 'error';

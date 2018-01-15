@@ -11,7 +11,7 @@
             </div>
             <h4 style="">Configuration:<br /> {{cycleGoal.Empno}} - {{cycleGoal.employeeName}}</h4>
         </div>
-        <div class="panel-body" id="createProjectPopupBody" ng-init="getGoals(cycleGoal)">
+        <div class="panel-body" id="createProjectPopupBody" ng-init="getGoals(cycleGoal,role)">
             <div class="container-fluid" ng-show="showMessage('none')">
 				<form name="form" >
 					<div class="panel panel-default">
@@ -19,7 +19,7 @@
 							{{cycleGoal.EvalState==arcopmState.GoalsByEmployee && from == 'mylist' ? 'Do you manage any direct reports (subordinates)?' : 'Does the employee manage any direct reports (subordinates)?'}}
 						</div>
 						<div class="panel-body">
-							<div class="btn-group" ng-if="(cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'mylist') || (cycleGoal.EvalState == arcopmState.GoalsByEvaluator && from == 'emplist') || (cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'emplist' && cycleGoal.onBehalfFlag  == 0)">
+							<div class="btn-group" ng-if="(cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'mylist') || ((cycleGoal.EvalState == arcopmState.GoalsByEvaluator || cycleGoal.EvalState == arcopmState.GoalsByDotted) && from == 'emplist') || (cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'emplist' && cycleGoal.onBehalfFlag  == 0)">
 							   <label ng-class="(cycleGoal.ManagesTeam == 0) ? 'btn btn-default active' : 'btn btn-default'"  uib-btn-radio="0" ng-model="cycleGoal.ManagesTeam" ng-click="updateEvaluation(cycleGoal.ManagesTeam,cycleGoal.Empno,cycleGoal.CycleID);" required>No</label>
 							   <label ng-class="(cycleGoal.ManagesTeam == 1) ? 'btn btn-default active' : 'btn btn-default'"  uib-btn-radio="1" ng-model="cycleGoal.ManagesTeam" ng-click="updateEvaluation(cycleGoal.ManagesTeam,cycleGoal.Empno,cycleGoal.CycleID);" required>Yes</label>
 							</div>
@@ -31,6 +31,12 @@
 					<div style="text-align: left; font-style: italic; margin-top: 40px; margin-bottom: 5px; background-color: #fff7af;">
 						{{(cycleGoal.grade >= 4 && cycleGoal.grade < 10) ? '*Employees with grades 4-9 may have a minimum of 1 and a maximum of 5 goals.' : (cycleGoal.grade >= 10) ? '*Employees with grades 10+ may have a minimum of 1 and a maximum of 6 goals.' : ''}}
 					</div>
+					
+					<uib-tabset class="nav-custom" active="active">
+					<uib-tab index="0" heading="Employee" ng-click="active=0;">
+				<div class="col-lg-12" style="margin:0;">
+					
+					<!--Goals Assignment By Employee-->
 					<div class="panel panel-default" ng-if="cycleGoal.grade >= 4">
 						<div class="panel-heading panel-heading-center">
 							<label ng-attr-style="{{from == 'mylist' ? 'margin-left: 165px; margin-top: 5px;' : ''}}">Goals Assignment By Employee:</label>
@@ -50,9 +56,9 @@
 										<i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size: 17px"></i>
 									</button>
 								</span>
-								<span style="color: #0BC512;" ng-if="showAddNewGoalButton">
-									<button class="sitesBtn goalsAssignment" ng-show="(cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'mylist') || (cycleGoal.EvalState == arcopmState.GoalsByDotted && from == 'emplist') || (cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'emplist' && cycleGoal.onBehalfFlag  == 0)"
-									 ng-click="showAddNewGoalPopup(cycleGoal)" uib-tooltip="Add New Goal" tooltip-placement="top" tooltip-trigger="'mouseenter'">
+								<span style="color: #0BC512;" ng-if="showAddNewGoalButtonEmp">
+									<button class="sitesBtn goalsAssignment" ng-show="(cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'mylist')"
+									 ng-click="showAddNewGoalPopup(goals,cycleGoal,role)" uib-tooltip="Add New Goal" tooltip-placement="top" tooltip-trigger="'mouseenter'">
 									<i class="fa fa-plus" aria-hidden="true" style="font-size: 17px"></i>
 									</button>
 								</span>
@@ -69,7 +75,7 @@
 											<th class="center" style="width:30vw">GOAL</th>
 											<th class="center" style="width:5vw">WEIGHT %</th>
 											<th class="center" style="width:10vw">BY</th>
-											<th class="center" style="width:8vw; text-align: right;"><span style="margin-right: 20px;">ACTION</span></th>
+											<th class="center" style="width:8vw; text-align: right;" ng-if="(cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'mylist')"><span style="margin-right: 20px;">ACTION</span></th>
 										</tr>
 									</thead>
 									<tbody>
@@ -78,13 +84,13 @@
 											<td class="center"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}}&nbsp;-&nbsp;{{goal.CodeDescription}}</span></td>
 											<td class="center">{{goal.GoalDescription}}</td>
 											<td class="center">{{goal.Weight}}</td>
-											<td class="center"></td>
-											<td class="center" style="display: -moz-inline-box; float: right" ng-if="(goal.GoalState == arcopmState.GoalsByEmployee && from == 'mylist') || (goal.GoalState == arcopmState.GoalsByDotted && from == 'emplist') || (goal.GoalState == arcopmState.GoalsByEmployee && from == 'emplist' && cycleGoal.onBehalfFlag  == 0)">
+											<td class="center">{{goal.UserID}}</td>
+											<td class="center" style="display: -moz-inline-box; float: right" ng-if="(goal.GoalState == arcopmState.GoalsByEmployee && from == 'mylist')">
 												<span>
 													<button class="sitesBtn" ng-click="showEditGoalPopup(goal)" uib-tooltip="Edit Goal" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-pencil" aria-hidden="true"  ></span></button>
 												</span>
 												<span>
-													<button class="sitesBtn" ng-click="showDeleteGoalPopup(goal)" uib-tooltip="Delete Goal" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-trash" aria-hidden="true"  ></span></button>
+													<button class="sitesBtn" ng-click="showDeleteGoalPopup(goal,role)" uib-tooltip="Delete Goal" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-trash" aria-hidden="true"  ></span></button>
 												</span>
 											</td>
 										</tr>
@@ -97,12 +103,19 @@
 										</div>
 									</div>
 								</div>
-								<div class="col-md-12" ng-init="newcomment.description = ''" style="text-align: center; margin-top: 15px;">
+								<div class="col-md-12" ng-init="newcomment.description = ''" ng-if="(cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'mylist')" style="text-align: center; margin-top: 15px;">
 									<input type="button" value="Add Comment" class="btn btn-info" ng-click="showCommentsPopup(cycleGoal,'add')"/>
 								</div>
 							</div>
 						</div>
 					</div>
+					
+				</div>
+					</uib-tab>
+					<uib-tab index="1" heading="Dotted" ng-click="active=1; ">
+					<div class="col-lg-12" style="margin:0;">
+						
+					<!--Goals Assignment By Dotted Line Managers-->
 					<div class="panel panel-default" ng-if="cycleGoal.grade >= 4">
 						<div class="panel-heading panel-heading-center">
 							<label ng-attr-style="{{cycleGoal.yourActionState == 4 ? 'margin-left: 165px; margin-top: 5px;' : ''}}">Goals Assignment By Dotted Line Managers:</label>
@@ -122,15 +135,15 @@
 										<i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size: 17px"></i>
 									</button>
 								</span>
-								<span style="color: #0BC512;" ng-if="showAddNewGoalButton">
-									<button class="sitesBtn goalsAssignment" ng-show="(cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'mylist') || (cycleGoal.EvalState == arcopmState.GoalsByDotted && from == 'emplist') || (cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'emplist' && cycleGoal.onBehalfFlag  == 0)"
-									 ng-click="showAddNewGoalPopup(cycleGoal);" uib-tooltip="Add New Goal" tooltip-placement="top" tooltip-trigger="'mouseenter'">
+								<span style="color: #0BC512;" ng-if="showAddNewGoalButtonDotted">
+									<button class="sitesBtn goalsAssignment" ng-show="(cycleGoal.EvalState == arcopmState.GoalsByDotted && from == 'emplist' && cycleGoal.yourActionState == 4)"
+									 ng-click="showAddNewGoalPopup(goals,cycleGoal,role);" uib-tooltip="Add New Goal" tooltip-placement="top" tooltip-trigger="'mouseenter'">
 									<i class="fa fa-plus" aria-hidden="true" style="font-size: 17px"></i>
 									</button>
 								</span>
 							</div>
 						</div>
-
+						
 						<div class="panel-body">
 							<div class="dataTable goals-table">
 								<table ng-show="goals.length !=0">
@@ -141,7 +154,7 @@
 											<th class="center" style="width:30vw">GOAL</th>
 											<th class="center" style="width:5vw">WEIGHT %</th>
 											<th class="center" style="width:10vw">BY</th>
-											<th class="center" style="width:8vw; text-align: right;"><span style="margin-right: 20px;">ACTION</span></th>
+											<th class="center" style="width:8vw; text-align: right;" ng-if="(cycleGoal.EvalState == arcopmState.GoalsByDotted)"><span style="margin-right: 20px;">ACTION</span></th>
 										</tr>
 									</thead>
 									<tbody>
@@ -150,8 +163,8 @@
 											<td class="center"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}}&nbsp;-&nbsp;{{goal.CodeDescription}}</span></td>
 											<td class="center">{{goal.GoalDescription}}</td>
 											<td class="center">{{goal.Weight}}</td>
-											<td class="center"></td>
-											<td class="center" style="display: -moz-inline-box; float: right" ng-if="(goal.GoalState == arcopmState.GoalsByEmployee && from == 'mylist') || (goal.GoalState == arcopmState.GoalsByDotted && from == 'emplist') || (goal.GoalState == arcopmState.GoalsByEmployee && from == 'emplist' && cycleGoal.onBehalfFlag  == 0)">
+											<td class="center">{{goal.UserID}}</td>
+											<td class="center" style="display: -moz-inline-box; float: right" ng-if="(goal.GoalState == arcopmState.GoalsByDotted && from == 'emplist' && goal.UserID == loggedinUser)">
 												<span>
 													<button class="sitesBtn" ng-click="showEditGoalPopup(goal)" uib-tooltip="Edit Goal" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-pencil" aria-hidden="true"  ></span></button>
 												</span>
@@ -169,12 +182,19 @@
 										</div>
 									</div>
 								</div>
-								<div class="col-md-12" ng-init="newcomment.description = ''" style="text-align: center; margin-top: 15px;">
+								<div class="col-md-12" ng-if="(goal.GoalState == arcopmState.GoalsByDotted && from == 'emplist')" ng-init="newcomment.description = ''" style="text-align: center; margin-top: 15px;">
 									<input type="button" value="Add Comment" class="btn btn-info" ng-click="showCommentsPopup(cycleGoal,'add')"/>
 								</div>
 							</div>
 						</div>
 					</div>
+					
+					</div>
+					</uib-tab>
+					<uib-tab index="2" heading="Evaluator" ng-click="active=2; ">
+					<div class="col-lg-12" style="margin:0;">	
+						
+					<!--Goals Assignment By Evaluator-->
 					<div class="panel panel-default" ng-if="cycleGoal.grade >= 4">
 						<div class="panel-heading panel-heading-center">
 							<label ng-attr-style="{{cycleGoal.yourActionState == 5 ? 'margin-left: 165px; margin-top: 5px;' : ''}}">Goals Assignment By Evaluator:</label>
@@ -194,9 +214,9 @@
 										<i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size: 17px"></i>
 									</button>
 								</span>
-								<span style="color: #0BC512;" ng-if="showAddNewGoalButton">
-									<button class="sitesBtn goalsAssignment" ng-show="(cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'mylist') || (cycleGoal.EvalState == arcopmState.GoalsByDotted && from == 'emplist') || (cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'emplist' && cycleGoal.onBehalfFlag  == 0)"
-									 ng-click="showAddNewGoalPopup(cycleGoal)" uib-tooltip="Add New Goal" tooltip-placement="top" tooltip-trigger="'mouseenter'">
+								<span style="color: #0BC512;" ng-if="showAddNewGoalButtonEval">
+									<button class="sitesBtn goalsAssignment" ng-show="(cycleGoal.EvalState == arcopmState.GoalsByEvaluator && from == 'emplist') || (cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'emplist' && cycleGoal.onBehalfFlag  == 0)"
+									 ng-click="showAddNewGoalPopup(goals,cycleGoal,role)" uib-tooltip="Add New Goal" tooltip-placement="top" tooltip-trigger="'mouseenter'">
 									<i class="fa fa-plus" aria-hidden="true" style="font-size: 17px"></i>
 									</button>
 								</span>
@@ -248,6 +268,9 @@
 						</div>
 					</div>
 					
+					</div>
+					</uib-tab>
+					</uib-tabset>	
 					
 					<div class="popupButtons center" ng-if="(cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'mylist') || ((cycleGoal.EvalState == arcopmState.GoalsByDotted || cycleGoal.EvalState == arcopmState.GoalsByEvaluator) && from == 'emplist') || (cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'emplist' && cycleGoal.onBehalfFlag  == 0)">
 						<div class="popupButtonCancel" ng-click="closeThisDialog();">Exit</div>
@@ -257,13 +280,15 @@
 
 						<!-- The code above is the right code, but we will use the temporary code below just for 2016, where goals are not required. But if we have even one goal, then goals are required with the known restrictions as above. -->
 						<!-- TEMPORARY CODE FOR 2016 -->
-						<input type="submit" ng-attr-value="{{cycleGoal.EvalState == arcopmState.GoalsByEmployee  && from == 'mylist' ? 'Finish & Submit to Evaluator' : 'Finish & Submit'}}" class="popupButtonSave" ng-attr-title="{{(remainingWeight!=0 && cycleGoal.CycleID==2) || (goals.length!=0 && remainingWeight!=0 && cycleGoal.CycleID==1)  ? 'Button will become active only after total Goals Weight will be 100% and Employee Manages Team has been chosen.' : ''}}"
-							   tooltip-placement="top" tooltip-trigger="'mouseenter'" uib-tooltip="{{((((remainingWeight==0 || goals.length==0) && cycleGoal.CycleID==1) || (remainingWeight==0 && cycleGoal.CycleID==2)) && from == 'emplist') ? 'If you submit configuration, you will no longer be able to edit goals. Alternatively you can just close/exit the window.' : '' }}" ng-click="updateState(cycleGoal,onbehalf);"
-							   ng-class="{ 'disabled': !form.$valid ||(remainingWeight!=0 && cycleGoal.CycleID==2 && from == 'emplist') ||
-										   (goals.length!=0 && remainingWeight!=0 && cycleGoal.CycleID==1) ||
+						<input type="submit" ng-attr-value="{{cycleGoal.EvalState == arcopmState.GoalsByEmployee  && from == 'mylist' ? 'Finish & Submit to Evaluator' : 'Finish & Submit'}}" class="popupButtonSave"
+							   ng-attr-title="{{(remainingWeight!=0 && cycleGoal.CycleID==2 && role!='dotted') || (goals.length!=0 && remainingWeight!=0 && cycleGoal.CycleID==1 && role!='dotted')  ? 'Button will become active only after total Goals Weight will be 100% and Employee Manages Team has been chosen.' : ''}}"
+							   tooltip-placement="top" tooltip-trigger="'mouseenter'" uib-tooltip="{{((((remainingWeight==0 || goals.length==0) && cycleGoal.CycleID==1) || (remainingWeight==0 && cycleGoal.CycleID==2)) && from == 'emplist') ? 'If you submit configuration, you will no longer be able to edit goals. Alternatively you can just close/exit the window.' : '' }}" 
+							   ng-click="updateState(cycleGoal,onbehalf);"
+							   ng-class="{ 'disabled': !form.$valid ||(remainingWeight!=0 && cycleGoal.CycleID==2 && from == 'emplist' && role!='dotted') ||
+										   (goals.length!=0 && remainingWeight!=0 && cycleGoal.CycleID==1  && role!='dotted') ||
 									       (goals.length !=0 && remainingWeight!=0 && cycleGoal.EvalState==arcopmState.GoalsByEmployee && cycleGoal.CycleID==2 && from == 'mylist')}"
-							   ng-disabled="!form.$valid ||(remainingWeight!=0 && cycleGoal.CycleID==2 && from == 'emplist') ||
-										   (goals.length!=0 && remainingWeight!=0 && cycleGoal.CycleID==1) ||
+							   ng-disabled="!form.$valid ||(remainingWeight!=0 && cycleGoal.CycleID==2 && from == 'emplist' && role!='dotted') ||
+										   (goals.length!=0 && remainingWeight!=0 && cycleGoal.CycleID==1 && role!='dotted') ||
 										   (goals.length !=0 && remainingWeight!=0 && cycleGoal.EvalState==arcopmState.GoalsByEmployee && cycleGoal.CycleID==2 && from == 'mylist')" />
 					</div>
 				</form>

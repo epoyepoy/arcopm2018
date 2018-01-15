@@ -2032,6 +2032,12 @@ NAV
     height: 48px;
 }
 
+.nav-custom ul.nav{
+	position: initial !important;
+	height: 42px !important;
+	margin-bottom: 10px;
+}
+
 .nonDraggableImage{
     -webkit-user-drag: none;
 }

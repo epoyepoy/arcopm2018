@@ -7,7 +7,36 @@
 			</div>
 			<h4 class="pop-up-header" >New Goal</h4>
 		</div>
-		<div class="panel-body" id="todoPopupBody">
+		<div ng-show="tempRole=='eval'">
+			<div class="col-lg-12" style="padding: 0">
+				<div class="col-lg-4" style="padding: 0"></div>
+				<div class="col-lg-4" style="text-align: center; margin-top: 25px;" ng-show="(createGoal || addGoalsFromList) && !showExtraMessage('created') && !showExtraMessage('loading')">
+					<a href class="btn btn-sq-lg-back btn-warning warning-custom" ng-click="createGoal=addGoalsFromList=false">
+						<i class="fa fa-arrow-left fa-2x"></i>
+						<span style="font-size: 1.5em; font-weight: bold;"> Back</span><br/>
+					</a>
+				</div>
+				<div class="col-lg-4" style="padding: 0"></div>
+			</div>
+			<br/><br/>
+			<div class="row" style="min-width: 600px; {{(!createGoal && !addGoalsFromList) ? 'padding: 40px;' : ''}}">
+				<div class="col-lg-12" style="text-align: center;" ng-hide="createGoal || addGoalsFromList">
+					<p>
+						<a href class="btn btn-warning warning-custom" ng-click="createGoal=true">
+							<i class="fa fa-plus-square fa-3x"></i><br/>
+							<span style="font-size: 1.2em; font-weight: bold;">CREATE NEW GOAL</span><br/>
+							<span style="font-size: 0.9em; font-style: italic;">Set a new goal <br/>for your employee.</span>
+						</a>
+						<a href class="btn btn-success success-custom" style="margin-left: 5px;" ng-click="addGoalsFromList=true;">
+							<i class="fa fa-list fa-3x"></i><br/>
+							<span style="font-size: 1.2em; font-weight: bold;">GOALS FROM LIST</span><br/>
+							<span style="font-size: 0.9em; font-style: italic;">Add goals for your employee<br/>from the existing list.</span>
+						</a>
+					</p>
+				</div>
+			</div>
+		</div>
+		<div class="panel-body" id="todoPopupBody" ng-show="tempRole!='eval' || createGoal">
 			<div class="formItems" ng-show="showExtraMessage('none')" >
 				<div class="container-fluid">
 				<form name="form" >
@@ -41,9 +70,9 @@
 												<div flex="10" layout="" layout-align="center center">
 													<span class="md-body-1">1</span>
 												</div>
-												<md-slider flex="" md-discrete="" ng-model="goal.Weight" step="1" min="1" max="{{remainingWeight}}" aria-label="rating" width="70%"></md-slider>
+												<md-slider flex="" md-discrete="" ng-model="goal.Weight" step="1" min="1" max="{{role == 'dotted' ? 100 : remainingWeight}}" aria-label="rating" width="70%"></md-slider>
 												<div flex="10" layout="" layout-align="center center">
-													<span class="md-body-1">{{remainingWeight}}</span>
+													<span class="md-body-1">{{role == 'dotted' ? 100 : remainingWeight}}</span>
 												</div>
 												<div flex="10" layout="" layout-align="center center" style="max-width: 11%;">
 													<input flex type="number" ng-model="goal.Weight" ng-change="noNullWeight()" step="1" min="1" aria-label="green" aria-controls="green-slider" style="width: 100%" required>
@@ -60,7 +89,7 @@
 						</div>
 						<div class="popupButtons center">
 							<div class="popupButtonCancel" ng-click="closeThisDialog();">Exit</div>
-							<input type="submit" value="Save Goal" class="popupButtonSave" ng-class="{ 'disabled': !form.$valid}" ng-click="addNewGoal(goal);" ng-disabled="!form.$valid" />
+							<input type="submit" value="Save Goal" class="popupButtonSave" ng-class="{ 'disabled': !form.$valid}" ng-click="addNewGoal(goal,tempRole);" ng-disabled="!form.$valid" />
 						</div>
 					</div>
 				</form>
@@ -102,6 +131,38 @@
 			</div>
 		   <!-- end of popupcONTENT -->
 		</div>
+	   
+		<div id="evaluationPreviewPopup" ng-show="addGoalsFromList" style="padding: 25px;">
+			<div class="dataTable goals-table">
+				<table>
+					<thead>
+						<tr class="headerRowPopup">
+							<th style="width:3vw"></th>
+							<th class="center" style="width:10vw">ATTRIBUTE</th>
+							<th class="center" style="width:30vw">GOAL</th>
+							<th class="center" style="width:5vw">WEIGHT %</th>
+							<th class="center" style="width:10vw">BY</th>
+							<th class="center" style="width:5vw"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="goal in tempGoals" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+							<td class="center">{{$index+1}}</td>
+							<td class="center"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}}&nbsp;-&nbsp;{{goal.CodeDescription}}</span></td>
+							<td class="center">{{goal.GoalDescription}}</td>
+							<td class="center">{{goal.Weight}}</td>
+							<td class="center">{{goal.UserID}}</td>
+							<td class="center">
+								<md-checkbox md-no-ink aria-label="Select" ng-checked="exists(goal.GoalID, selected)" ng-click="toggle(goal.GoalID, selected)" class="md-green"></md-checkbox>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="popupButtons center">
+				<input type="submit" value="Review Goals" class="popupButtonSave" ng-click="saveComment();"  />
+			</div>
+        </div>
    </div>
    <!-- end of popup -->
 

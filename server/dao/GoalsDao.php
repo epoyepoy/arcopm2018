@@ -226,7 +226,7 @@ class GoalsDAO{
 		WHEN G.State=0 THEN 'By Employee' 
 		WHEN G.State=1 THEN 'By Dotted'
 		WHEN G.State=2 THEN 'By Evaluator'
-		END as AddedByRole, ValidateGoalDescription.GoalExists
+		END as AddedByRole, ValidateGoalDescription.GoalExists, E.EvaluationID
 		FROM dbo.GOALS G
 		INNER JOIN Evaluations E ON E.EvaluationID=G.EvaluationID
 		INNER JOIN GoalAttributes GA on GA.AttributeCode=G.AttributeCode
@@ -328,37 +328,70 @@ class GoalsDAO{
 	   return $result;
 	}
 
-	// public function saveGoalsEvaluationList($goal, $empno, $userID) //old way of adding goals.
-	// {
-    //     $queryString = "
-    //     Declare @cycleid as int;
-    //     Declare @empno as varchar(5) = :empno;
-    //     Declare @userid as varchar(5) = :userid;
-    //     SELECT @cycleid = ID FROM EvaluationsCycle WHERE questionaireStatus=1;
+	 /*****
+     *	Clone Selected Goals: Copy goals from employees and dotted line managers and create them as evaluator.
+     *
+     */
+	public function cloneSelectedGoals($goals, $evalid, $userid)
+	{
 
-    //         IF (@cycleid > 0) BEGIN
-    //             INSERT INTO dbo.Goals
-    //             OUTPUT INSERTED.EvaluationID
-    //             VALUES(@cycleid, @empno, :goaldescr, :weight, @userid, :attributeCode, 2);
-    //         END
-    //     ";
-    //     $query = $this->connection->prepare($queryString);
-    //     $query->bindValue(':empno',  $empno, PDO::PARAM_STR);
-    //     $query->bindValue(':goaldescr', $goal["GoalDescription"], PDO::PARAM_STR);
-	// 	$query->bindValue(':attributeCode', $goal["attributeCode"], PDO::PARAM_INT);
-    //     $query->bindValue(':weight', $goal["Weight"], PDO::PARAM_INT);
-    //     $query->bindValue(':userid', $userID, PDO::PARAM_STR);
-    //     $result["success"] = $query->execute();
-    //     $result["errorMessage"] = $query->errorInfo();
-    //     if ($result["errorMessage"][1]!=null){
-    //         return $result;
-    //     }
-    //     $query->setFetchMode(PDO::FETCH_ASSOC);
-    //     $evalid = $query->fetch();
-    //     $result["evalid"]=$evalid["EvaluationID"];
-    //     return $result;
-	// }
+	foreach ($goals as &$goalid) 
+		{
+		//validate if state has changed
+		   $queryString = "
+		   Declare @evalid int = :evalid;
+		   SELECT count(*) as cnt FROM dbo.Evaluations WHERE EvaluationID=@evalid and State=2";
+	   
+		   $query = $this->connection->prepare($queryString);
+		   $query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
+		   if (!$query->execute()){
+			   $result["success"] = false;
+			   $result["errorMessage"] = $query->errorInfo();
+			   return $result;
+		   }
+		   $query->setFetchMode(PDO::FETCH_ASSOC);
+		   $changed = $query->fetch();
+		   if ($changed["cnt"]==0){
+			   $result["success"] = false;
+			   $result["errorMessage"] = $query->errorInfo();
+			   $result["message"] = 'Please refresh the page as it seems you are trying to update goals while the state has changed.';
+			   return $result;
+		   }
+	   // Start Cloning	
+	   $queryString = "
+	   Declare @evalid int = :evalid;
+	   Declare @userid varchar(5) = :userid;
+	   --Clone Goals
+	   INSERT INTO dbo.Goals
+	   (
+		   EvaluationID,
+		   GoalDescription,
+		   Weight,
+		   UserID,
+		   AttributeCode,
+		   State
+	   )
+	   SELECT GoalID, EvaluationID, GoalDescription, Weight, UserID, AttributeCode, 2 FROM dbo.Goals WHERE GoalID=:goalid
+	   ";
+	   $query = $this->connection->prepare($queryString);
+	   $query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
+	   $query->bindValue(':goalid', $goalid, PDO::PARAM_INT);
+	   $query->bindValue(':userid', $userid, PDO::PARAM_STR);
+	   if (!$query->execute())
+		   {
+		   $result["success"] = false;
+		   $result["errorMessage"] = $query->errorInfo();
+		   return $result;
+		   }
+		}	
+		$result["success"] = true;
+		return $result;
+	}
 
+	 /*****
+     * Delete Goal
+     *
+     */
      public function deleteGoal($goalID){
         $queryString = "
 		DELETE G FROM dbo.Goals G INNER JOIN Evaluations E on E.EvaluationID=G.EvaluationID WHERE G.GoalID = :id and E.State<3";
@@ -369,6 +402,10 @@ class GoalsDAO{
         return $result;
     }
 
+	 /*****
+     *	Update Goal
+     *
+     */
      public function updateGoal($goal, $userID)
 	{
         $queryString = "

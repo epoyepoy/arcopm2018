@@ -371,7 +371,7 @@ class GoalsDAO{
 		   AttributeCode,
 		   State
 	   )
-	   SELECT GoalID, EvaluationID, GoalDescription, Weight, UserID, AttributeCode, 2 FROM dbo.Goals WHERE GoalID=:goalid
+	   SELECT EvaluationID, GoalDescription, Weight, UserID, AttributeCode, 2 FROM dbo.Goals WHERE GoalID=:goalid
 	   ";
 	   $query = $this->connection->prepare($queryString);
 	   $query->bindValue(':evalid', $evalid, PDO::PARAM_INT);

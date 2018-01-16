@@ -43,6 +43,29 @@ class UserDAO{
 
 	}
 
+	public function getHRUser($empno)
+	{
+
+		$queryString = "
+		Declare @empno varchar(5) = :empno;
+		SELECT E.empno as id, E.first_name,E.family_name,E.emailaddress as email,E.[post_title_code] as jobPositionId,E.[job_desc] as jobPositionName, grade, 0 as isLocal,
+			CASE WHEN ISNULL(UAA.admintype, '')='all' THEN 1 ELSE 0 END as isAdmin,  ISNULL(URA.region, '') as reportsAccess
+			FROM [dbo].[vw_arco_employee] E
+			LEFT JOIN vw_ADUsers AD on AD.EmployeeID=E.empno
+			LEFT JOIN dbo.UserAdminAccess UAA on UAA.empno=E.empno
+			LEFT JOIN dbo.UserRegionAccess URA on URA.empno=E.empno
+			WHERE E.empno=@empno
+		GROUP BY E.empno, E.first_name,E.family_name,E.emailaddress,E.[post_title_code],E.[job_desc], E.grade, UAA.admintype, URA.region";
+		$query = $this->connection->prepare($queryString);
+		$query->bindValue(':empno', $empno, PDO::PARAM_STR);
+        $result["success"] = $query->execute();
+		$result["errorMessage"] = $query->errorInfo();
+        $query->setFetchMode(PDO::FETCH_ASSOC);
+		$result["user"] = $query->fetch();
+        return $result;
+
+	}
+	
 	public function getLocalUser($username, $password)
 	{
 

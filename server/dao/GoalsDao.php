@@ -215,6 +215,7 @@ class GoalsDAO{
 		$result["CycleGoals"] = $query->fetchAll();
 		return $result;
 	}
+	
 	public function getGoals($empno, $cycleid)
 	{
 		$queryString="
@@ -247,6 +248,41 @@ class GoalsDAO{
         $result["EmpGoals"] = $query->fetchAll();
 		return $result;
 	}
+
+	public function getGoalsHistory($empno, $cycleid)
+	{
+		$queryString="
+		SELECT G.GoalID, E.CycleID as CycleID, G.GoalDescription, cast(G.Weight as int) as Weight, G.AttributeCode, GA.CodeDescription, 
+		GA.AttDescription as AttributeFullDescription,
+		E.EmployeeID as Empno, E.State as EvalState, G.UserID as CreatedByID, 
+		RTRIM(ltrim(createdby.family_name))+' '+rtrim(ltrim(createdby.first_name)) as CreatedByName, G.State as GoalState, 
+		CASE 
+		WHEN G.State=0 THEN 'By Employee' 
+		WHEN G.State=1 THEN 'By Dotted'
+		WHEN G.State=2 THEN 'By Evaluator'
+		END as AddedByRole, G.Date, E.EvaluationID
+		FROM dbo.GoalsHistory G
+		INNER JOIN Evaluations E ON E.EvaluationID=G.EvaluationID
+		INNER JOIN GoalAttributes GA on GA.AttributeCode=G.AttributeCode
+		LEFT JOIN dbo.vw_arco_employee createdby on createdby.empno=G.UserID
+		OUTER APPLY (
+		SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END AS GoalExists  FROM dbo.Goals G2 
+		INNER JOIN Evaluations E2 ON E2.EvaluationID=G2.EvaluationID
+		WHERE G2.GoalDescription=G.GoalDescription AND G2.State=2
+		)ValidateGoalDescription
+		WHERE E.CycleID=:cycleid AND E.EmployeeID=:empno
+		ORDER BY G.Date DESC, G.State DESC
+		";
+        $query = $this->connection->prepare($queryString);
+        $query->bindValue(':empno', $empno, PDO::PARAM_STR);
+		$query->bindValue(':cycleid', $cycleid, PDO::PARAM_INT);
+		$result["success"] = $query->execute();
+		$result["errorMessage"] = $query->errorInfo();
+        $query->setFetchMode(PDO::FETCH_ASSOC);
+        $result["EmpGoals"] = $query->fetchAll();
+		return $result;
+	}
+
 
     public function getGoalAttributes()
 	{

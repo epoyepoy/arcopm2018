@@ -34,8 +34,8 @@
 		$scope.status5Evals4_9 = [];
 		$scope.status5Evals10 = [];
 		$scope.selectAllCheckBox1_3 = false;
-		$scope.selectAllCheckBox1_3 = false;
-		$scope.selectAllCheckBox1_3 = false;
+		$scope.selectAllCheckBox4_9 = false;
+		$scope.selectAllCheckBox10 = false;
 
 
         // Initialize the evaluations

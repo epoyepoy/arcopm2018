@@ -5,9 +5,9 @@
 			<div class="popupClose" ng-click="closeThisDialog();">
 			   <img class="popupCloseImg" src="assets/images/closeIcon.svg" alt="close" />
 			</div>
-			<h4 class="pop-up-header" >New Goal</h4>
+			<h4 class="pop-up-header" >Add Goal</h4>
 		</div>
-		<div ng-show="tempRole=='eval'">
+		<!--<div ng-show="tempRole=='eval'">
 			<div class="col-lg-12" style="padding: 0">
 				<div class="col-lg-4" style="padding: 0"></div>
 				<div class="col-lg-4" style="text-align: center; margin-top: 25px;" ng-show="(createGoal || addGoalsFromList) && !showExtraMessage('created') && !showExtraMessage('loading')">
@@ -35,9 +35,9 @@
 					</p>
 				</div>
 			</div>
-		</div>
-		<div class="panel-body" id="todoPopupBody" ng-show="tempRole!='eval' || createGoal">
-			<div class="formItems" ng-show="showExtraMessage('none')" >
+		</div>-->
+		<div class="panel-body" id="todoPopupBody" ng-show="(tempRole!='eval' || createGoal) && showExtraMessage('none')">
+			<div class="formItems">
 				<div class="container-fluid">
 				<form name="form" >
 					<div class="row">
@@ -96,7 +96,50 @@
 				   <!--hidden value -->
 				</div>
 			</div>
-			<div class="message" ng-show="showExtraMessage('created')">
+
+		   <!-- end of popupcONTENT -->
+		</div>
+	   
+		<div id="evaluationPreviewPopup" ng-show="tempRole=='eval' && !createGoal && showExtraMessage('none')" style="padding: 25px;">
+			<div class="dataTable goals-table">
+				<table>
+					<thead>
+						<tr class="headerRowPopup">
+							<th style="width:3vw"></th>
+							<th class="center" style="width:10vw">ATTRIBUTE</th>
+							<th class="center" style="width:30vw">GOAL</th>
+							<th class="center" style="width:5vw">WEIGHT %</th>
+							<th class="center" style="width:15vw">CREATED BY</th>
+							<th class="center" style="width:10vw">ROLE</th>
+							<th class="center" style="width:5vw;">
+								<md-checkbox md-no-ink aria-label="Select All" ng-if="listGoals.length" uib-tooltip="{{isChecked() ? 'Deselect All' : 'Select All'}}" tooltip-placement="top" tooltip-trigger="'mouseenter'" ng-checked="isChecked()" md-indeterminate="isIndeterminate()" ng-click="toggleAll()" class="md-green">
+								</md-checkbox>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="goal in tempGoals" ng-if="goal.GoalState<2" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+							<td class="center">{{$index+1}}</td>
+							<td class="center"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}}&nbsp;-&nbsp;{{goal.CodeDescription}}</span></td>
+							<td class="center">{{goal.GoalDescription}}</td>
+							<td class="center">{{goal.Weight}}</td>
+							<td class="center">{{goal.CreatedByID}}<br/>{{goal.CreatedByName}}</td>
+							<td class="center">{{goal.AddedByRole}}</td>
+							<td class="center">
+								<md-checkbox md-no-ink aria-label="Select" ng-if="goal.GoalExists==0" ng-checked="exists(goal.GoalID, selected)" ng-click="toggle(goal.GoalID, selected)" class="md-green"></md-checkbox>
+								<i class="fa fa-check" aria-hidden="true" ng-if="goal.GoalExists==1" uib-tooltip="Goal Already Added" tooltip-placement="top" tooltip-trigger="'mouseenter'"></i>
+
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="popupButtons center">
+				<input type="submit" value="Add From List" class="popupButtonSave" ng-click="cloneSelectedGoals(selected,evID,goal,tempRole);"  />
+				<input type="submit" value="+ Create New" class="popupButtonSave" ng-click="createGoal=true"  />
+			</div>
+        </div>
+					<div class="message" ng-show="showExtraMessage('created')">
 				<div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/successIcon.svg"/></div>
 				<div class="popupMessage">Goal Added Successfully! </div>
 				<div class="popupButtonSave" ng-click="closeThisDialog();">OK</div>
@@ -129,40 +172,6 @@
 				</div>
 				<div class="popupButtonSave" ng-click="changeExtraMessage('none');">OK</div>
 			</div>
-		   <!-- end of popupcONTENT -->
-		</div>
-	   
-		<div id="evaluationPreviewPopup" ng-show="addGoalsFromList" style="padding: 25px;">
-			<div class="dataTable goals-table">
-				<table>
-					<thead>
-						<tr class="headerRowPopup">
-							<th style="width:3vw"></th>
-							<th class="center" style="width:10vw">ATTRIBUTE</th>
-							<th class="center" style="width:30vw">GOAL</th>
-							<th class="center" style="width:5vw">WEIGHT %</th>
-							<th class="center" style="width:10vw">BY</th>
-							<th class="center" style="width:5vw"></th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr ng-repeat="goal in tempGoals" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
-							<td class="center">{{$index+1}}</td>
-							<td class="center"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}}&nbsp;-&nbsp;{{goal.CodeDescription}}</span></td>
-							<td class="center">{{goal.GoalDescription}}</td>
-							<td class="center">{{goal.Weight}}</td>
-							<td class="center">{{goal.UserID}}</td>
-							<td class="center">
-								<md-checkbox md-no-ink aria-label="Select" ng-checked="exists(goal.GoalID, selected)" ng-click="toggle(goal.GoalID, selected)" class="md-green"></md-checkbox>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-			<div class="popupButtons center">
-				<input type="submit" value="Review Goals" class="popupButtonSave" ng-click="saveComment();"  />
-			</div>
-        </div>
    </div>
    <!-- end of popup -->
 

@@ -29,6 +29,7 @@
 		factory.UpdateEvaluation = UpdateEvaluation;
 		factory.AddNewGoal = AddNewGoal;
 		factory.GetGoals = GetGoals;
+		factory.GetGoalsHistory = GetGoalsHistory;
 		factory.GetMyGoalsPerCycle = GetMyGoalsPerCycle;
 		factory.GetQuestionaireGoals = GetQuestionaireGoals;
 		factory.GetUsersToSetGoals = GetUsersToSetGoals;
@@ -49,6 +50,7 @@
 		factory.ReviseEvaluations = ReviseEvaluations;
 		factory.SaveComment = SaveComment;
 		factory.GetComments = GetComments;
+		factory.CloneSelectedGoals = CloneSelectedGoals;
 
 		return factory;
 
@@ -193,6 +195,12 @@
 		{
 			return $http.get(api + '/evaluations/goals/' + empid + '/' + cycleid).then(handleSuccess, handleError);
 		}
+		
+		//get goals
+		function GetGoalsHistory(empid,cycleid)
+		{
+			return $http.get(api + '/evaluations/goalshistory/' + empid + '/' + cycleid).then(handleSuccess, handleError);
+		}
 
 		//get my goals list
 		function GetMyGoalsPerCycle(userid,cycleid)
@@ -253,6 +261,10 @@
 		function GetComments(evalid){
 			return $http.get(api + '/evaluations/goalscomments/'+evalid).then(handleSuccess, handleError);
 		}
+		
+		function CloneSelectedGoals(goals,evalid,userid) {
+            return $http.post(api + '/evaluations/cloneselectedgoals/'+userid+'/'+evalid,goals).then(handleSuccess, handleError);
+        }
 		
 		// Handle a succesful response [ Status code: 200 ]
 		function handleSuccess(response)

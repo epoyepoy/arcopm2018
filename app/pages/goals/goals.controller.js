@@ -21,6 +21,7 @@
 		$scope.myGoals = false;
 		$scope.employeesGoals = false;
 		$scope.selected = [];
+		$scope.listGoals = [];		//goals from employee and dotted
 		$scope.goal = {};
 		$scope.parseInt = parseInt;
 		$scope.arcopmState = arcopmState;
@@ -165,6 +166,7 @@
             }
             $scope.message = "loading";
 			$scope.cycleGoal = goal;
+			$scope.evalID = goal.EvaluationID;
 			$scope.from = from;
 			$scope.onbehalf = onbehalf;
 			if(goal.yourActionState == 4){
@@ -188,7 +190,7 @@
 
 
 		// Shows add New goal popup
-        $scope.showAddNewGoalPopup = function (goals,cycleGoal,role) {
+        $scope.showAddNewGoalPopup = function (goals,cycleGoal,role,evalid) {
             if (!$scope.checkLogin()) {
                 return;
             }
@@ -198,6 +200,7 @@
 			$scope.goal.attributeCode = 'N';
 			$scope.tempRole = role;
 			$scope.tempGoals = goals;
+			$scope.evID = evalid;
 			$scope.getGoalAttributes();
 
             $scope.todoPopup = ngDialog.open({
@@ -209,12 +212,13 @@
 
 
 		// Shows edit goal popup
-        $scope.showEditGoalPopup = function (goal) {
+        $scope.showEditGoalPopup = function (goal,role) {
             if (!$scope.checkLogin()) {
                 return;
             }
             $scope.extraMessage = 'none';
 			$scope.tempGoal = goal;
+			$scope.tempRole = role;
 			$scope.prevWeight = goal.Weight;
 			//store also these values to a temporary object(previous) in order to have them when someone cancels an edit goal action (exit button in edit goal)
 			$scope.prevGoalDescr = goal.GoalDescription;
@@ -286,6 +290,23 @@
 				}
 			});
 		};
+		
+		//retrieve all goals of employee(history)
+		$scope.getGoalsHistory = function(cycleGoalObj){
+			if (!$scope.checkLogin()) {
+                return;
+            }
+
+			var empno = cycleGoalObj.Empno;
+			var cycleid = cycleGoalObj.CycleID;
+			EvaluationsFactory.GetGoalsHistory(empno,cycleid).then(function (result) {
+				$scope.checkifLoggedout(result);
+				$scope.allGoals = result.EmpGoals;
+				
+				//console.log(weight);
+				$scope.message = "none";
+            });
+		};
 
 		//retrieve all goals of employee
 		$scope.getGoals = function(cycleGoalObj,role){
@@ -302,14 +323,17 @@
 			EvaluationsFactory.GetGoals(empno,cycleid).then(function (result) {
 				$scope.checkifLoggedout(result);
 				$scope.goals = result.EmpGoals;
+				$scope.listGoals = [];
 				var empGoalsCnt=0, dottedGoalsCnt=0, evalGoalsCnt=0;
 				angular.forEach(result.EmpGoals, function(value) {
 					if(value.GoalState==0){
 						weightEmp = weightEmp + parseInt(value.Weight);
 						empGoalsCnt++;
+						if(value.GoalExists==0) ($scope.listGoals).push(value.GoalID);
 					}else if(value.GoalState==1){
 						weightDotted = weightDotted + parseInt(value.Weight);
 						dottedGoalsCnt++;
+						if(value.GoalExists==0) ($scope.listGoals).push(value.GoalID);
 					}else if(value.GoalState==2){
 						weightEval = weightEval + parseInt(value.Weight);
 						evalGoalsCnt++;
@@ -414,6 +438,24 @@
 			}
             return;
         };
+		
+		
+		//Add goals from existing list(only in evaluator)
+		$scope.cloneSelectedGoals = function(selectedGoals,evalid,cycleGoal,role){
+			$scope.extraMessage = 'loading';
+			EvaluationsFactory.CloneSelectedGoals(selectedGoals,evalid,loginData.user.id).then(function (result) {
+				$scope.checkifLoggedout(result);
+				if (result.success) {
+					$scope.selected = [];
+					$scope.getGoals(cycleGoal,role);
+					$scope.extraMessage = 'created';
+				} else {
+					$scope.extraMessage = 'error';
+					$scope.extraMessageText = 'Something went wrong while creating a new Goal. Please contact your administrator.';
+
+				}
+			});
+		};
 
 		//Delete goal function
 		$scope.deleteGoal = function(goal,role){
@@ -437,7 +479,7 @@
 		};
 
 
-		$scope.editGoal = function(editGoal,prevWeight){
+		$scope.editGoal = function(editGoal,prevWeight,role){
 			if (!$scope.checkLogin()) {
                 return;
             }
@@ -451,7 +493,7 @@
 				EvaluationsFactory.UpdateGoal(editGoal,loginData.user.id).then(function (result) {
 					$scope.checkifLoggedout(result);
 					if (result.success) {
-						$scope.getGoals(editGoal);
+						$scope.getGoals(editGoal,role);
 						$scope.extraMessage = 'created';
 					} else {
 						$scope.extraMessage = 'error';
@@ -659,19 +701,30 @@
 			}
 		};
 		
+		
 		$scope.exists = function (item, list) {
 			return list.indexOf(item) > -1;
 		};
 
-//THIS 2 FUNCTIONS IS ONLY FOR SELECT/DESELECT ALL. WE WILL ADD THEM ONLY IF WE ADD SELECT/DESELECT ALL
-//		$scope.isIndeterminate = function() {
-//			return ($scope.selected.length !== 0 &&
-//			$scope.selected.length !== $scope.status5Evals1_3.length);
-//		};
-//
-//		$scope.isChecked = function() {
-//			return $scope.selected.length === $scope.status5Evals1_3.length;
-//		};
+
+		$scope.isIndeterminate = function() {
+			return ($scope.selected.length !== 0 &&
+			$scope.selected.length !== $scope.listGoals.length);
+		};
+
+
+		$scope.isChecked = function() {
+			return $scope.selected.length === $scope.listGoals.length;
+		};
+		
+		
+		$scope.toggleAll = function() {
+				if ($scope.selected.length === $scope.listGoals.length) {
+					$scope.selected = [];
+				} else if ($scope.selected.length === 0 || $scope.selected.length > 0) {
+					$scope.selected = $scope.listGoals.slice(0);
+				}
+		};
 		
 		
 		$scope.showGoalPreviewPopup = function(goals,cycleGoal){
@@ -690,12 +743,12 @@
 		};
 		
 		
-		$scope.showGoalsHistoryPopup = function(goals,cycleGoal){
+		$scope.showGoalsHistoryPopup = function(cycleGoal){
 			if (!$scope.checkLogin()) {
                 return;
             }
             $scope.extraPlusMessage = 'loading';
-			$scope.tempGoals= goals;
+			$scope.getGoalsHistory(cycleGoal);
 			$scope.tempCycleGoal= cycleGoal;
 
             $scope.todoPopup = ngDialog.open({

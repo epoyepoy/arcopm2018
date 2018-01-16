@@ -303,6 +303,11 @@ $app->get('/evaluations/goals/{empid}/{cycleid}', function ($request, $response,
     require 'actions/evaluations.goals.get.php';
 });
 
+//Get goals history
+$app->get('/evaluations/goalshistory/{empid}/{cycleid}', function ($request, $response, $args) {
+    require 'actions/evaluations.goalshistory.get.php';
+});
+
 //Get my goals list
 $app->get('/evaluations/mygoalspercycle/{userid}/{cycleid}', function ($request, $response, $args) {
     require 'actions/evaluations.mygoalspercycle.get.php';
@@ -482,6 +487,11 @@ $app->get('/evaluations/goalscomments/{evalid}', function ($request, $response, 
 //save Comment in Goals
 $app->post('/evaluations/goalssavecomment/{evalid}/{userid}/{state}', function ($request, $response, $args) {
     require 'actions/goalssavecomment.create.php';
+});
+
+//Clone selected goals
+$app->post('/evaluations/cloneselectedgoals/{userid}/{evalid}', function ($request, $response, $args) {
+    require 'actions/evaluations.goals.clone.php';
 });
 
 

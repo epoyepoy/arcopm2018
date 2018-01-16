@@ -57,7 +57,7 @@
 						</div>
 						<div class="popupButtons center">
 							<div class="popupButtonCancel" ng-click="closeThisDialog(); tempGoal.Weight = prevWeight; tempGoal.AttributeCode = prevAttrCode; tempGoal.GoalDescription = prevGoalDescr; ">Exit</div>
-							<input type="submit" value="Update Goal" class="popupButtonSave" ng-class="{ 'disabled': !form.$valid}" ng-click="editGoal(tempGoal,prevWeight);" ng-disabled="!form.$valid" />
+							<input type="submit" value="Update Goal" class="popupButtonSave" ng-class="{ 'disabled': !form.$valid}" ng-click="editGoal(tempGoal,prevWeight,tempRole);" ng-disabled="!form.$valid" />
 						</div>
 					</div>
 				</form>

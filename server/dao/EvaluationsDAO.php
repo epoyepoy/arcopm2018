@@ -1196,11 +1196,11 @@ class EvaluationsDAO{
 			--missing, goals validation to update when state is 1 and goals are required to allow you to go ahead.
 			UPDATE dbo.Evaluations SET State=
 			CASE
-				WHEN @state=0 AND @onBehalf=1 AND @hasDotted=0 THEN 2
+				WHEN @state=0 AND @hasDotted=1 THEN 1
 				WHEN @state=0 AND @hasDotted=0 THEN 2
 				WHEN @state=0 AND @grade<4 THEN 5 --Sent Directly to Evaluator, shouldnt have dotted to go to
 				WHEN @state in (0,1,2) THEN @state+1
-				--WHEN @state in (3,4,5,6) AND @answerCount>0 THEN @state+1
+				WHEN @state in (3,4,5,6) AND @answerCount>0 THEN @state+1
 				--ELSE @state
 			END,
 			StateDate=getdate()
@@ -1210,18 +1210,18 @@ class EvaluationsDAO{
 			--Once Update is done, go and insert history for goals if state between 0 and 3
 			IF @state<4
 			BEGIN
-			INSERT INTO dbo.GoalsHistory
-			(
-				GoalID,
-				EvaluationID,
-				GoalDescription,
-				Weight,
-				UserID,
-				AttributeCode,
-				State,
-				Date
-			)
-			SELECT GoalID, EvaluationID, GoalDescription, Weight, UserID, AttributeCode, State, GETDATE() FROM dbo.Goals WHERE State=@state AND UserID=@userid
+				IF @onBehalf = 0
+					BEGIN
+					INSERT INTO dbo.GoalsHistory
+					(GoalID,EvaluationID,GoalDescription,Weight,UserID,AttributeCode,State,Date)
+					SELECT GoalID, EvaluationID, GoalDescription, Weight, UserID, AttributeCode, State, GETDATE() FROM dbo.Goals WHERE State=@state AND UserID=@userid
+					END
+				IF @onBehalf = 1
+					BEGIN
+					INSERT INTO dbo.GoalsHistory
+					(GoalID,EvaluationID,GoalDescription,Weight,UserID,AttributeCode,State,Date)
+					SELECT '', @evalid, 'Moved Forward', '', @userid, '', @state, GETDATE()
+					END
 			END
 		    ";
 			$query = $this->connection->prepare($queryString);

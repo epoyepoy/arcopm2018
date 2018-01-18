@@ -524,6 +524,27 @@ class GoalsDAO{
 			$result["comments"] = $query->fetchAll();
 			return $result;
 	}
+
+
+	/*****
+    *	Get CommentsCount
+    *
+    */
+    public function getCommentsCount($evalid)
+	{
+			$queryString = "
+			SELECT COUNT(*) as CommentsCount 
+			FROM dbo.EvaluationComments EC
+			INNER JOIN dbo.vw_arco_employee E ON E.empno=EC.UserID
+			WHERE EC.EvaluationID=:evalid";
+			$query = $this->connection->prepare($queryString);
+			$query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
+			$result["success"] = $query->execute();
+			$result["errorMessage"] = $query->errorInfo();
+			$query->setFetchMode(PDO::FETCH_ASSOC);
+			$result["commentsCount"] = $query->fetch();
+			return $result;
+	}
 } // END OF CLASS
 
 ?>

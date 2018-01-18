@@ -66,8 +66,8 @@
 						</div>
 
 						<div class="panel-body">
-							<div class="dataTable goals-table">
-								<table  ng-show="goals.length != 0">
+							<div class="dataTable goals-table" style="width: 50vw;">
+								<table ng-show="filteredGoals0.length != 0">
 									<thead>
 										<tr class="headerRowPopup">
 											<th style="width:3vw;"></th>
@@ -80,7 +80,7 @@
 										</tr>
 									</thead>
 									<tbody>
-										<tr ng-repeat="goal in goals | filter: goalsState(0)" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+										<tr ng-repeat="goal in filteredGoals0 = (goals | filter: goalsState(0))" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
 											<td class="center">{{$index+1}}</td>
 											<td class="center"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}}&nbsp;-&nbsp;{{goal.CodeDescription}}</span></td>
 											<td class="center">{{goal.GoalDescription}}</td>
@@ -96,18 +96,15 @@
 												</span>
 											</td>
 										</tr>
+										<div style="text-align: -moz-center;" ng-hide="filteredGoals0.length">
+											<div class="center" style="width: 65%;">
+												<div class="alert alert-warning">
+													<strong>No goals defined at this state.</strong>
+												</div>
+											</div>
+										</div>
 									</tbody>
 								</table>
-								<div style="text-align: -moz-center;" ng-show="goals.length == 0">
-									<div class="center" style="width: 65%;">
-										<div class="alert alert-warning">
-											<strong>No goals defined at this state.</strong>
-										</div>
-									</div>
-								</div>
-								<div class="col-md-12" ng-init="newcomment.description = ''" ng-if="(cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'mylist')" style="text-align: center; margin-top: 15px;">
-									<input type="button" value="Add Comment" class="btn btn-info" ng-click="showCommentsPopup(cycleGoal,'add')"/>
-								</div>
 							</div>
 						</div>
 					</div>
@@ -147,8 +144,8 @@
 						</div>
 						
 						<div class="panel-body">
-							<div class="dataTable goals-table">
-								<table ng-show="goals.length !=0">
+							<div class="dataTable goals-table" style="width: 50vw;">
+								<table ng-show="filteredGoals1.length !=0">
 									<thead>
 										<tr class="headerRowPopup">
 											<th style="width:3vw;"></th>
@@ -161,7 +158,7 @@
 										</tr>
 									</thead>
 									<tbody>
-										<tr ng-repeat="goal in goals | filter: goalsState(1)" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+										<tr ng-repeat="goal in filteredGoals1 = (goals | filter: goalsState(1) )" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
 											<td class="center">{{$index+1}}</td>
 											<td class="center"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}}&nbsp;-&nbsp;{{goal.CodeDescription}}</span></td>
 											<td class="center">{{goal.GoalDescription}}</td>
@@ -177,18 +174,15 @@
 												</span>
 											</td>
 										</tr>
+										<div style="text-align: -moz-center;" ng-hide="filteredGoals1.length">
+											<div class="center" style="width: 65%;">
+												<div class="alert alert-warning">
+													<strong>No goals defined at this state.</strong>
+												</div>
+											</div>
+										</div>
 									</tbody>
 								</table>
-								<div style="text-align: -moz-center;" ng-show="goals.length == 0">
-									<div class="center" style="width: 65%;">
-										<div class="alert alert-warning">
-											<strong>No goals defined at this state.</strong>
-										</div>
-									</div>
-								</div>
-								<div class="col-md-12" ng-if="(goal.GoalState == arcopmState.GoalsByDotted && from == 'emplist')" ng-init="newcomment.description = ''" style="text-align: center; margin-top: 15px;">
-									<input type="button" value="Add Comment" class="btn btn-info" ng-click="showCommentsPopup(cycleGoal,'add')"/>
-								</div>
 							</div>
 						</div>
 					</div>
@@ -228,8 +222,8 @@
 						</div>
 
 						<div class="panel-body">
-							<div class="dataTable goals-table">
-								<table ng-show="goals.length != 0">
+							<div class="dataTable goals-table" style="width: 50vw;">
+								<table ng-show="filteredGoals2.length != 0">
 									<thead>
 										<tr class="headerRowPopup">
 											<th style="width:3vw;"></th>
@@ -242,11 +236,11 @@
 										</tr>
 									</thead>
 									<tbody>
-										<tr ng-repeat="goal in goals | filter: goalsState(2)" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+										<tr ng-repeat="goal in filteredGoals2 = (goals | filter: goalsState(2) )" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
 											<td class="center">{{$index+1}}</td>
 											<td class="center"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}}&nbsp;-&nbsp;{{goal.CodeDescription}}</span></td>
 											<td class="center">{{goal.GoalDescription}}</td>
-											<td class="center">{{goal.Weight}}</td>
+											<td class="center" ng-init="sumWeight(goal.Weight)">{{goal.Weight}}</td>
 											<td class="center">{{goal.CreatedByID}}<br/>{{goal.CreatedByName}}</td>
 											<td class="center">{{goal.AddedByRole}}</td>
 											<td class="center" style="display: -moz-inline-box; float: right" ng-if="(goal.GoalState == arcopmState.GoalsByEvaluator && from == 'emplist')">
@@ -258,18 +252,24 @@
 												</span>
 											</td>
 										</tr>
+										<tr style="border: none;">
+											<td></td>
+											<td></td>
+											<td style="text-align: right;">Total Weight:</td>
+											<td style="border: 3px solid #f0f0f0;">{{totalWeight}}</td>
+											<td></td>
+											<td></td>
+											<td></td>
+										</tr>
+										<div style="text-align: -moz-center;" ng-hide="filteredGoals2.length">
+											<div class="center" style="width: 65%;">
+												<div class="alert alert-warning">
+													<strong>No goals defined at this state.</strong>
+												</div>
+											</div>
+										</div>
 									</tbody>
 								</table>
-								<div style="text-align: -moz-center;" ng-show="goals.length == 0">
-									<div class="center" style="width: 65%;">
-										<div class="alert alert-warning">
-											<strong>No goals defined at this state.</strong>
-										</div>
-									</div>
-								</div>
-								<div class="col-md-12" ng-init="newcomment.description = ''" style="text-align: center; margin-top: 15px;">
-									<input type="button" value="Add Comment" class="btn btn-info" ng-click="showCommentsPopup(cycleGoal,'add');"/>
-								</div>
 							</div>
 						</div>
 					</div>
@@ -280,6 +280,7 @@
 					
 					<div class="popupButtons center" ng-if="(cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'mylist') || ((cycleGoal.EvalState == arcopmState.GoalsByDotted || cycleGoal.EvalState == arcopmState.GoalsByEvaluator) && from == 'emplist') || (cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'emplist' && cycleGoal.onBehalfFlag  == 0)">
 						<div class="popupButtonCancel" ng-click="closeThisDialog();">Exit</div>
+						<div class="popupButtonCancel" ng-click="showCommentsPopup(cycleGoal,'add');" style="background: #17a1dd;color: #fff;">Add Comment</div>
 						<!-- Start Evaluation button will be activate only if we choose in 'Employee Manages Team' and Goals' Total Weight is 100%.  -->
 						<!--<input type="submit" value="Submit Goals" class="popupButtonSave" ng-attr-uib-tooltip="{{remainingWeight!=0  ? 'Button will become active only after total Goals Weight will be 100% and Employee Manages Team has been chosen.' : ''}}"
 							   tooltip-placement="top" tooltip-trigger="'mouseenter'" ng-click="updateState(cycleGoal);" ng-class="{ 'disabled': !form.$valid || remainingWeight!=0}"  ng-disabled="!form.$valid ||remainingWeight!=0" /> -->

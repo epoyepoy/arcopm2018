@@ -320,6 +320,7 @@
 			$scope.showAddNewGoalButtonEmp = true;
 			$scope.showAddNewGoalButtonDotted = true;
 			$scope.showAddNewGoalButtonEval = true;
+			$scope.totalWeight = 0;
 			EvaluationsFactory.GetGoals(empno,cycleid).then(function (result) {
 				$scope.checkifLoggedout(result);
 				$scope.goals = result.EmpGoals;
@@ -614,6 +615,20 @@
                 scope: $scope
             });
 		};
+		
+		$scope.showSendForwardPopup = function(cycleGoal){
+			if (!$scope.checkLogin()) {
+                return;
+            }
+            $scope.extraMessage = 'warning';
+			$scope.tempCyclegoal= cycleGoal;
+
+            $scope.todoPopup = ngDialog.open({
+                template: 'app/pages/goals/popup/goals.sendForward.popup.html',
+                className: 'ngdialog-theme-default',
+                scope: $scope
+            });
+		};
 
 		$scope.revertManager = function(cycleGoal){
 			if (!$scope.checkLogin()) {
@@ -814,6 +829,10 @@
 			return function(item){
 				return item.GoalState == state;
 			};
+		};
+		
+		$scope.sumWeight = function(weight){
+			$scope.totalWeight = parseInt($scope.totalWeight) + parseInt(weight); 
 		};
 
     }

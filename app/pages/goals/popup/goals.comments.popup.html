@@ -40,11 +40,15 @@
 				</div>
 				<div class="col-md-12" style="text-align: center; margin-top: 15px;">
 					<div ng-show="commentsMode == 'show'">
-						<input type="button" value="Add Comment" class="btn btn-info" ng-click="commentsMode = 'add'; newcomment.description = ''"/>
+						<!--<input type="button" value="Add Comment" class="btn btn-info" ng-click="commentsMode = 'add'; newcomment.description = ''"/>-->
+						<div class="popupButtonCancel" ng-click="closeThisDialog();">Exit</div>
+						<div class="popupButtonCancel" ng-click="commentsMode = 'add'; newcomment.description = ''" style="background: #17a1dd;color: #fff;">Add Comment</div>
 					</div>
 					<div ng-show="commentsMode == 'add'">
 						<textarea ng-model="newcomment.description" rows="2" style="width: 100%"></textarea><br/><br/>
-						<input type="button" value="Save" class="btn btn-info" ng-click="saveComment(tempGoal,newcomment); commentsMode = 'show';"/>
+						<div class="popupButtonCancel" ng-click="closeThisDialog();">Exit</div>
+						<div class="popupButtonCancel" ng-click="saveComment(tempGoal,newcomment); commentsMode = 'show';" style="background: #17a1dd;color: #fff;">Save</div>
+						<!--<input type="button" value="Save" class="btn btn-info" ng-click="saveComment(tempGoal,newcomment); commentsMode = 'show';"/>-->
 					</div>
 				</div>
 			</div>

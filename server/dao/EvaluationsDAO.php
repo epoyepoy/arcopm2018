@@ -1176,8 +1176,28 @@ class EvaluationsDAO{
 			Declare @answerCount as int;
 			--Declare @goalsWeight as int = 100;
 			Declare @onBehalf as int =:onbehalf;
-			Declare @hasDotted as int;
-			--Define if employee has dotted required only if state less than 4
+			Declare @hasDotted as int=0;
+			
+			SELECT @evalid=E.EvaluationID, @state=E.State, @grade=HR.Grade
+			FROM Evaluations E
+			INNER JOIN dbo.vw_arco_employee HR on HR.empno=E.EmployeeID
+			WHERE (E.CycleID=@cycleid AND E.EmployeeID=@empno) or (EvaluationID=@evalid);
+
+
+			-- This is in case the forward button is pressed and there is no evaluation created.
+			IF @state IS NULL
+			BEGIN
+				SELECT @grade=Grade, @state=0 FROM dbo.vw_arco_employee WHERE empno=@empno; 
+				INSERT INTO dbo.Evaluations
+				(CycleID,EmployeeID, empGrade,State,StateDate, ManagesTeam, UserID, UploadedFile, UploadedDate)
+				OUTPUT Inserted.EvaluationID
+				VALUES(@cycleid, @empno, @grade, 0, getdate(), 0, @userid, NULL, NULL)
+				
+				SELECT @evalid=EvaluationID FROM dbo.Evaluations WHERE EmployeeID=@empno; 
+				
+			END
+
+			--Define if employee has dotted required only if state < 4
 			IF @state<4
 			BEGIN
 				IF (SELECT count(*) FROM dbo.ReportingLineExceptions 
@@ -1193,12 +1213,7 @@ class EvaluationsDAO{
 					END
 			END
 
-
-			SELECT @evalid=E.EvaluationID, @state=E.State, @grade=HR.Grade
-			FROM Evaluations E
-			INNER JOIN dbo.vw_arco_employee HR on HR.empno=E.EmployeeID
-			WHERE (E.CycleID=@cycleid AND E.EmployeeID=@empno) or (EvaluationID=@evalid);
-
+			-- Update state of the evaluation
 			-- extra validation to avoid for state 2 and above moving state while there are no answers.
 			SELECT @answerCount=COUNT(*) FROM ANSWERS WHERE EvaluationID=@evalid and state=@state;
 
@@ -1215,6 +1230,7 @@ class EvaluationsDAO{
 			StateDate=getdate()
 			OUTPUT Inserted.EvaluationID
 			WHERE EvaluationID=@evalid;
+	
 			
 			--Once Update is done, go and insert history for goals if state between 0 and 3
 			IF @state<4
@@ -1223,12 +1239,14 @@ class EvaluationsDAO{
 					BEGIN
 					INSERT INTO dbo.GoalsHistory
 					(GoalID,EvaluationID,GoalDescription,Weight,UserID,AttributeCode,State,Date)
+					OUTPUT Inserted.EvaluationID
 					SELECT GoalID, EvaluationID, GoalDescription, Weight, UserID, AttributeCode, State, GETDATE() FROM dbo.Goals WHERE State=@state AND UserID=@userid
 					END
 				IF @onBehalf = 1
 					BEGIN
 					INSERT INTO dbo.GoalsHistory
 					(GoalID,EvaluationID,GoalDescription,Weight,UserID,AttributeCode,State,Date)
+					OUTPUT Inserted.EvaluationID
 					SELECT '', @evalid, 'Moved Forward', '', @userid, '', @state, GETDATE()
 					END
 			END
@@ -1245,7 +1263,8 @@ class EvaluationsDAO{
                 return $result;
             }
 			$query->setFetchMode(PDO::FETCH_ASSOC);
-	 	   	$id = $query->fetch();
+			//$query->nextRowset();
+			$id = $query->fetch();
 			$evalid=$id["EvaluationID"];
             $queryString = "
             SELECT E.EvaluationID, E.State, CONVERT(DATETIME2(0),E.StateDate) as StateDate, S.StateDescription

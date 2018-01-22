@@ -1111,7 +1111,9 @@ class EvaluationsDAO{
             IF @@ROWCOUNT = 0
                   BEGIN
                       SELECT @grade=grade from vw_arco_employee where empno=:empno1
-                      INSERT INTO dbo.Evaluations VALUES(@cycleid, :empno2, @grade, 0, getdate(), :mteam1, :userid1, NULL, NULL);
+					  INSERT INTO dbo.Evaluations 
+					  OUTPUT Inserted.EvaluationID 
+					  VALUES(@cycleid, :empno2, @grade, 0, getdate(), :mteam1, :userid1, NULL, NULL);
                   END
 		    ";
 			$query = $this->connection->prepare($queryString);
@@ -1124,7 +1126,9 @@ class EvaluationsDAO{
             $query->bindValue(':userid1', $userid, PDO::PARAM_STR);
             $query->bindValue(':mteam1', $mteam, PDO::PARAM_INT);
 			$result["success"] = $query->execute();
-            $result["errorMessage"] = $query->errorInfo();
+			$result["errorMessage"] = $query->errorInfo();
+			$output = $query->fetch();
+			$result["EvaluationID"]=$output['EvaluationID'];
             return $result;
 	}
 

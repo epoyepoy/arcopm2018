@@ -1127,10 +1127,14 @@ class EvaluationsDAO{
             $query->bindValue(':mteam1', $mteam, PDO::PARAM_INT);
 			$result["success"] = $query->execute();
 			$result["errorMessage"] = $query->errorInfo();
+			if ($result["errorMessage"][1]!=null){
+				return $result;
+			}
 			$query->setFetchMode(PDO::FETCH_ASSOC);
-			$output = $query->fetch();
-			$result["EvaluationID"]=$output['EvaluationID'];
-            return $result;
+			$query->nextRowset();
+			$evalid = $query->fetch();
+			$result["evalid"]=$evalid["EvaluationID"];
+			return $result;
 	}
 
 	/*****

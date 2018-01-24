@@ -1167,16 +1167,17 @@ class EvaluationsDAO{
     public function updateState($evalid, $userid, $cycleid, $empno, $onBehalf)
 	{
             $queryString = "
-			Declare @evalid as int = :evalid;
-			Declare @cycleid as int = :cycleid;
-			Declare @userid as varchar(5) =:userid;
-			Declare @empno as varchar(5) =:empno;
-			Declare @grade as int;
-			Declare @state as int;
-			Declare @answerCount as int;
-			--Declare @goalsWeight as int = 100;
-			Declare @onBehalf as int =:onbehalf;
-			Declare @hasDotted as int=0;
+			DECLARE @evalid as int = :evalid;
+			DECLARE @cycleid as int = :cycleid;
+			DECLARE @userid as varchar(5) =:userid;
+			DECLARE @empno as varchar(5) =:empno;
+			DECLARE @grade as int;
+			DECLARE @state as int;
+			DECLARE @answerCount as int;
+			DECLARE @actualCount int;
+			--DECLARE @goalsWeight as int = 100;
+			DECLARE @onBehalf as int =:onbehalf;
+			DECLARE @hasDotted as int=0;
 			
 			SELECT @evalid=E.EvaluationID, @state=E.State, @grade=HR.Grade
 			FROM Evaluations E
@@ -1218,26 +1219,8 @@ class EvaluationsDAO{
 			SELECT @answerCount=COUNT(*) FROM ANSWERS WHERE EvaluationID=@evalid and state=@state;
 
 			--missing, goals validation to update when state is 1 and goals are required to allow you to go ahead.
-				
-			--get how many dotted have placed goals
-			DECLARE @actualCount int = (SELECT count (distinct UserID) FROM GoalsHistory WHERE State =@state AND EvaluationID=@evalid)+1; --we add plus one becauset the submitted in history do not include the current one.
 			
-			UPDATE dbo.Evaluations SET State=
-			CASE
-				WHEN @state = 0 AND @hasDotted>0 THEN 1
-				WHEN @state = 0 AND @hasDotted=0 THEN 2
-				WHEN @state = 0 AND @grade<4 THEN 5 --Sent Directly to Evaluator, shouldnt have dotted to go to
-				WHEN @state = 1 THEN  CASE WHEN @hasDotted = @actualCount THEN  @state+1 ELSE @state END
-				WHEN @state = 2 THEN @state+1
-				WHEN @state in (3,4,5,6) AND @answerCount>0 THEN @state+1
-				--ELSE @state
-			END,
-			StateDate=getdate()
-			OUTPUT Inserted.EvaluationID
-			WHERE EvaluationID=@evalid;
-	
-			
-			--Once Update is done, go and insert history for goals if state between 0 and 3
+			--Go and insert history for goals if state between 0 and 3
 			IF @state<4
 			BEGIN
 				IF @onBehalf = 0
@@ -1246,6 +1229,13 @@ class EvaluationsDAO{
 					(GoalID,EvaluationID,GoalDescription,Weight,UserID,AttributeCode,State,Date)
 					OUTPUT Inserted.EvaluationID
 					SELECT GoalID, EvaluationID, GoalDescription, Weight, UserID, AttributeCode, State, GETDATE() FROM dbo.Goals WHERE State=@state AND UserID=@userid
+					IF @@ROWCOUNT = 0
+						BEGIN
+							INSERT INTO dbo.GoalsHistory
+							(GoalID,EvaluationID,GoalDescription,Weight,UserID,AttributeCode,State,Date)
+							OUTPUT Inserted.EvaluationID
+							SELECT '', @evalid, 'No Goals Set', '', @userid, '', @state, GETDATE()
+						END
 					END
 				IF @onBehalf = 1
 					BEGIN
@@ -1254,7 +1244,25 @@ class EvaluationsDAO{
 					OUTPUT Inserted.EvaluationID
 					SELECT '', @evalid, 'Moved Forward', '', @userid, '', @state, GETDATE()
 					END
+			
+
+			--get how many dotted have placed goals
+			SELECT @actualCount = (SELECT count (distinct UserID) FROM GoalsHistory WHERE State =@state AND EvaluationID=@evalid); --we add plus one becauset the submitted in history do not include the current one.
 			END
+			
+			UPDATE dbo.Evaluations SET State=
+			CASE
+				WHEN @state = 0 AND @hasDotted>0 THEN 1
+				WHEN @state = 0 AND @hasDotted=0 THEN 2
+				WHEN @state = 0 AND @grade<4 THEN 5 --Sent Directly to Evaluator, shouldnt have dotted to go to
+				WHEN @state = 1 THEN  CASE WHEN @hasDotted = @actualCount or @onBehalf=1 THEN  @state+1 ELSE @state END
+				WHEN @state = 2 THEN @state+1
+				WHEN @state in (3,4,5,6) AND @answerCount>0 THEN @state+1
+				--ELSE @state
+			END,
+			StateDate=getdate()
+			OUTPUT Inserted.EvaluationID
+			WHERE EvaluationID=@evalid;
 		    ";
 			$query = $this->connection->prepare($queryString);
             $query->bindValue(':userid', $userid, PDO::PARAM_STR);

@@ -1221,7 +1221,7 @@ class EvaluationsDAO{
 
 
 			--get how many have answered
-			DECLARE @actualCount int = (SELECT count(distinct UserID) from GoalsHistory WHERE State =@state AND EvaluationID=@evalid)+1; --we add plus one becauset the submitted in history do not include the current one.
+			DECLARE @actualCount int = (SELECT count (distinct UserID) FROM GoalsHistory WHERE State =@state AND EvaluationID=@evalid)+1; --we add plus one becauset the submitted in history do not include the current one.
 				
 
 			UPDATE dbo.Evaluations SET State=
@@ -1229,7 +1229,7 @@ class EvaluationsDAO{
 				WHEN @state = 0 AND @hasDotted=1 THEN 1
 				WHEN @state = 0 AND @hasDotted=0 THEN 2
 				WHEN @state = 0 AND @grade<4 THEN 5 --Sent Directly to Evaluator, shouldnt have dotted to go to
-				WHEN @state = 1 THEN  CASE WHEN @hasDotted = @actualCount  @state+1
+				WHEN @state = 1 THEN  CASE WHEN @hasDotted = @actualCount THEN  @state+1 ELSE @state END
 				WHEN @state = 2 THEN @state+1
 				WHEN @state in (3,4,5,6) AND @answerCount>0 THEN @state+1
 				--ELSE @state

@@ -1203,12 +1203,12 @@ class EvaluationsDAO{
 				IF (SELECT count(*) FROM dbo.ReportingLineExceptions 
 					WHERE empnosource = (SELECT EmployeeID FROM dbo.Evaluations WHERE EvaluationID=@evalid) AND goalCycle=@cycleid)>0
 					BEGIN
-						 SELECT @hasDotted = CASE WHEN count(*)>0 THEN 1 ELSE 0 END FROM dbo.ReportingLineExceptions 
+						 SELECT @hasDotted = count(*) END FROM dbo.ReportingLineExceptions 
 						WHERE empnosource = (SELECT EmployeeID FROM dbo.Evaluations WHERE EvaluationID=@evalid) AND goalCycle=@cycleid AND State=4
 					END
 				ELSE
 					BEGIN
-						SELECT @hasDotted = CASE WHEN count(*)>0 THEN 1 ELSE 0 END FROM dbo.ReportingLine 
+						SELECT @hasDotted = count(*) END FROM dbo.ReportingLine 
 						WHERE empnosource = (SELECT EmployeeID FROM dbo.Evaluations WHERE EvaluationID=@evalid) AND excludeFromCycles<>@cycleid AND State=4
 					END
 			END
@@ -1218,12 +1218,19 @@ class EvaluationsDAO{
 			SELECT @answerCount=COUNT(*) FROM ANSWERS WHERE EvaluationID=@evalid and state=@state;
 
 			--missing, goals validation to update when state is 1 and goals are required to allow you to go ahead.
+
+
+			--get how many have answered
+			DECLARE @actualCount int = (SELECT count(distinct UserID) from GoalsHistory WHERE State =@state AND EvaluationID=@evalid)+1; --we add plus one becauset the submitted in history do not include the current one.
+				
+
 			UPDATE dbo.Evaluations SET State=
 			CASE
-				WHEN @state=0 AND @hasDotted=1 THEN 1
-				WHEN @state=0 AND @hasDotted=0 THEN 2
-				WHEN @state=0 AND @grade<4 THEN 5 --Sent Directly to Evaluator, shouldnt have dotted to go to
-				WHEN @state in (0,1,2) THEN @state+1
+				WHEN @state = 0 AND @hasDotted=1 THEN 1
+				WHEN @state = 0 AND @hasDotted=0 THEN 2
+				WHEN @state = 0 AND @grade<4 THEN 5 --Sent Directly to Evaluator, shouldnt have dotted to go to
+				WHEN @state = 1 THEN  CASE WHEN @hasDotted = @actualCount  @state+1
+				WHEN @state = 2 THEN @state+1
 				WHEN @state in (3,4,5,6) AND @answerCount>0 THEN @state+1
 				--ELSE @state
 			END,

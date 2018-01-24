@@ -42,7 +42,7 @@
 					<div ng-show="commentsMode == 'show'">
 						<!--<input type="button" value="Add Comment" class="btn btn-info" ng-click="commentsMode = 'add'; newcomment.description = ''"/>-->
 						<div class="popupButtonCancel" ng-click="closeThisDialog();">Exit</div>
-						<div class="popupButtonCancel" ng-click="commentsMode = 'add'; newcomment.description = ''" style="background: #17a1dd;color: #fff;">Add Comment</div>
+						<div class="popupButtonCancel" ng-show="tempGoal.EvaluationID" ng-click="commentsMode = 'add'; newcomment.description = ''" style="background: #17a1dd;color: #fff;">Add Comment</div>
 					</div>
 					<div ng-show="commentsMode == 'add'">
 						<textarea ng-model="newcomment.description" rows="2" style="width: 100%"></textarea><br/><br/>

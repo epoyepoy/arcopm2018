@@ -223,8 +223,13 @@
 			//store also these values to a temporary object(previous) in order to have them when someone cancels an edit goal action (exit button in edit goal)
 			$scope.prevGoalDescr = goal.GoalDescription;
 			$scope.prevAttrCode = goal.AttributeCode;
-			var totalRemainingWeight = parseInt($scope.remainingWeight)+parseInt($scope.prevWeight);
-			$scope.totalRemainingWeight = totalRemainingWeight;
+			//we calculate remainingWeight only for employee
+            if(role == 'emp'){
+                var totalRemainingWeight = parseInt($scope.remainingWeight)+parseInt(prevWeight);
+                $scope.totalRemainingWeight = totalRemainingWeight;
+            }else{
+                $scope.totalRemainingWeight = 100;
+            }
 			$scope.getGoalAttributes();
 
             $scope.todoPopup = ngDialog.open({
@@ -278,6 +283,7 @@
 				if (result.success) {
 					$scope.extraMessage = 'created';
 					$scope.managesteam = managesTeam;
+                    $scope.cycleGoal.EvaluationID = result.evalid;
 					$scope.todoPopup = ngDialog.open({
 						template: 'app/pages/goals/popup/goals.employeemanagesteam.save.popup.html',
 						className: 'ngdialog-theme-default',
@@ -486,9 +492,16 @@
             }
             $scope.extraMessage = 'loading';
 
-			var totalRemainingWeight = parseInt($scope.remainingWeight)+parseInt(prevWeight);
-			$scope.totalRemainingWeight = totalRemainingWeight;
-
+            //we calculate remainingWeight only for employee
+            if(role == 'emp'){
+                var totalRemainingWeight = parseInt($scope.remainingWeight)+parseInt(prevWeight);
+                
+            }else{
+                var totalRemainingWeight = 100;
+            }
+            
+            $scope.totalRemainingWeight = totalRemainingWeight;
+            
 			//goal can be added only if weight is lower or equal to the remaining Weight plus the previous weight of the record we are trying to modify.
 			if(editGoal.Weight <= totalRemainingWeight){
 				EvaluationsFactory.UpdateGoal(editGoal,loginData.user.id).then(function (result) {
@@ -514,15 +527,16 @@
 			if (!$scope.checkLogin()) {
                 return;
             }
-            $scope.extraMessage = 'loading';
-
+            //$scope.extraMessage = 'loading';
+            $scope.message = 'loading';
 
 			EvaluationsFactory.UpdateState(0,goal.CycleID,loginData.user.id,goal.Empno,onbehalf).then(function (result) {
 				$scope.checkifLoggedout(result);
 				if (result.success) {
 					$scope.cycleGoal.EvalState = result.evaluation.State;
 					$scope.cycleGoal.EvaluationID = result.evaluation.EvaluationID;
-					$scope.extraMessage = 'none';
+                    $scope.goals = [];
+					//$scope.extraMessage = 'none';
 					$scope.message = 'created';
 				} else {
 					$scope.message = 'error';
@@ -588,11 +602,12 @@
                 return;
             }
 
+            $scope.extraMessage = 'loading';
 			var evalid = cycleGoal.EvaluationID;
 			EvaluationsFactory.SendGoalsBack(evalid).then(function (result) {
 				$scope.checkifLoggedout(result);
 				if (result.success) {
-					$scope.extraMessage = 'Updated';
+					$scope.extraMessage = 'updated';
 					cycleGoal.EvalState  = 0;
 				} else {
 					$scope.extraMessage = 'error';
@@ -616,12 +631,12 @@
             });
 		};
 		
-		$scope.showSendForwardPopup = function(cycleGoal){
+		$scope.showSendForwardPopup = function(goal){
 			if (!$scope.checkLogin()) {
                 return;
             }
-            $scope.extraMessage = 'warning';
-			$scope.tempCyclegoal= cycleGoal;
+            $scope.message = 'warning';
+			$scope.cycleGoal= goal;
 
             $scope.todoPopup = ngDialog.open({
                 template: 'app/pages/goals/popup/goals.sendForward.popup.html',

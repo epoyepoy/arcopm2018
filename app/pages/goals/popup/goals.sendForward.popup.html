@@ -8,32 +8,32 @@
 			<h4 class="pop-up-header" >Proceed to Next Step</h4>
 		</div>
 		<div class="panel-body" id="todoPopupBody">
-			<div class="message" ng-show="showExtraMessage('Updated')">
+			<div class="message" ng-show="showMessage('created')">
                 <div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/successIcon.svg" /></div>
                 <div class="popupMessage">Updated Successfully! </div>
                 <div class="popupButtonSave" ng-click="closeThisDialog();">OK!</div>
             </div>
-			<div class="message" ng-show="showExtraMessage('warning')">
+			<div class="message" ng-show="showMessage('warning')">
 				<div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/warningIcon.svg"/></div>
 				<div class="popupMessage">
-					Send Goals' Configuration at the next state.
+					Are you sure you want to send Goals' Configuration at the next state?.
 				</div>
 				<div class="popupButtonCancel" ng-click="closeThisDialog();">Cancel</div>
-				<div class="popupButtonSave" ng-click="updateState(tempCyclegoal,0);">Submit</div>
+				<div class="popupButtonSave" ng-click="updateState(cycleGoal,1);">Submit</div>
 			</div>
-			<div class="container" ng-show="showExtraMessage('loading')" >
+			<div class="container" ng-show="showMessage('loading')" >
 				<div class="content">
 					<div class="circle"></div>
 					<div class="circle1"></div>
 				</div>
 			</div>
-			<div class="message" ng-show="showExtraMessage('error')">
+			<div class="message" ng-show="showMessage('error')">
 				<div class="popupError">
 					<div class="popupErrorIcon"><img class="popupErrorIconImg" src="assets/images/errorIcon.svg"/></div>
 					<div class="popupErrorText">Error!</div>
-					<div class="popupErrorMessage">{{extraMessageText}}</div>
+					<div class="popupErrorMessage">{{messageText}}</div>
 				</div>
-				<div class="popupButtonSave" ng-click="changeExtraMessage('none');">OK</div>
+				<div class="popupButtonSave" ng-click="changeMessage('none');">OK</div>
 			</div>
 		   <!-- end of popupcONTENT -->    
 		</div>

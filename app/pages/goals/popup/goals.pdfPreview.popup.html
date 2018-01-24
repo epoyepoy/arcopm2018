@@ -30,18 +30,20 @@
 								<th style="width:3vw"></th>
 								<th class="center" style="width:10vw">ATTRIBUTE</th>
 								<th class="center" style="width:30vw">GOAL</th>
-								<!--<th class="center" style="width:10%"> TARGET </th>-->
 								<th class="center" style="width:5vw">WEIGHT %</th>
+                                <th class="center" style="width:15vw">CREATED BY</th>
+                                <th class="center" style="width:10vw">ROLE</th>
 								<th class="center" style="width:20vw" ng-if="tempCycleGoal.EvalState >= arcopmState.EvalByEmployee"></th>
 							</tr>
 						</thead>
 						<tbody>
-							<tr ng-repeat="goal in tempGoals" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+							<tr ng-repeat="goal in tempGoals | filter: goalsState(2)" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
 								<td class="center">{{$index+1}}</td>
 								<td class="center"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}}&nbsp;-&nbsp;{{goal.CodeDescription}}</span></td>
 								<td class="center">{{goal.GoalDescription}}</td>
-								<!--<td class="center">{{goal.Target}}</td>-->
 								<td class="center">{{goal.Weight}}</td>
+                                <td class="center">{{goal.CreatedByID}}<br/>{{goal.CreatedByName}}</td>
+                                <td class="center">{{goal.AddedByRole}}</td>
 								<td class="center" ng-if="tempCycleGoal.EvalState >= arcopmState.EvalByEmployee"></td>
 							</tr>
 						</tbody>

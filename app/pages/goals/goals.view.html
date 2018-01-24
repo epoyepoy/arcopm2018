@@ -163,7 +163,7 @@
 									<span ng-if="cycleGoal.EvalState >= arcopmState.EvalByEmployee">
 										<button class="sitesBtn" ng-click="showEvalPreview(cycleGoal)" uib-tooltip="Evaluation Form Template Preview" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"  ></span></button>
 									</span>
-									<span ng-if="cycleGoal.EvalState == arcopmState.GoalsByEmployee && cycleGoal.onBehalfFlag==0 && cycleGoal.yourActionState == 5">
+									<span ng-if="cycleGoal.EvalState == (arcopmState.GoalsByEmployee ||cycleGoal.EvalState == arcopmState.GoalsByDotted) && cycleGoal.onBehalfFlag==0 && cycleGoal.yourActionState == 5">
 										<button class="sitesBtn" ng-click="showSendForwardPopup(cycleGoal)" uib-tooltip="Send Forward Goals & Configuration" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-step-forward" aria-hidden="true"></i></button>
 									</span>
 									<span ng-if="cycleGoal.EvalState < arcopmState.EvalByEmployee">

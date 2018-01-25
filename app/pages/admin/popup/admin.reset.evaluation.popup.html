@@ -32,7 +32,7 @@
 						<tr ng-repeat="evaluation in employeeEvaluations" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
 							<td class="center">{{evaluation.ID}}</td>
 							<td class="center">{{evaluation.EvaluationPeriod}}</td>
-							<td class="center">{{evaluation.State>1 ? 'Evaluation' : 'Goal Setting & Configuration' }}</td>
+							<td class="center">{{evaluation.State>2 ? 'Evaluation' : 'Goal Setting & Configuration' }}</td>
 							<td class="center">{{evaluation.StateDescription ? evaluation.StateDescription : '-' }}</td>
 							<td class="center">{{evaluation.StateDate ? evaluation.StateDate : '-' }}</td>
 							<td class="center">{{evaluation.ManagesTeam ? evaluation.ManagesTeam==1 ? 'Yes' : 'No' : '-' }}</td>

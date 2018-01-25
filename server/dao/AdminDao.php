@@ -115,16 +115,16 @@ class AdminDAO{
 		OUTER APPLY (
 		SELECT  TOP 1 empnotarget, empnotarget AS empno, RTRIM(LTRIM(emp1.family_name))+'' ''+RTRIM(LTRIM(emp1.first_name)) As Name, emp1.empstatus, RLE.wrongManager
 			FROM dbo.ReportingLineExceptions RLE
-			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=RLE.empnotarget AND RLE.state=4
-			where RLE.state=4 and RLE.empnosource=RL.empnosource
+			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=RLE.empnotarget AND RLE.state=5
+			where RLE.state=5 and RLE.empnosource=RL.empnosource
 		)
 		nextevalperiod
 		OUTER APPLY (
 		SELECT  TOP 1 empnotarget, empnotarget AS empno, RTRIM(LTRIM(emp1.family_name))+'' ''+RTRIM(LTRIM(emp1.first_name)) As Dotted1Name, emp1.empstatus, dot1.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot1
-			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=dot1.empnotarget AND dot1.state=3
-			where dot1.state=3 and dot1.empnosource=RL.empnosource
+			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=dot1.empnotarget AND dot1.state=4
+			where dot1.state=4 and dot1.empnosource=RL.empnosource
 			ORDER BY Rownumber
 		)
 		Dot1
@@ -132,8 +132,8 @@ class AdminDAO{
 		SELECT  empnotarget AS empno,RTRIM(LTRIM(emp2.family_name))+'' ''+RTRIM(LTRIM(emp2.first_name)) As Dotted2Name, emp2.empstatus, dot2.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot2
-			inner JOIN [dbo].[vw_arco_employee] emp2 on emp2.empno=dot2.empnotarget AND dot2.state=3
-			where dot2.state=3 and dot2.empnosource=RL.empnosource
+			inner JOIN [dbo].[vw_arco_employee] emp2 on emp2.empno=dot2.empnotarget AND dot2.state=4
+			where dot2.state=4 and dot2.empnosource=RL.empnosource
 			ORDER BY Rownumber
 			OFFSET 1 ROW
 			FETCH NEXT 1 ROW ONLY
@@ -154,8 +154,8 @@ class AdminDAO{
 		SELECT  TOP 1 ndot1.empnotarget, ndot1.empnotarget AS empno, RTRIM(LTRIM(dotemp1.family_name))+'' ''+RTRIM(LTRIM(dotemp1.first_name)) As DottedName, dotemp1.empstatus, ndot1.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY ndot1.empnotarget) AS Rownumber
 			FROM ReportingLineExceptions ndot1
-			inner JOIN [dbo].[vw_arco_employee] dotemp1 on dotemp1.empno=ndot1.empnotarget AND ndot1.state=3
-			where ndot1.state=3 and ndot1.empnosource=RL.empnosource
+			inner JOIN [dbo].[vw_arco_employee] dotemp1 on dotemp1.empno=ndot1.empnotarget AND ndot1.state=4
+			where ndot1.state=4 and ndot1.empnosource=RL.empnosource
 			ORDER BY Rownumber
 		)
 		nextDot1
@@ -163,8 +163,8 @@ class AdminDAO{
 		SELECT ndot2.empnotarget, ndot2.empnotarget AS empno, RTRIM(LTRIM(dotemp2.family_name))+'' ''+RTRIM(LTRIM(dotemp2.first_name)) As DottedName, dotemp2.empstatus, ndot2.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY ndot2.empnotarget) AS Rownumber
 			FROM ReportingLineExceptions ndot2
-			inner JOIN [dbo].[vw_arco_employee] dotemp2 on dotemp2.empno=ndot2.empnotarget AND ndot2.state=3
-			where ndot2.state=3 and ndot2.empnosource=RL.empnosource
+			inner JOIN [dbo].[vw_arco_employee] dotemp2 on dotemp2.empno=ndot2.empnotarget AND ndot2.state=4
+			where ndot2.state=4 and ndot2.empnosource=RL.empnosource
 			ORDER BY Rownumber
 			OFFSET 1 ROW
 			FETCH NEXT 1 ROW ONLY
@@ -174,14 +174,14 @@ class AdminDAO{
 		SELECT ndot3.empnotarget, ndot3.empnotarget AS empno, RTRIM(LTRIM(dotemp3.family_name))+'' ''+RTRIM(LTRIM(dotemp3.first_name)) As DottedName, dotemp3.empstatus, ndot3.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY ndot3.empnotarget) AS Rownumber
 			FROM ReportingLineExceptions ndot3
-			inner JOIN [dbo].[vw_arco_employee] dotemp3 on dotemp3.empno=ndot3.empnotarget AND ndot3.state=3
-			where ndot3.state=3 and ndot3.empnosource=RL.empnosource
+			inner JOIN [dbo].[vw_arco_employee] dotemp3 on dotemp3.empno=ndot3.empnotarget AND ndot3.state=4
+			where ndot3.state=4 and ndot3.empnosource=RL.empnosource
 			ORDER BY Rownumber
 			OFFSET 2 ROW
 			FETCH NEXT 1 ROW ONLY
 		)
 		nextDot3
-	    WHERE RL.State=4
+	    WHERE RL.State=5
 	   '
  		SET @ParmDefinition = N'@empid NVARCHAR(5), @evaluatorid NVARCHAR(5), @dottedid NVARCHAR(5), @projectcode NVARCHAR(5),@wrongmanager varchar(2), @isactive varchar(3)'
 
@@ -283,9 +283,9 @@ class AdminDAO{
 		--Define New State
 		SELECT @empid=E.EmployeeID, @currentState=E.State, 
 		@newState=CASE
-		WHEN E.empGrade<4 AND E.State=4 THEN 1 --Sent Directly to Goals Intial Step for evaluator
-		WHEN E.empGrade>3 AND E.State=4 AND (SELECT COUNT(*) FROM Answers WHERE EvaluationID=E.EvaluationID AND State=3)=0 THEN E.State-2 -- check if dotted was in process if not send back 2 steps
-		WHEN E.State in (1,2,3,4,5,6) THEN E.State-1
+		WHEN E.empGrade<5 AND E.State=5 THEN 1 --Sent Directly to Goals Intial Step for evaluator
+		WHEN E.empGrade>3 AND E.State=5 AND (SELECT COUNT(*) FROM Answers WHERE EvaluationID=E.EvaluationID AND State=4)=0 THEN E.State-2 -- check if dotted was in process if not send back 2 steps
+		WHEN E.State in (1,2,3,4,5,6,7) THEN E.State-1
 		END
 	  	FROM dbo.Evaluations E WHERE E.EvaluationID=@evalid
 
@@ -301,8 +301,8 @@ class AdminDAO{
 		UPDATE dbo.Answers Set Finished=0
 		WHERE EvaluationID = @evalid AND State=@newState
 
-		-- create audit log 3 is step back
-		INSERT INTO AuditEvals values (@evalid, @empid, @userid, 3, getdate(), @currentState, @newState )
+		-- create audit log 4 is step back
+		INSERT INTO AuditEvals values (@evalid, @empid, @userid, 4, getdate(), @currentState, @newState )
 		";
 		$query = $this->connection->prepare($queryString);
 		$query->bindValue(':userid', $userid, PDO::PARAM_STR);
@@ -368,9 +368,9 @@ class AdminDAO{
 
 		IF @resetgoals<>1
 		BEGIN
-			UPDATE dbo.Evaluations SET @newState = State = CASE WHEN empGrade<4 Then 4 ELSE 2 END
+			UPDATE dbo.Evaluations SET @newState = State = CASE WHEN empGrade<5 Then 5 ELSE 2 END
 			WHERE EvaluationID = @evalid
-			--SELECT @newState=CASE WHEN empGrade<4 Then 4 ELSE 2 END
+			--SELECT @newState=CASE WHEN empGrade<5 Then 5 ELSE 2 END
 		END
 		-- create audit for evaluations
 		INSERT INTO AuditEvals values (@evalid, @empid, @userid, @resetgoals, getdate(), @currentState, @newState )
@@ -625,7 +625,7 @@ class AdminDAO{
 		SELECT @evaluatorfirstp = RL.empnotarget,  @evaluationfirstpState = ISNULL(E.State,0), @createdByFirstp=ISNULL(UserID, '')
 		FROM dbo.ReportingLine RL 
 		LEFT JOIN Evaluations E on RL.empnosource=E.EmployeeID AND E.CycleID=@currentcycleid
-		WHERE RL.empnosource=@empid AND Rl.state=4 
+		WHERE RL.empnosource=@empid AND Rl.state=5 
 		AND RL.excludeFromCycles <> @currentcycleid;
 
 		
@@ -639,7 +639,7 @@ class AdminDAO{
 		Declare @noofdottedtoUpdate as int;
 		SELECT @noofdottedFound=COUNT(*), @noofdottedtoUpdate=CASE WHEN isnull(@dot1, '')='' THEN 0 ELSE 1 END + CASE WHEN isnull(@dot2, '')='' THEN 0 ELSE 1 END 
 		+ CASE WHEN isnull(@dot3, '')='' THEN 0 ELSE 1 END 
-		 FROM ReportingLine Where (@dot1=empnotarget or @dot2=empnotarget or @dot3=empnotarget) and empnosource=@empid and state=3 AND excludeFromCycles <> @currentcycleid
+		 FROM ReportingLine Where (@dot1=empnotarget or @dot2=empnotarget or @dot3=empnotarget) and empnosource=@empid and state=4 AND excludeFromCycles <> @currentcycleid
 		
 		IF (@evaluationfirstpState>0 AND @noofdottedFound<>@noofdottedtoUpdate)  
 		BEGIN
@@ -653,14 +653,14 @@ class AdminDAO{
 		SELECT @evaluatorNextp = RL.empnotarget,  @evaluationNextpState = ISNULL(E.State,0), @createdByNextp=ISNULL(UserID, '')
 		FROM dbo.ReportingLine RL 
 		LEFT JOIN Evaluations E on RL.empnosource=E.EmployeeID AND E.CycleID=@nextcycleid
-		WHERE RL.empnosource=@empid AND Rl.state=4 
+		WHERE RL.empnosource=@empid AND Rl.state=5 
 		AND RL.excludeFromCycles <> @nextcycleid
 		--Check if there is ecxeption
 		
 		SELECT @evaluatorNextp = RL.empnotarget,  @evaluationNextpState = ISNULL(E.State,0), @createdByNextp=ISNULL(UserID, '')
 		FROM dbo.ReportingLineExceptions RL 
 		LEFT JOIN Evaluations E on RL.empnosource=E.EmployeeID AND E.CycleID=@nextcycleid
-		WHERE RL.empnosource=@empid AND Rl.state=4 
+		WHERE RL.empnosource=@empid AND Rl.state=5 
 		AND RL.goalCycle = @nextcycleid
 
 		IF (@evaluatorNextp <> @nexteval AND @evaluationNextpState>0) OR (@evaluationNextpState=0 AND @createdByNextp <> '' AND @createdByNextp<>@empid) 
@@ -671,11 +671,11 @@ class AdminDAO{
 		--Change dotted next period
 		SELECT @noofdottedFound=COUNT(*), @noofdottedtoUpdate=CASE WHEN isnull(@ndot1, '')='' THEN 0 ELSE 1 END + CASE WHEN isnull(@ndot2, '')='' THEN 0 ELSE 1 END 
 		+ CASE WHEN isnull(@ndot3, '')='' THEN 0 ELSE 1 END 
-		 FROM ReportingLine Where (@ndot1=empnotarget or @ndot2=empnotarget or @ndot3=empnotarget) and empnosource=@empid and state=3  AND excludeFromCycles <> @nextcycleid
+		 FROM ReportingLine Where (@ndot1=empnotarget or @ndot2=empnotarget or @ndot3=empnotarget) and empnosource=@empid and state=4  AND excludeFromCycles <> @nextcycleid
 		--check if there is exception
 		 SELECT @noofdottedFound=COUNT(*), @noofdottedtoUpdate=CASE WHEN isnull(@ndot1, '')='' THEN 0 ELSE 1 END + CASE WHEN isnull(@ndot2, '')='' THEN 0 ELSE 1 END 
 		 + CASE WHEN isnull(@ndot3, '')='' THEN 0 ELSE 1 END 
-		  FROM ReportingLineExceptions Where (@ndot1=empnotarget or @ndot2=empnotarget or @ndot3=empnotarget) and empnosource=@empid and state=3  AND goalCycle = @nextcycleid
+		  FROM ReportingLineExceptions Where (@ndot1=empnotarget or @ndot2=empnotarget or @ndot3=empnotarget) and empnosource=@empid and state=4  AND goalCycle = @nextcycleid
 		  
 		IF (@evaluationNextpState>0 AND @noofdottedFound<>@noofdottedtoUpdate)  
 		BEGIN
@@ -729,26 +729,26 @@ class AdminDAO{
 		--Start the update of the reportingLineTable. --Update, if no record insert.
 		--1st update reporting line evaluator.
 		UPDATE ReportingLine set empnotarget=CASE WHEN isnull(@currenteval,'')='' THEN @nexteval ELSE @currenteval END, wrongmanager=0, excludeFromCycles=@excludecycle, updatedBy=@userid, date=getdate()
-		WHERE empnosource=@empid AND State=4
+		WHERE empnosource=@empid AND State=5
 		IF @@ROWCOUNT = 0
 			BEGIN
-				INSERT INTO dbo.ReportingLine VALUES(@empid, CASE WHEN isnull(@currenteval,'')='' THEN @nexteval ELSE @currenteval END,4, @excludecycle, 0, @userid, getdate());
+				INSERT INTO dbo.ReportingLine VALUES(@empid, CASE WHEN isnull(@currenteval,'')='' THEN @nexteval ELSE @currenteval END,5, @excludecycle, 0, @userid, getdate());
 			END
 
 		--2nd Create Dotted. First delete all dotted and then create one by one.
 		--Make sure you delete dotted and reset.
-		DELETE FROM ReportingLine WHERE empnosource=@empid and State=3
+		DELETE FROM ReportingLine WHERE empnosource=@empid and State=4
 		IF isnull(@dot1,'')<>''
 			BEGIN
-				INSERT INTO dbo.ReportingLine VALUES(@empid, @dot1,3, @excludecycle, 0, @userid, getdate());
+				INSERT INTO dbo.ReportingLine VALUES(@empid, @dot1,4, @excludecycle, 0, @userid, getdate());
 			END
 		IF isnull(@dot2,'')<>''
 			BEGIN
-				INSERT INTO dbo.ReportingLine VALUES(@empid, @dot2,3, @excludecycle, 0, @userid, getdate());
+				INSERT INTO dbo.ReportingLine VALUES(@empid, @dot2,4, @excludecycle, 0, @userid, getdate());
 			END
 		IF isnull(@dot3,'')<>''
 			BEGIN
-				INSERT INTO dbo.ReportingLine VALUES(@empid, @dot3,3, @excludecycle, 0, @userid, getdate());
+				INSERT INTO dbo.ReportingLine VALUES(@empid, @dot3,4, @excludecycle, 0, @userid, getdate());
 			END
 
 		--Delete from exceptions and then reset.
@@ -773,24 +773,24 @@ class AdminDAO{
 				--Check if same evaluator and with different dotted.
 				IF @currenteval<>@nexteval
 					BEGIN
-						INSERT INTO dbo.ReportingLineExceptions VALUES(@empid, @nexteval, 4,  @nextcycleid, 0, @userid, getdate());
+						INSERT INTO dbo.ReportingLineExceptions VALUES(@empid, @nexteval, 5,  @nextcycleid, 0, @userid, getdate());
 					END
 				ELSE -- insert the current evaluator in case the only difference is on the dotted
 					BEGIN
-						INSERT INTO dbo.ReportingLineExceptions VALUES(@empid, @currenteval, 4,  @nextcycleid, 0, @userid, getdate());
+						INSERT INTO dbo.ReportingLineExceptions VALUES(@empid, @currenteval, 5,  @nextcycleid, 0, @userid, getdate());
 					END
 				--2nd Create Exception Dotted.
 				IF isnull(@ndot1,'')<>''
 					BEGIN
-						INSERT INTO dbo.ReportingLineExceptions VALUES(@empid, @ndot1,3, @nextcycleid, 0, @userid, getdate());
+						INSERT INTO dbo.ReportingLineExceptions VALUES(@empid, @ndot1,4, @nextcycleid, 0, @userid, getdate());
 					END
 				IF isnull(@ndot2,'')<>''
 					BEGIN
-						INSERT INTO dbo.ReportingLineExceptions VALUES(@empid, @ndot2,3, @nextcycleid, 0, @userid, getdate());
+						INSERT INTO dbo.ReportingLineExceptions VALUES(@empid, @ndot2,4, @nextcycleid, 0, @userid, getdate());
 					END
 				IF isnull(@ndot3,'')<>''
 					BEGIN
-						INSERT INTO dbo.ReportingLineExceptions VALUES(@empid, @ndot3,3, @nextcycleid, 0, @userid, getdate());
+						INSERT INTO dbo.ReportingLineExceptions VALUES(@empid, @ndot3,4, @nextcycleid, 0, @userid, getdate());
 					END
 			END
 		";
@@ -865,16 +865,16 @@ class AdminDAO{
 		OUTER APPLY (
 		SELECT  TOP 1 empnotarget, empnotarget AS empno, RTRIM(LTRIM(emp1.family_name))+' '+RTRIM(LTRIM(emp1.first_name)) As Name, emp1.empstatus, RLE.wrongManager
 			FROM dbo.ReportingLineExceptions RLE
-			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=RLE.empnotarget AND RLE.state=4
-			where RLE.state=4 and RLE.empnosource=RL.empnosource
+			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=RLE.empnotarget AND RLE.state=5
+			where RLE.state=5 and RLE.empnosource=RL.empnosource
 		)
 		nextevalperiod
 		OUTER APPLY (
 		SELECT  TOP 1 empnotarget, empnotarget AS empno, RTRIM(LTRIM(emp1.family_name))+' '+RTRIM(LTRIM(emp1.first_name)) As Dotted1Name, emp1.empstatus, dot1.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot1
-			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=dot1.empnotarget AND dot1.state=3
-			where dot1.state=3 and dot1.empnosource=RL.empnosource
+			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=dot1.empnotarget AND dot1.state=4
+			where dot1.state=4 and dot1.empnosource=RL.empnosource
 			ORDER BY Rownumber
 		)
 		Dot1
@@ -882,8 +882,8 @@ class AdminDAO{
 		SELECT  empnotarget AS empno,RTRIM(LTRIM(emp2.family_name))+' '+RTRIM(LTRIM(emp2.first_name)) As Dotted2Name, emp2.empstatus, dot2.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot2
-			inner JOIN [dbo].[vw_arco_employee] emp2 on emp2.empno=dot2.empnotarget AND dot2.state=3
-			where dot2.state=3 and dot2.empnosource=RL.empnosource
+			inner JOIN [dbo].[vw_arco_employee] emp2 on emp2.empno=dot2.empnotarget AND dot2.state=4
+			where dot2.state=4 and dot2.empnosource=RL.empnosource
 			ORDER BY Rownumber
 			OFFSET 1 ROW
 			FETCH NEXT 1 ROW ONLY
@@ -893,8 +893,8 @@ class AdminDAO{
 		SELECT  empnotarget AS empno,RTRIM(LTRIM(emp3.family_name))+' '+RTRIM(LTRIM(emp3.first_name)) As Dotted3Name, emp3.empstatus, dot3.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot3
-			inner JOIN [dbo].[vw_arco_employee] emp3 on emp3.empno=dot3.empnotarget AND dot3.state=3
-			where dot3.state=3 and dot3.empnosource=RL.empnosource
+			inner JOIN [dbo].[vw_arco_employee] emp3 on emp3.empno=dot3.empnotarget AND dot3.state=4
+			where dot3.state=4 and dot3.empnosource=RL.empnosource
 			ORDER BY Rownumber
 			OFFSET 2 ROW
 			FETCH NEXT 1 ROW ONLY
@@ -904,8 +904,8 @@ class AdminDAO{
 		SELECT  TOP 1 ndot1.empnotarget, ndot1.empnotarget AS empno, RTRIM(LTRIM(dotemp1.family_name))+' '+RTRIM(LTRIM(dotemp1.first_name)) As DottedName, dotemp1.empstatus, ndot1.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY ndot1.empnotarget) AS Rownumber
 			FROM ReportingLineExceptions ndot1
-			inner JOIN [dbo].[vw_arco_employee] dotemp1 on dotemp1.empno=ndot1.empnotarget AND ndot1.state=3
-			where ndot1.state=3 and ndot1.empnosource=RL.empnosource
+			inner JOIN [dbo].[vw_arco_employee] dotemp1 on dotemp1.empno=ndot1.empnotarget AND ndot1.state=4
+			where ndot1.state=4 and ndot1.empnosource=RL.empnosource
 			ORDER BY Rownumber
 		)
 		nextDot1
@@ -913,8 +913,8 @@ class AdminDAO{
 		SELECT ndot2.empnotarget, ndot2.empnotarget AS empno, RTRIM(LTRIM(dotemp2.family_name))+' '+RTRIM(LTRIM(dotemp2.first_name)) As DottedName, dotemp2.empstatus, ndot2.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY ndot2.empnotarget) AS Rownumber
 			FROM ReportingLineExceptions ndot2
-			inner JOIN [dbo].[vw_arco_employee] dotemp2 on dotemp2.empno=ndot2.empnotarget AND ndot2.state=3
-			where ndot2.state=3 and ndot2.empnosource=RL.empnosource
+			inner JOIN [dbo].[vw_arco_employee] dotemp2 on dotemp2.empno=ndot2.empnotarget AND ndot2.state=4
+			where ndot2.state=4 and ndot2.empnosource=RL.empnosource
 			ORDER BY Rownumber
 			OFFSET 1 ROW
 			FETCH NEXT 1 ROW ONLY
@@ -924,14 +924,14 @@ class AdminDAO{
 		SELECT ndot3.empnotarget, ndot3.empnotarget AS empno, RTRIM(LTRIM(dotemp3.family_name))+' '+RTRIM(LTRIM(dotemp3.first_name)) As DottedName, dotemp3.empstatus, ndot3.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY ndot3.empnotarget) AS Rownumber
 			FROM ReportingLineExceptions ndot3
-			inner JOIN [dbo].[vw_arco_employee] dotemp3 on dotemp3.empno=ndot3.empnotarget AND ndot3.state=3
-			where ndot3.state=3 and ndot3.empnosource=RL.empnosource
+			inner JOIN [dbo].[vw_arco_employee] dotemp3 on dotemp3.empno=ndot3.empnotarget AND ndot3.state=4
+			where ndot3.state=4 and ndot3.empnosource=RL.empnosource
 			ORDER BY Rownumber
 			OFFSET 2 ROW
 			FETCH NEXT 1 ROW ONLY
 		)
 		nextDot3
-		WHERE RL.State=4 AND RL.empnosource=:empid";
+		WHERE RL.State=5 AND RL.empnosource=:empid";
 		$query = $this->connection->prepare($queryString);
 		$query->bindValue(':empid', $settings["EmpNo"], PDO::PARAM_STR);
 		$result["success"] = $query->execute();

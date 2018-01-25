@@ -1290,9 +1290,10 @@ class EvaluationsDAO{
 				WHEN state=4 THEN 'Complete as Dotted Line Manager'
 				WHEN state=5 THEN 'Complete as Evaluator' END
 					 as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
-				FROM ReportingLine WHERE
-				State>=isnull(E.State,0)
-				and empnotarget=:userid and empnosource=E.EmployeeID
+				FROM ReportingLine 
+				WHERE 
+				state>= CASE WHEN ISNULL(E.State,0) in (0,1) THEN 4 WHEN ISNULL(E.State,0) = 2 THEN 5 END  
+						AND empnotarget=:userid and empnosource=E.EmployeeID
 				ORDER BY state asc
 			) yourAction
             WHERE E.EvaluationID = :evalid

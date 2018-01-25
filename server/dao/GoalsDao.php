@@ -173,7 +173,7 @@ class GoalsDAO{
 				WHEN HR.GRADE<4 AND ISNULL(Ev.State, 0)=0 THEN 2 --check it was 1
 				ELSE ISNULL(Ev.State, 0)
 			END as EvalState,
-			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, yourAction.yourAction as yourActionStateDescr, isnull(RL.wrongManager,0) as wrongManager, EvalAnswers.flagEvalAnswers
+			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, ISNULL(yourAction.yourAction, 'No Action') as yourActionStateDescr, isnull(RL.wrongManager,0) as wrongManager, EvalAnswers.flagEvalAnswers
 	        FROM dbo.ReportingLine RL
 			LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
 			LEFT JOIN  dbo.Evaluations Ev on Ev.EmployeeID=RL.empnosource AND Ev.CycleID=@cycleid
@@ -196,7 +196,7 @@ class GoalsDAO{
 						WHEN state=5 THEN  'Complete as Evaluator'
 						END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
 					FROM ReportingLine WHERE
-					State>=isnull(Ev.State,0)
+					state>= CASE WHEN ISNULL(Ev.State,0) in (0,1) THEN 4 WHEN ISNULL(Ev.State,0) = 2 THEN 5 END  
 					and empnotarget=@userid and empnosource=HR.empno
 					ORDER BY state asc
 				) yourAction

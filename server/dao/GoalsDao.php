@@ -235,7 +235,7 @@ class GoalsDAO{
 		OUTER APPLY (
 		SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END AS GoalExists  FROM dbo.Goals G2 
 		INNER JOIN Evaluations E2 ON E2.EvaluationID=G2.EvaluationID
-		WHERE G2.GoalDescription=G.GoalDescription AND G2.State=2
+		WHERE G2.GoalDescription=G.GoalDescription AND G2.State=2 AND G.EvaluationID=G2.EvaluationID
 		)ValidateGoalDescription
 		WHERE E.CycleID=:cycleid AND E.EmployeeID=:empno
 		";

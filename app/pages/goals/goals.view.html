@@ -125,11 +125,12 @@
 							<th class="center" style="width:4%">Line Number</th>
 							<th class="center" style="width:4%">Employee<br/>Number</th>
 							<th class="center" style="width:20%">Employee Name</th>
-							<th class="center" style="width:30%">Position</th>
+							<th class="center" style="width:20%">Position</th>
 							<th class="center" style="width:4%">Grade</th>
 							<th class="center" style="width:4%">Manages Team</th>
 							<th class="center" style="width:4%">Evaluation Period</th>
-							<th class="center" style="width:20%"> Goal Action</th>
+							<th class="center" style="width:15%">Pending Action</th>
+                            <th class="center" style="width:15%">Your Action</th>
 							<th style="width:10%"></th>
 						</tr>
 					</thead>
@@ -146,6 +147,7 @@
 							<td class="center">
 								{{cycleGoal.EvalState == arcopmState.GoalsByEmployee && cycleGoal.goalsInputStatus == 1 ? 'To Be Set By Employee' : cycleGoal.EvalState == arcopmState.GoalsByDotted ? 'To Be Set By Dotted Line Manager' : cycleGoal.EvalState == arcopmState.GoalsByEvaluator ? 'To Be Set By Evaluator' : cycleGoal.EvalState == arcopmState.EvalByEmployee ? 'Configuration Complete' : 'Configuration Complete'}}
 							</td>
+                            <td class="center">{{cycleGoal.yourActionStateDescr}}</td>
 							<td class="center">
 								<div ng-if="cycleGoal.wrongManager==0">
 									

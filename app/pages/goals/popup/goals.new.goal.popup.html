@@ -89,7 +89,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr ng-repeat="goal in filteredGoals = (tempGoals | filter: goal.GoalState<2 )" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+						<tr ng-repeat="goal in filteredGoals = (tempGoals | filter: lowerGoalsState(2))" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
 							<td class="center">{{$index+1}}</td>
 							<td class="center"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}}&nbsp;-&nbsp;{{goal.CodeDescription}}</span></td>
 							<td class="center">{{goal.GoalDescription}}</td>

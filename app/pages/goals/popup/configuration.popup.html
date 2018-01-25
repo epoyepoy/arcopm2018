@@ -51,11 +51,11 @@
 										<i class="fa fa-history" aria-hidden="true" style="font-size: 17px"></i>
 									</button>
 								</span>
-								<!--<span style="color: #c91e1e;">
-									<button class="sitesBtn goalsAssignment" ng-click="showGoalPreviewPopup(goals,cycleGoal)" uib-tooltip="Show Goals PDF Preview" tooltip-placement="top" tooltip-trigger="'mouseenter'">
+								<span style="color: #c91e1e;">
+									<button class="sitesBtn goalsAssignment" ng-click="showGoalPreviewPopup(goals,cycleGoal,arcopmState.GoalsByEmployee)" uib-tooltip="Show Goals PDF Preview" tooltip-placement="top" tooltip-trigger="'mouseenter'">
 										<i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size: 17px"></i>
 									</button>
-								</span>-->
+								</span>
 								<span style="color: #0BC512;" ng-if="showAddNewGoalButtonEmp">
 									<button class="sitesBtn goalsAssignment" ng-show="(cycleGoal.EvalState == arcopmState.GoalsByEmployee && from == 'mylist')"
 									 ng-click="showAddNewGoalPopup(goals,cycleGoal,role)" uib-tooltip="Add New Goal" tooltip-placement="top" tooltip-trigger="'mouseenter'">
@@ -129,11 +129,11 @@
 										<i class="fa fa-history" aria-hidden="true" style="font-size: 17px"></i>
 									</button>
 								</span>
-								<!--<span style="color: #c91e1e;">
-									<button class="sitesBtn goalsAssignment" ng-click="showGoalPreviewPopup(goals,cycleGoal)" uib-tooltip="Show Goals PDF Preview" tooltip-placement="top" tooltip-trigger="'mouseenter'">
+								<span style="color: #c91e1e;">
+									<button class="sitesBtn goalsAssignment" ng-click="showGoalPreviewPopup(goals,cycleGoal,arcopmState.GoalsByDotted)" uib-tooltip="Show Goals PDF Preview" tooltip-placement="top" tooltip-trigger="'mouseenter'">
 										<i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size: 17px"></i>
 									</button>
-								</span>-->
+								</span>
 								<span style="color: #0BC512;" ng-if="showAddNewGoalButtonDotted">
 									<button class="sitesBtn goalsAssignment" ng-show="(cycleGoal.EvalState == arcopmState.GoalsByDotted && from == 'emplist' && cycleGoal.yourActionState == 4)"
 									 ng-click="showAddNewGoalPopup(goals,cycleGoal,role);" uib-tooltip="Add New Goal" tooltip-placement="top" tooltip-trigger="'mouseenter'">
@@ -208,7 +208,7 @@
 									</button>
 								</span>
 								<span style="color: #c91e1e;">
-									<button class="sitesBtn goalsAssignment" ng-click="showGoalPreviewPopup(goals,cycleGoal)" uib-tooltip="Show Goals PDF Preview" tooltip-placement="top" tooltip-trigger="'mouseenter'">
+									<button class="sitesBtn goalsAssignment" ng-click="showGoalPreviewPopup(goals,cycleGoal,arcopmState.GoalsByEvaluator)" uib-tooltip="Show Goals PDF Preview" tooltip-placement="top" tooltip-trigger="'mouseenter'">
 										<i class="fa fa-file-pdf-o" aria-hidden="true" style="font-size: 17px"></i>
 									</button>
 								</span>

@@ -757,13 +757,14 @@
 		};
 		
 		
-		$scope.showGoalPreviewPopup = function(goals,cycleGoal){
+		$scope.showGoalPreviewPopup = function(goals,cycleGoal,arcopmstate){
 			if (!$scope.checkLogin()) {
                 return;
             }
             $scope.extraMessage = 'warning';
-			$scope.tempGoals= goals;
-			$scope.tempCycleGoal= cycleGoal;
+			$scope.tempGoals = goals;
+			$scope.tempCycleGoal = cycleGoal;
+            $scope.arcopm_state = arcopmstate;
 
             $scope.todoPopup = ngDialog.open({
                 template: 'app/pages/goals/popup/goals.pdfPreview.popup.html',
@@ -840,14 +841,24 @@
 		};
 		
 		
+		$scope.sumWeight = function(weight){
+			$scope.totalWeight = parseInt($scope.totalWeight) + parseInt(weight); 
+		};
+        
+        
+        /* -------FILTERS--------- */
+        //return goals with goalState
 		$scope.goalsState = function(state){
 			return function(item){
 				return item.GoalState == state;
 			};
 		};
-		
-		$scope.sumWeight = function(weight){
-			$scope.totalWeight = parseInt($scope.totalWeight) + parseInt(weight); 
+        
+        //return goals with lower goalState
+        $scope.lowerGoalsState = function(state){
+			return function(item){
+				return item.GoalState < state;
+			};
 		};
 
     }

@@ -37,7 +37,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							<tr ng-repeat="goal in tempGoals | filter: goalsState(2)" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
+							<tr ng-repeat="goal in tempGoals | filter: goalsState(arcopm_state)" ng-class="{'oddRow' : $odd, 'evenRow': $even}">
 								<td class="center">{{$index+1}}</td>
 								<td class="center"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}}&nbsp;-&nbsp;{{goal.CodeDescription}}</span></td>
 								<td class="center">{{goal.GoalDescription}}</td>

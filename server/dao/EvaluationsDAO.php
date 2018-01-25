@@ -1280,13 +1280,26 @@ class EvaluationsDAO{
 			$id = $query->fetch();
 			$evalid=$id["EvaluationID"];
             $queryString = "
-            SELECT E.EvaluationID, E.State, CONVERT(DATETIME2(0),E.StateDate) as StateDate, S.StateDescription
+            SELECT E.EvaluationID, E.State, CONVERT(DATETIME2(0),E.StateDate) as StateDate, S.StateDescription, yourAction.nstate as yourActionState, isnull(yourAction.yourAction, 'No Action') as yourActionStateDescr
             FROM Evaluations E
-            INNER JOIN StateRef S on S.State=E.State
-            WHERE EvaluationID = :evalid
+			INNER JOIN StateRef S on S.State=E.State
+			OUTER APPLY
+			(
+				SELECT TOP 1
+				CASE
+				WHEN state=4 THEN 'Complete as Dotted Line Manager'
+				WHEN state=5 THEN 'Complete as Evaluator' END
+					 as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+				FROM ReportingLine WHERE
+				State>=isnull(E.State,0)
+				and empnotarget=:userid and empnosource=E.EmployeeID
+				ORDER BY state asc
+			) yourAction
+            WHERE E.EvaluationID = :evalid
             ";
             $query = $this->connection->prepare($queryString);
-            $query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
+			$query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
+			$query->bindValue(':userid', $userid, PDO::PARAM_STR);
             $result["success"] = $query->execute();
             $result["errorMessage"] = $query->errorInfo();
             $query->setFetchMode(PDO::FETCH_ASSOC);

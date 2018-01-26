@@ -22,7 +22,7 @@ class DevelopmentDAO{
 		BEGIN
 			INSERT INTO dbo.DevelopmentPlan
 			SELECT EvaluationID, Objective, Action, AdditionalInfo, ByWhen, ByWhom, @userid, @state
-			FROM dbo.DevelopmentPlan WHERE State = CASE WHEN @state=2 THEN 1 WHEN @state=4 THEN 2 END
+			FROM dbo.DevelopmentPlan WHERE State = CASE WHEN @state=3 THEN 1 WHEN @state=5 THEN 2 END
 		END
         ";
         $query = $this->connection->prepare($queryString);

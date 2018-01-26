@@ -39,10 +39,10 @@ class StatisticsDAO{
 			INNER JOIN dbo.vw_arco_employee emp ON emp.empno = e.EmployeeID
 			INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID';
 			SELECT @sql=@sql+ CASE WHEN @myStatistics=0 OR @myStatistics=1 THEN
-			' AND RLM.State=4' 
+			' AND RLM.State=5' 
 			WHEN @myStatistics=2 THEN ' 
-			AND RLM.State=3
-			INNER JOIN reportingLine RLD on RLD.empnosource=e.employeeID AND RLD.State=4
+			AND RLM.State=4
+			INNER JOIN reportingLine RLD on RLD.empnosource=e.employeeID AND RLD.State=5
 			' END 
 			SELECT @sql=@sql+ '
 			INNER JOIN dbo.vw_arco_employee eval ON eval.empno = ' 
@@ -50,11 +50,11 @@ class StatisticsDAO{
 			SELECT @sql=@sql+ '
 			OUTER APPLY(
 			SELECT * FROM dbo.EvaluationScores
-			WHERE EvaluationID=E.EvaluationID AND State=2
+			WHERE EvaluationID=E.EvaluationID AND State=3
 			)empScore
 			OUTER APPLY(
 			SELECT * FROM dbo.EvaluationScores
-			WHERE EvaluationID=E.EvaluationID AND State=CASE WHEN @calibrated=0 THEN 4 WHEN @calibrated=1 THEN 5 END
+			WHERE EvaluationID=E.EvaluationID AND State=CASE WHEN @calibrated=0 THEN 5 WHEN @calibrated=1 THEN 6 END
 			)evalScore
 			WHERE E.CycleID=@cycleid AND E.EmployeeID IN
 			(SELECT RL.empnosource FROM dbo.ReportingLine RL WHERE RL.empnotarget '
@@ -62,22 +62,22 @@ class StatisticsDAO{
 			SELECT @sql=@sql+ CASE WHEN @myStatistics=0 THEN 'in (SELECT emp.empno FROM dbo.ReportingLine RL
 			INNER JOIN dbo.vw_arco_employee emp ON emp.empno = RL.empnosource
 			OUTER APPLY(
-			SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=4
+			SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=5
 			AND ISNULL(RL2.excludeFromCycles,0)<>@cycleid
 			)Evals
-			WHERE RL.empnotarget=@reviewer AND RL.state=4 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0) AND RL.State=4 '
-			WHEN @myStatistics=1  THEN '=@evaluator AND RL.State=4 '
-		    WHEN @myStatistics=2  THEN '=@evaluator AND RL.State=3 'END;
+			WHERE RL.empnotarget=@reviewer AND RL.state=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0) AND RL.State=5 '
+			WHEN @myStatistics=1  THEN '=@evaluator AND RL.State=5 '
+		    WHEN @myStatistics=2  THEN '=@evaluator AND RL.State=4 'END;
 
 			SELECT @sql=@sql+' AND ISNULL(RL.excludeFromCycles,0)<>@cycleid) ';
 			--calibrated
 			IF @calibrated=0
 			BEGIN 
-			SELECT @sql=@sql+' AND E.State IN (5,6)';
+			SELECT @sql=@sql+' AND E.State IN (6,7)';
 			END
 			IF @calibrated=1
 			BEGIN 
-			SELECT @sql=@sql+' AND E.State=6';
+			SELECT @sql=@sql+' AND E.State=7';
 			END
 			
 
@@ -225,38 +225,38 @@ class StatisticsDAO{
 		   INNER JOIN dbo.vw_arco_employee emp ON emp.empno = e.EmployeeID
 		   INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID';
 		   SELECT @sql=@sql+ CASE WHEN @myStatistics=0 OR @myStatistics=1 THEN
-		   ' AND RLM.State=4' WHEN @myStatistics=2 THEN ' AND RLM.State=3' END 
+		   ' AND RLM.State=5' WHEN @myStatistics=2 THEN ' AND RLM.State=4' END 
 
 		   SELECT @sql=@sql+ '
 		   OUTER APPLY(
 		   SELECT * FROM dbo.EvaluationScores
-		   WHERE EvaluationID=E.EvaluationID AND State=2
+		   WHERE EvaluationID=E.EvaluationID AND State=3
 		   )empScore
 		   OUTER APPLY(
 		   SELECT * FROM dbo.EvaluationScores
-		   WHERE EvaluationID=E.EvaluationID AND State=CASE WHEN @calibrated=0 THEN 4 WHEN @calibrated=1 THEN 5 END
+		   WHERE EvaluationID=E.EvaluationID AND State=CASE WHEN @calibrated=0 THEN 5 WHEN @calibrated=1 THEN 6 END
 		   )evalScore
 		   WHERE E.CycleID=@cycleid AND E.EmployeeID IN
 		   (SELECT RL.empnosource FROM dbo.ReportingLine RL WHERE RL.empnotarget '
 		   SELECT @sql=@sql+ CASE WHEN @myStatistics=0 THEN 'in (SELECT emp.empno FROM dbo.ReportingLine RL
 					INNER JOIN dbo.vw_arco_employee emp ON emp.empno = RL.empnosource
 					OUTER APPLY(
-					SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=4
+					SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=5
 					AND ISNULL(RL2.excludeFromCycles,0)<>@cycleid
 					)Evals
-					WHERE RL.empnotarget=@reviewer AND RL.state=4 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0)'
-		   WHEN @myStatistics=1 THEN '=@evaluator AND RL.State=4'
-		   WHEN @myStatistics=2 THEN '=@evaluator AND RL.State=3 'END;
+					WHERE RL.empnotarget=@reviewer AND RL.state=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0)'
+		   WHEN @myStatistics=1 THEN '=@evaluator AND RL.State=5'
+		   WHEN @myStatistics=2 THEN '=@evaluator AND RL.State=4 'END;
 
 		   SELECT @sql=@sql+' AND ISNULL(RL.excludeFromCycles,0)<>@cycleid ) ';
 		   --calibrated
 		   IF @calibrated=0
 		   BEGIN 
-		   SELECT @sql=@sql+' AND E.State IN (5,6)';
+		   SELECT @sql=@sql+' AND E.State IN (6,7)';
 		   END
 		   IF @calibrated=1
 		   BEGIN 
-		   SELECT @sql=@sql+' AND E.State=6';
+		   SELECT @sql=@sql+' AND E.State=7';
 		   END
 		   SET @ParmDefinition = N'@form NVARCHAR(10), @evaluator NVARCHAR(5),@employee NVARCHAR(100), @position NVARCHAR(100), @region NVARCHAR(4),
 		   @coreDesc NVARCHAR(100), @goalsDesc NVARCHAR(100), @leadershipDesc NVARCHAR(100), @performanceDesc NVARCHAR(100), @overallDesc NVARCHAR(100),
@@ -390,7 +390,7 @@ class StatisticsDAO{
 		  INNER JOIN dbo.vw_arco_employee emp ON emp.empno = e.EmployeeID
 		  INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID ';
 		   SELECT @sql=@sql+ CASE WHEN @myStatistics=0 OR @myStatistics=1 THEN
-		   'AND RLM.State=4' WHEN @myStatistics=2 THEN ' AND RLM.State=3' END 
+		   'AND RLM.State=5' WHEN @myStatistics=2 THEN ' AND RLM.State=4' END 
 		  
 		  SELECT @sql=@sql+ '
 		  OUTER APPLY(
@@ -399,29 +399,29 @@ class StatisticsDAO{
 		  )empScore
 		  OUTER APPLY(
 			  SELECT * FROM dbo.EvaluationScores
-			  WHERE EvaluationID=E.EvaluationID AND State=CASE WHEN @calibrated=0 THEN 4 WHEN @calibrated=1 THEN 5 END
+			  WHERE EvaluationID=E.EvaluationID AND State=CASE WHEN @calibrated=0 THEN 5 WHEN @calibrated=1 THEN 6 END
 			  )evalScore
 		  WHERE E.CycleID=@cycleid AND E.EmployeeID IN
 		  (SELECT RL.empnosource FROM dbo.ReportingLine RL WHERE RL.empnotarget '
 		  SELECT @sql=@sql+ CASE WHEN @myStatistics=0 THEN 'in (SELECT emp.empno FROM dbo.ReportingLine RL
 				   INNER JOIN dbo.vw_arco_employee emp ON emp.empno = RL.empnosource
 				   OUTER APPLY(
-				   SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=4
+				   SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=5
 				   AND ISNULL(RL2.excludeFromCycles,0)<>@cycleid
 				   )Evals
-				   WHERE RL.empnotarget=@reviewer AND RL.state=4 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0)'
-			WHEN @myStatistics=1 THEN '=@evaluator AND RL.State=4'
-			WHEN @myStatistics=2 THEN '=@evaluator AND RL.State=3 'END;
+				   WHERE RL.empnotarget=@reviewer AND RL.state=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0)'
+			WHEN @myStatistics=1 THEN '=@evaluator AND RL.State=5'
+			WHEN @myStatistics=2 THEN '=@evaluator AND RL.State=4 'END;
 
 		  SELECT @sql=@sql+' AND ISNULL(RL.excludeFromCycles,0)<>@cycleid) ';
 		--calibrated
 		IF @calibrated=0
 		BEGIN 
-		SELECT @sql=@sql+' AND E.State IN (5,6)';
+		SELECT @sql=@sql+' AND E.State IN (6,7)';
 		END
 		IF @calibrated=1
 		BEGIN 
-		SELECT @sql=@sql+' AND E.State=6';
+		SELECT @sql=@sql+' AND E.State=7';
 		END
 			SET @ParmDefinition = N'@form NVARCHAR(10), @evaluator NVARCHAR(5),@employee NVARCHAR(100), @position NVARCHAR(100), @region NVARCHAR(4),
 			@coreDesc NVARCHAR(100), @goalsDesc NVARCHAR(100), @leadershipDesc NVARCHAR(100), @performanceDesc NVARCHAR(100), @overallDesc NVARCHAR(100),
@@ -597,15 +597,15 @@ class StatisticsDAO{
 
  		FROM dbo.Evaluations E
  		INNER JOIN dbo.vw_arco_employee emp ON emp.empno = e.EmployeeID
- 		INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID AND RLM.State=4
+ 		INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID AND RLM.State=5
 		INNER JOIN dbo.vw_arco_employee eval ON eval.empno = RLM.empnotarget
  		OUTER APPLY(
  		SELECT * FROM dbo.EvaluationScores
- 		WHERE EvaluationID=E.EvaluationID AND State=2
+ 		WHERE EvaluationID=E.EvaluationID AND State=3
  		)empScore
  		OUTER APPLY(
  		SELECT * FROM dbo.EvaluationScores
- 		WHERE EvaluationID=E.EvaluationID AND State=CASE WHEN @calibrated=0 THEN 4 WHEN @calibrated=1 THEN 5 END
+ 		WHERE EvaluationID=E.EvaluationID AND State=CASE WHEN @calibrated=0 THEN 5 WHEN @calibrated=1 THEN 6 END
  		)evalScore
 		OUTER APPLY(
 		SELECT SSC.* FROM dbo.[ScoreScales] SSC
@@ -619,21 +619,21 @@ class StatisticsDAO{
 		SELECT @sql=@sql+ CASE WHEN @myStatistics=0 THEN 'in (SELECT emp.empno FROM dbo.ReportingLine RL
 				 INNER JOIN dbo.vw_arco_employee emp ON emp.empno = RL.empnosource
 				 OUTER APPLY(
-				 SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=4
+				 SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=5
 				 AND ISNULL(RL2.excludeFromCycles,0)<>@cycleid
 				 )Evals
-				 WHERE RL.empnotarget=@reviewer AND RL.state=4 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0)'
+				 WHERE RL.empnotarget=@reviewer AND RL.state=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0)'
 				 WHEN @myStatistics=1 THEN '=@evaluator' END;
 
-		SELECT @sql=@sql+' AND RL.State=4 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid)';
+		SELECT @sql=@sql+' AND RL.State=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid)';
 		--calibrated
 		IF @calibrated=0
 		BEGIN 
-		SELECT @sql=@sql+' AND E.State IN (5,6)';
+		SELECT @sql=@sql+' AND E.State IN (6,7)';
 		END
 		IF @calibrated=1
 		BEGIN 
-		SELECT @sql=@sql+' AND E.State=6';
+		SELECT @sql=@sql+' AND E.State=7';
 		END
 		
  		SET @ParmDefinition = N'@form NVARCHAR(10), @evaluator NVARCHAR(5),@employee NVARCHAR(100), @position NVARCHAR(100), @region NVARCHAR(4),
@@ -937,15 +937,15 @@ class StatisticsDAO{
  
 		  FROM dbo.Evaluations E
 		  INNER JOIN dbo.vw_arco_employee emp ON emp.empno = e.EmployeeID
-		  INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID AND RLM.State=4
+		  INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID AND RLM.State=5
 		 INNER JOIN dbo.vw_arco_employee eval ON eval.empno = RLM.empnotarget
 		  OUTER APPLY(
 		  SELECT * FROM dbo.EvaluationScores
-		  WHERE EvaluationID=E.EvaluationID AND State=2
+		  WHERE EvaluationID=E.EvaluationID AND State=3
 		  )empScore
 		  OUTER APPLY(
 		  SELECT * FROM dbo.EvaluationScores
-		  WHERE EvaluationID=E.EvaluationID AND State=CASE WHEN @calibrated=0 THEN 4 WHEN @calibrated=1 THEN 5 END
+		  WHERE EvaluationID=E.EvaluationID AND State=CASE WHEN @calibrated=0 THEN 5 WHEN @calibrated=1 THEN 6 END
 		  )evalScore
 		 OUTER APPLY(
 		 SELECT SSC.* FROM dbo.[ScoreScales] SSC
@@ -959,21 +959,21 @@ class StatisticsDAO{
 		 SELECT @sql=@sql+ CASE WHEN @myStatistics=0 THEN 'in (SELECT emp.empno FROM dbo.ReportingLine RL
 				  INNER JOIN dbo.vw_arco_employee emp ON emp.empno = RL.empnosource
 				  OUTER APPLY(
-				  SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=4
+				  SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=5
 				  AND ISNULL(RL2.excludeFromCycles,0)<>@cycleid
 				  )Evals
-				  WHERE RL.empnotarget=@reviewer AND RL.state=4 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0)'
+				  WHERE RL.empnotarget=@reviewer AND RL.state=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0)'
 				  WHEN @myStatistics=1 THEN '=@evaluator' END;
  
-		 SELECT @sql=@sql+' AND RL.State=4 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid)';
+		 SELECT @sql=@sql+' AND RL.State=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid)';
 		 --calibrated
 		 IF @calibrated=0
 		 BEGIN 
-		 SELECT @sql=@sql+' AND E.State IN (5,6)';
+		 SELECT @sql=@sql+' AND E.State IN (6,7)';
 		 END
 		 IF @calibrated=1
 		 BEGIN 
-		 SELECT @sql=@sql+' AND E.State=6';
+		 SELECT @sql=@sql+' AND E.State=7';
 		 END
 		  SET @ParmDefinition = N'@form NVARCHAR(10), @evaluator NVARCHAR(5),@employee NVARCHAR(100), @position NVARCHAR(100), @region NVARCHAR(4),
 		  @coreDesc NVARCHAR(100), @goalsDesc NVARCHAR(100), @leadershipDesc NVARCHAR(100), @performanceDesc NVARCHAR(100), @overallDesc NVARCHAR(100),
@@ -1222,20 +1222,20 @@ class StatisticsDAO{
 		  @nextCycleDesc as nextPeriodDescription,
 		  countNextPeriod.cnt AS totalAssignedNextPeriod, finishedNextPeriod.cnt AS completedNextPeriod , CAST((CAST(finishedNextPeriod.cnt AS DECIMAL(7,2)) / CAST(countNextPeriod.cnt AS DECIMAL(7,2))) AS DECIMAL(7,2)) AS precentageNextPeriod
 		  FROM dbo.ReportingLine RL
-		  INNER JOIN dbo.vw_arco_employee emp ON emp.empno=rl.empnosource AND rl.state=4
+		  INNER JOIN dbo.vw_arco_employee emp ON emp.empno=rl.empnosource AND rl.state=5
 		  OUTER APPLY(
 		  SELECT COUNT(*) AS cnt 
 		  FROM dbo.Evaluations E
-		  INNER JOIN dbo.ReportingLine RL2 ON rl2.empnosource=E.EmployeeID AND RL2.state=4
-		  INNER JOIN dbo.vw_arco_employee emp2 ON emp2.empno=rl2.empnosource AND rl2.state=4 
+		  INNER JOIN dbo.ReportingLine RL2 ON rl2.empnosource=E.EmployeeID AND RL2.state=5
+		  INNER JOIN dbo.vw_arco_employee emp2 ON emp2.empno=rl2.empnosource AND rl2.state=5 
 		  WHERE E.CycleID=@cycleID AND RL2.excludeFromCycles<>@cycleID';
 		  IF @calibrated=0
 		  BEGIN 
-		  SELECT @sql=@sql+' AND E.State IN (5,6)';
+		  SELECT @sql=@sql+' AND E.State IN (6,7)';
 		  END
 		  IF @calibrated=1
 		  BEGIN 
-		  SELECT @sql=@sql+' AND E.State=6';
+		  SELECT @sql=@sql+' AND E.State=7';
 		  END
 
 		  SELECT @sql=@sql+@sqlFilters2+'
@@ -1251,29 +1251,29 @@ class StatisticsDAO{
 		  WHERE E.CycleID=@cycleID';
 		  IF @calibrated=0
 		  BEGIN 
-		  SELECT @sql=@sql+' AND E.State IN (5,6) AND ES.State=4';
+		  SELECT @sql=@sql+' AND E.State IN (6,7) AND ES.State=5';
 		  END
 		  IF @calibrated=1
 		  BEGIN 
-		  SELECT @sql=@sql+' AND E.State=6 AND ES.State=5';
+		  SELECT @sql=@sql+' AND E.State=7 AND ES.State=6';
 		  END
 
 		  SELECT @sql=@sql+@sqlFilters2+'
 		  ) overallCurrentPeriod
 		  OUTER APPLY(
 		  SELECT COUNT(*) AS cnt FROM dbo.ReportingLine rl2
-		  INNER JOIN dbo.vw_arco_employee emp2 ON emp2.empno=rl2.empnosource AND rl2.state=4
-		  WHERE rl2.excludeFromCycles<>@nextcycleid AND rl2.state=4
+		  INNER JOIN dbo.vw_arco_employee emp2 ON emp2.empno=rl2.empnosource AND rl2.state=5
+		  WHERE rl2.excludeFromCycles<>@nextcycleid AND rl2.state=5
 		  '+@sqlFilters2+'
 		  ) countNextPeriod
 		  OUTER APPLY(
 		  SELECT COUNT(*) AS cnt FROM dbo.Evaluations  E
-		  INNER JOIN dbo.ReportingLine RL2 ON rl2.empnosource=E.EmployeeID AND RL2.state=4
-		  INNER JOIN dbo.vw_arco_employee emp2 ON emp2.empno=rl2.empnosource AND rl2.state=4 
+		  INNER JOIN dbo.ReportingLine RL2 ON rl2.empnosource=E.EmployeeID AND RL2.state=5
+		  INNER JOIN dbo.vw_arco_employee emp2 ON emp2.empno=rl2.empnosource AND rl2.state=5 
 		  WHERE E.CycleID=@nextcycleid AND E.State>=2 AND RL2.excludeFromCycles<>@nextcycleid 
 		  '+@sqlFilters2+'
 		  ) finishedNextPeriod
-		  WHERE RL.state=4 AND RL.excludeFromCycles<>@cycleID ';
+		  WHERE RL.state=5 AND RL.excludeFromCycles<>@cycleID ';
 		   
 		   --main filters
 		  SELECT @sql = @sql + @sqlFilters
@@ -1369,11 +1369,11 @@ WHERE E.CycleID=@cycleID';
 --calibrated
 IF @calibrated=0
 BEGIN 
-SELECT @sql=@sql+' AND E.State IN (5,6) AND ES.State=4 ';
+SELECT @sql=@sql+' AND E.State IN (5,7) AND ES.State=5 ';
 END
 IF @calibrated=1
 BEGIN 
-SELECT @sql=@sql+' AND E.State=6 AND ES.State=5 ';
+SELECT @sql=@sql+' AND E.State=7 AND ES.State=6 ';
 END
 
 SELECT @sql = @sql + @sqlFilters
@@ -1538,11 +1538,11 @@ WHERE E.CycleID=@cycleID';
 --calibrated
 IF @calibrated=0
 BEGIN 
-SELECT @sql=@sql+' AND E.State IN (5,6) AND ES.State=4';
+SELECT @sql=@sql+' AND E.State IN (6,7) AND ES.State=5';
 END
 IF @calibrated=1
 BEGIN 
-SELECT @sql=@sql+' AND E.State=6 AND ES.State=5';
+SELECT @sql=@sql+' AND E.State=7 AND ES.State=6';
 END
  SELECT @sql = @sql + @sqlFilters
  EXEC sp_ExecuteSQL @sql,  @ParmDefinition, @region=@region, @projectCode=@projectCode, @cycleID=@cycleID, @calibrated=@calibrated, @family=@family, @empno=@empno			 
@@ -1636,11 +1636,11 @@ END
 			--calibrated
 			IF @calibrated=0
 			BEGIN 
-			SELECT @sql=@sql+' AND E.State IN (5,6) AND A.State=4';
+			SELECT @sql=@sql+' AND E.State IN (6,7) AND A.State=5';
 			END
 			IF @calibrated=1
 			BEGIN 
-			SELECT @sql=@sql+' AND E.State=6 AND A.State=5';
+			SELECT @sql=@sql+' AND E.State=7 AND A.State=6';
 			END			 
 		--main filters
 		SELECT @sql = @sql + @sqlFilters
@@ -1740,11 +1740,11 @@ public function GetSatisfactionByQuestion($filters)
 	--calibrated
 	IF @calibrated=0
 	BEGIN 
-	SELECT @sql=@sql+' AND E.State IN (5,6)';
+	SELECT @sql=@sql+' AND E.State IN (5,7)';
 	END
 	IF @calibrated=1
 	BEGIN 
-	SELECT @sql=@sql+' AND E.State=6';
+	SELECT @sql=@sql+' AND E.State=7';
 	END
 	 
 	 --main filters
@@ -1843,11 +1843,11 @@ public function GetSatisfactionByGradeQuestion($filters)
 	--calibrated
 	IF @calibrated=0
 	BEGIN 
-	SELECT @sql=@sql+' AND E.State IN (5,6)';
+	SELECT @sql=@sql+' AND E.State IN (6,7)';
 	END
 	IF @calibrated=1
 	BEGIN 
-	SELECT @sql=@sql+' AND E.State=6';
+	SELECT @sql=@sql+' AND E.State=7';
 	END
 	 
 	 --main filters
@@ -1888,9 +1888,9 @@ public function GetEvaluators($reviewer)
 	FROM dbo.ReportingLine RL
 	INNER JOIN dbo.vw_arco_employee emp ON emp.empno = RL.empnosource
 	OUTER APPLY(
-	SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=4 AND ISNULL(RL2.excludeFromCycles,0)<>@cycleid
+	SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=5 AND ISNULL(RL2.excludeFromCycles,0)<>@cycleid
 	)Evals
-	 WHERE RL.empnotarget=@empno AND RL.state=4 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0
+	 WHERE RL.empnotarget=@empno AND RL.state=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0
 	";
 	$query = $this->connection->prepare($queryString);
 	$query->bindValue(':reviewer', $reviewer, PDO::PARAM_STR);

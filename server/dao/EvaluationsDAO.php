@@ -358,7 +358,7 @@ class EvaluationsDAO{
 		 OUTER APPLY (
                     Select Count(SG.GoalID) as countGoals, count(SGA.Answer) as countAnswers FROM Goals SG
 		 LEFT JOIN Answers SGA on SGA.EvaluationID=@evalid AND SG.GoalID=isnull(SGA.GoalID,0) AND SGA.State=@state AND SGA.UserID=@userid
-		 where SG.EvaluationID=@evalid and isnull(SGA.State,0)<>4
+		 where SG.EvaluationID=@evalid and isnull(SGA.State,0)<>4 and SG.State=2 -- so that we always get the last goals for the questionaire
 
 		 ) GoalsStatus
 

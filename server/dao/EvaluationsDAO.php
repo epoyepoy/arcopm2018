@@ -30,8 +30,8 @@ class EvaluationsDAO{
 		   ISNULL(yourNextAction.yourAction, 'No Action') yourAction, isnull(yourNextAction.wrongManager,0) as wrongManager,
 		   yourNextAction.nstate AS yourActionState,  Ev.UploadedFile, CONVERT(DATETIME2(0),Ev.UploadedDate) AS UploadedDate,
 		     CASE -- check if you are evaluator and give either optional or actual action
-				WHEN (ISNULL(Ev.State,0) in (0,1,2,4,5,6) AND yourEvalAction.estate=5 AND 
-				CASE WHEN ISNULL(ev.State,0) = 6 THEN 5 ELSE ISNULL(ev.State,0) END <=yourEvalAction.estate 
+				WHEN (ISNULL(Ev.State,0) in (0,1,2,3,5,6) AND yourEvalAction.estate=5 AND
+				CASE WHEN ISNULL(ev.State,0) = 6 THEN 5 ELSE ISNULL(ev.State,0) END <=yourEvalAction.estate
 				AND onBehalf.flag=0)
 				THEN CASE
 						WHEN (ISNULL(Ev.State,0) in (0,2) AND isnull(resumeFlag.Section, 0)=0 AND CASE
@@ -68,7 +68,7 @@ class EvaluationsDAO{
 			   ORDER BY A.Date DESC
 			   ) resumeFlag
 		OUTER APPLY (
-			   SELECT empnotarget as editBy FROM ReportingLine WHERE empnotarget=@userid AND empnosource=ev.EmployeeID 
+			   SELECT empnotarget as editBy FROM ReportingLine WHERE empnotarget=@userid AND empnosource=ev.EmployeeID
 			   AND ( State=isnull(Ev.State,0) or (isnull(Ev.State,0)=2 and state=5) or (isnull(Ev.State,0)=6 and state=5))
 			   ) editBy
 		OUTER APPLY (
@@ -76,11 +76,11 @@ class EvaluationsDAO{
 			   WHEN state=5 THEN CASE WHEN Ev.State=6 THEN 'Revise / Finalize as Evaluator' ELSE 'Complete as Evaluator' END
 			   END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
 			   FROM ReportingLine WHERE
-			   State>= 
-			   CASE 
-			   	WHEN finished.flag=1 THEN ISNULL(Ev.State,0) + 1 
+			   State>=
+			   CASE
+			   	WHEN finished.flag=1 THEN ISNULL(Ev.State,0) + 1
 			   	WHEN Ev.State=6 THEN ISNULL(Ev.State,0) -1 -- for reviewer.
-				ELSE ISNULL(Ev.State,0) 
+				ELSE ISNULL(Ev.State,0)
 			   END
 			   AND
 			   empnotarget=@userid and empnosource=HR.empno
@@ -93,7 +93,7 @@ class EvaluationsDAO{
 			   AND
 			   empnotarget=@userid and empnosource=HR.empno
 			   ) yourEvalAction
-	   WHERE RL.empnotarget=@userid AND isnull(RL.excludeFromCycles,0)<>1 
+	   WHERE RL.empnotarget=@userid AND isnull(RL.excludeFromCycles,0)<>1
 	   GROUP BY Ev.EvaluationID, HR.empno, Hr.grade, Ev.empGrade, HR.family_name, HR.first_name, hr.grade,hr.job_desc, SR.StateDescription,
 	   Ev.State, Ev.StateDate, onBehalf.flag, Ev.ManagesTeam, resumeFlag.Section, RL.empnotarget, editBy.editBy, yourNextAction.yourAction,  yourNextAction.wrongManager, yourNextAction.nstate, finished.flag,
 	   yourEvalAction.estate,Ev.UploadedFile, Ev.UploadedDate
@@ -253,10 +253,10 @@ class EvaluationsDAO{
 			SELECT TOP 1 Answer, State FROM Answers WHERE State=3 AND EvaluationID=@evalid and QuestionID=q.ID ORDER BY Date DESC
 		) PAEmp
 		OUTER APPLY (
-			SELECT TOP 1 AE.Answer, AE.State FROM Answers AE 
+			SELECT TOP 1 AE.Answer, AE.State FROM Answers AE
 			INNER JOIN dbo.Evaluations EE ON EE.EvaluationID=AE.EvaluationID
-			WHERE 
-			AE.State=5 AND AE.EvaluationID=@evalid and AE.QuestionID=q.ID 
+			WHERE
+			AE.State=5 AND AE.EvaluationID=@evalid and AE.QuestionID=q.ID
 			AND EE.EmployeeID<>@userid --this is in order not to retrieve the evaluator's answer if you are the employee
 			ORDER BY Date DESC
 		) PAEval
@@ -514,7 +514,7 @@ class EvaluationsDAO{
 		LEFT JOIN EvaluationsCycle EC on EC.ID=E.CycleID
 		LEFT JOIN vw_arco_employee VEM on VEM.empno=E.EmployeeID
 		OUTER APPLY(
-		SELECT DISTINCT A.UserID FROM dbo.Answers A 
+		SELECT DISTINCT A.UserID FROM dbo.Answers A
 		WHERE A.EvaluationID=E.EvaluationID AND A.State=3
 		) SelfEval
 		WHERE E.EvaluationID=:evalID
@@ -603,7 +603,7 @@ class EvaluationsDAO{
 		FROM ReportingLine RL
 		LEFT JOIN vw_arco_employee EMP on EMP.empno=RL.empnosource
 		LEFT JOIN vw_arco_employee VEM on VEM.empno=RL.empnotarget
-		WHERE RL.empnosource =(SELECT RL2.empnotarget FROM dbo.ReportingLine RL2  
+		WHERE RL.empnosource =(SELECT RL2.empnotarget FROM dbo.ReportingLine RL2
 		INNER JOIN dbo.Evaluations E2 ON E2.EmployeeID=RL2.empnosource AND RL2.state=5
 		WHERE E2.EvaluationID=@evalid) AND RL.state=5
 		ORDER BY 1 ASC
@@ -733,8 +733,8 @@ class EvaluationsDAO{
 	{
 
 	//Validate if already answered by other user onBehalf, dont do this check if you are saving as dotted.
-	// if($state<>4) //removed due to changes in 2018 rules
-	// 	{
+	if($state<>4) 
+		{
 			$queryString = "
 			Declare @evalid int = :evalid;
 			Declare @userid varchar(5) = :userid;
@@ -760,7 +760,7 @@ class EvaluationsDAO{
 		        $result["message"] = 'PLease contact the administrator as at this state the evaluation is being answered by another user.';
 		        return $result;
 		    }
-		// }
+		 }
 	//Validate user
 	$queryString = "
 	Declare @evalid int = :evalid;
@@ -869,16 +869,16 @@ class EvaluationsDAO{
 
 			--Check if we are at state 6 (review step). if the user clicks on submit revision, check if he answered any questions and copy the rest from state 5
 			IF @state = 6
-				BEGIN 
+				BEGIN
 					INSERT INTO dbo.Answers
 					(EvaluationID,QuestionID,Answer,State,UserID,GoalID,Date,Finished)
-					SELECT  EvaluationID, QuestionID, Answer, 6, @userid, GoalID, Date, Finished FROM dbo.Answers 
+					SELECT  EvaluationID, QuestionID, Answer, 6, @userid, GoalID, Date, Finished FROM dbo.Answers
 					WHERE EvaluationID=@evalid AND State=5 AND
 					(ISNULL(QuestionID,'')<>'' AND QuestionID NOT IN (SELECT QuestionID FROM dbo.Answers WHERE state=6 and EvaluationID=@evalid AND ISNULL(QuestionID,'')<>'')
 					)
 					union
-					SELECT  EvaluationID, QuestionID, Answer, 6, @userid, GoalID, Date, Finished FROM dbo.Answers 
-					WHERE EvaluationID=@evalid AND State=5 AND 
+					SELECT  EvaluationID, QuestionID, Answer, 6, @userid, GoalID, Date, Finished FROM dbo.Answers
+					WHERE EvaluationID=@evalid AND State=5 AND
 					(
 					ISNULL(GoalID,'')<>'' AND GoalID NOT IN (SELECT GoalID FROM dbo.Answers WHERE state=6 and EvaluationID=@evalid AND ISNULL(GoalID,'')<>'')
 					)
@@ -1036,14 +1036,14 @@ class EvaluationsDAO{
      */
 	 public function reviseEvaluations($evaluations, $userid)
 	 {
- 
-	 foreach ($evaluations as &$evaluation) 
+
+	 foreach ($evaluations as &$evaluation)
 	 	{
 		 //validate if state has changed
 			$queryString = "
 			Declare @evalid int = :evalid;
 			SELECT count(*) as cnt FROM dbo.Evaluations WHERE EvaluationID=@evalid and State=6";
-		
+
 			$query = $this->connection->prepare($queryString);
 			$query->bindValue(':evalid', $evaluation, PDO::PARAM_INT);
 			if (!$query->execute()){
@@ -1059,14 +1059,14 @@ class EvaluationsDAO{
 				$result["message"] = 'Please refresh the page as it seems you are trying to review evaluations which you should not!';
 				return $result;
 			}
-		// Start Cloning	
+		// Start Cloning
 		$queryString = "
 		Declare @evalid int = :evalid;
 		Declare @userid varchar(5) = :userid;
 		--Clone answers
 		INSERT INTO dbo.Answers
 		(EvaluationID,QuestionID,Answer,State,UserID,GoalID,Date,Finished)
-		SELECT  EvaluationID, QuestionID, Answer, 6, @userid, GoalID, Date, Finished FROM dbo.Answers 
+		SELECT  EvaluationID, QuestionID, Answer, 6, @userid, GoalID, Date, Finished FROM dbo.Answers
 		WHERE EvaluationID=@evalid AND State=5
 		--Clone scores
 		INSERT INTO dbo.EvaluationScores
@@ -1088,7 +1088,7 @@ class EvaluationsDAO{
 			$result["errorMessage"] = $query->errorInfo();
 			return $result;
 			}
-	 	}	
+	 	}
 		 $result["success"] = true;
 		 return $result;
 	 }
@@ -1110,8 +1110,8 @@ class EvaluationsDAO{
             IF @@ROWCOUNT = 0
                   BEGIN
                       SELECT @grade=grade from vw_arco_employee where empno=:empno1
-					  INSERT INTO dbo.Evaluations 
-					  OUTPUT Inserted.EvaluationID 
+					  INSERT INTO dbo.Evaluations
+					  OUTPUT Inserted.EvaluationID
 					  VALUES(@cycleid, :empno2, @grade, 0, getdate(), :mteam1, :userid1, NULL, NULL);
                   END
 		    ";
@@ -1177,7 +1177,7 @@ class EvaluationsDAO{
 			--DECLARE @goalsWeight as int = 100;
 			DECLARE @onBehalf as int =:onbehalf;
 			DECLARE @hasDotted as int=0;
-			
+
 			SELECT @evalid=E.EvaluationID, @state=E.State, @grade=HR.Grade
 			FROM Evaluations E
 			INNER JOIN dbo.vw_arco_employee HR on HR.empno=E.EmployeeID
@@ -1187,28 +1187,28 @@ class EvaluationsDAO{
 			-- This is in case the forward button is pressed and there is no evaluation created.
 			IF @state IS NULL
 			BEGIN
-				SELECT @grade=Grade, @state=0 FROM dbo.vw_arco_employee WHERE empno=@empno; 
+				SELECT @grade=Grade, @state=0 FROM dbo.vw_arco_employee WHERE empno=@empno;
 				INSERT INTO dbo.Evaluations
 				(CycleID,EmployeeID, empGrade,State,StateDate, ManagesTeam, UserID, UploadedFile, UploadedDate)
 				OUTPUT Inserted.EvaluationID
 				VALUES(@cycleid, @empno, @grade, 0, getdate(), 0, @userid, NULL, NULL)
-				
-				SELECT @evalid=EvaluationID FROM dbo.Evaluations WHERE EmployeeID=@empno; 
-				
+
+				SELECT @evalid=EvaluationID FROM dbo.Evaluations WHERE EmployeeID=@empno;
+
 			END
 
 			--Define if employee has dotted required only if state < 4
 			IF @state<4
 			BEGIN
-				IF (SELECT count(*) FROM dbo.ReportingLineExceptions 
+				IF (SELECT count(*) FROM dbo.ReportingLineExceptions
 					WHERE empnosource = (SELECT EmployeeID FROM dbo.Evaluations WHERE EvaluationID=@evalid) AND goalCycle=@cycleid)>0
 					BEGIN
-						 SELECT @hasDotted = count(*) FROM dbo.ReportingLineExceptions 
+						 SELECT @hasDotted = count(*) FROM dbo.ReportingLineExceptions
 						WHERE empnosource = (SELECT EmployeeID FROM dbo.Evaluations WHERE EvaluationID=@evalid) AND goalCycle=@cycleid AND State=4
 					END
 				ELSE
 					BEGIN
-						SELECT @hasDotted = count(*) FROM dbo.ReportingLine 
+						SELECT @hasDotted = count(*) FROM dbo.ReportingLine
 						WHERE empnosource = (SELECT EmployeeID FROM dbo.Evaluations WHERE EvaluationID=@evalid) AND excludeFromCycles<>@cycleid AND State=4
 					END
 			END
@@ -1218,7 +1218,7 @@ class EvaluationsDAO{
 			SELECT @answerCount=COUNT(*) FROM ANSWERS WHERE EvaluationID=@evalid and state=@state;
 
 			--missing, goals validation to update when state is 1 and goals are required to allow you to go ahead.
-			
+
 			--Go and insert history for goals if state between 0 and 3
 			IF @state<4
 			BEGIN
@@ -1243,12 +1243,12 @@ class EvaluationsDAO{
 					OUTPUT Inserted.EvaluationID
 					SELECT '', @evalid, 'Moved Forward', '', @userid, '', @state, GETDATE()
 					END
-			
+
 
 			--get how many dotted have placed goals
 			SELECT @actualCount = (SELECT count (distinct UserID) FROM GoalsHistory WHERE State =@state AND EvaluationID=@evalid); --we add plus one becauset the submitted in history do not include the current one.
 			END
-			
+
 			UPDATE dbo.Evaluations SET State=
 			CASE
 				WHEN @state = 0 AND @hasDotted>0 THEN 1
@@ -1289,9 +1289,9 @@ class EvaluationsDAO{
 				WHEN state=4 THEN 'Complete as Dotted Line Manager'
 				WHEN state=5 THEN 'Complete as Evaluator' END
 					 as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
-				FROM ReportingLine 
-				WHERE 
-				state>= CASE WHEN ISNULL(E.State,0) in (0,1) THEN 4 WHEN ISNULL(E.State,0) = 2 THEN 5 END  
+				FROM ReportingLine
+				WHERE
+				state>= CASE WHEN ISNULL(E.State,0) in (0,1) THEN 4 WHEN ISNULL(E.State,0) = 2 THEN 5 END
 						AND empnotarget=:userid and empnosource=E.EmployeeID
 				ORDER BY state asc
 			) yourAction

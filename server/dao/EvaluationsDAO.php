@@ -293,7 +293,7 @@ class EvaluationsDAO{
     public function getDottedComments($evalID)
 	{
 	 $queryString = "
-		SELECT A.QuestionID, Q.SectionID, A.Answer,  rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'DotteLineName'
+		SELECT A.QuestionID, Q.SectionID, A.Answer,  rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'DotteLineName', HR.empno as UserID
 		FROM Answers A
 		INNER JOIN Questions Q on A.QuestionID=Q.ID
 		INNER JOIN QuestionSections QS on QS.ID=Q.SectionID

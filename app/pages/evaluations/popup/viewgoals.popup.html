@@ -12,7 +12,7 @@
             <h4 style="">Configuration:<br /> {{tempEval.EmployeeID}} - {{tempEval.employeeName}}</h4>
         </div>
         <div class="panel-body" id="createProjectPopupBody" ng-init="getUserGoals(tempEval.EmployeeID, tempEval.EvaluationID)">
-            <div class="container-fluid" ng-if="tempEval.State>=2" ng-show="showExtraMessagePopup('none')">
+            <div class="container-fluid" ng-if="tempEval.State>=arcopmState.EvalByEmployee" ng-show="showExtraMessagePopup('none')">
 				<form name="form" >
 					<div class="panel panel-default">
 						<div class="panel-heading panel-heading-center">
@@ -37,8 +37,9 @@
 											<th></th>
 											<th class="center" style="min-width:25%">ATTRIBUTE</th>
 											<th class="center" style="width:35%">GOAL</th>
-											<!--<th class="center" style="width:10%"> TARGET </th>-->
 											<th class="center" style="width:10%">WEIGHT %</th>
+                                            <th class="center" style="width:15%">CREATED BY</th>
+											<th class="center" style="width:10%">ROLE</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -46,8 +47,9 @@
 											<td class="center">{{$index+1}}</td>
 											<td class="center"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}}&nbsp;-&nbsp;{{goal.CodeDescription}}</span></td>
 											<td class="center">{{goal.GoalDescription}}</td>
-											<!--<td class="center">{{goal.Target}}</td>-->
 											<td class="center">{{goal.Weight}}</td>
+                                            <td class="center">{{goal.CreatedByID}}<br/>{{goal.CreatedByName}}</td>
+											<td class="center">{{goal.AddedByRole}}</td>
 										</tr>
 									</tbody>
 								</table>
@@ -57,7 +59,7 @@
 				</form>
             </div>
 			<div style="text-align: -moz-center; margin-top: 5%;" ng-show="showExtraMessagePopup('none')">
-				<div class="center" ng-if="tempEval.State<2" style="width: 65%;">
+				<div class="center" ng-if="tempEval.State<arcopmState.EvalByEmployee" style="width: 65%;">
 					<div class="alert alert-warning">
 						<strong>Not yet finalized.</strong>
 					</div>

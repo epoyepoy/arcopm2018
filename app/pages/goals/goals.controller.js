@@ -535,6 +535,7 @@
 				if (result.success) {
 					$scope.cycleGoal.EvalState = result.evaluation.State;
 					$scope.cycleGoal.EvaluationID = result.evaluation.EvaluationID;
+                    $scope.cycleGoal.yourActionStateDescr = result.evaluation.yourActionStateDescr;
                     $scope.goals = [];
 					//$scope.extraMessage = 'none';
 					$scope.message = 'created';
@@ -749,12 +750,23 @@
 		
 		
 		$scope.toggleAll = function() {
-				if ($scope.selected.length === $scope.listGoals.length) {
-					$scope.selected = [];
-				} else if ($scope.selected.length === 0 || $scope.selected.length > 0) {
-					$scope.selected = $scope.listGoals.slice(0);
-				}
+            if ($scope.selected.length === $scope.listGoals.length) {
+                $scope.selected = [];
+            } else if ($scope.selected.length === 0 || $scope.selected.length > 0) {
+                $scope.selected = $scope.listGoals.slice(0);
+            }
 		};
+        
+        //Deselect all goals on closing of 'add new goal' dialog
+        $scope.deselectAll = function(){
+            var list = angular.copy($scope.selected);
+            angular.forEach(list, function(value) {
+                var idx = ($scope.selected).indexOf(value);
+                if (idx > -1) {
+                    ($scope.selected).splice(idx, 1);
+                }
+            });
+        };
 		
 		
 		$scope.showGoalPreviewPopup = function(goals,cycleGoal,arcopmstate){

@@ -39,9 +39,11 @@
 																<tr class="headerRowPopup">
 																	<th style="width:1%;">Goal#</th>
 																	<th style="width:20%; vertical-align: middle;">ATTRIBUTE</th>
-																	<th style="width:50%; vertical-align: middle;">GOAL</th>
-																	<th class="center" style="width:5%">WEIGHT %</th>
-																	<th style="width:20%;"></th>
+																	<th style="width:25%; vertical-align: middle;">GOAL</th>
+																	<th class="center" style="width:8%">WEIGHT %</th>
+                                                                    <th class="center" style="width:15%">CREATED BY</th>
+                                                                    <th class="center" style="width:10%">ROLE</th>
+																	<th style="width:17%;"></th>
 																</tr>
 															</thead>
 															<tbody>
@@ -50,6 +52,8 @@
 																	<td style="vertical-align: middle;"><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}} - {{goal.CodeDescription}}</span></td>
 																	<td style="vertical-align: middle;">{{goal.GoalDescription}}</td>
 																	<td class="center">{{goal.Weight}}</td>
+                                                                    <td class="center">{{goal.CreatedByID}}<br/>{{goal.CreatedByName}}</td>
+                                                                    <td class="center">{{goal.AddedByRole}}</td>
 																	<td></td>
 																</tr>
 															</tbody>
@@ -73,8 +77,8 @@
 											</div>
 											<div class="radioButtondemoBasicUsage" ng-attr-style="{{question.QuestionTypeID != 2 && question.QuestionTypeID != 4 ? 'display: inline; position: relative; font-style: italic; margin-left: 10%;' : 'font-style: italic;'}}">
 												<span style="border-radius: 9px 9px 9px 9px;background-color: #c5e0b6;">&nbsp;Evaluator Answer:&nbsp;</span>
-												<label ng-if="question.QuestionTypeID != 2">{{question.EvalAnswer}}</label>
-												<span ng-if="question.QuestionTypeID == 2">{{question.EvalAnswer}}</span>
+												<label ng-if="question.QuestionTypeID != 2">{{question.EvalRevision ? question.EvalRevision : question.EvalAnswer}}</label>
+												<span ng-if="question.QuestionTypeID == 2">{{question.EvalRevision ? question.EvalRevision : question.EvalAnswer}}</span>
 											</div>
 											<hr/>
 										</div>

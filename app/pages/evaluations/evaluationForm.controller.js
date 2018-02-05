@@ -7,10 +7,10 @@
 
     // Inject services to the Controller
 
-    evaluationFormController.$inject = ["$scope","$compile", "Auth", "loginData",  "global", "EvaluationsFactory", "ngDialog", "dataService", "$state"];
+    evaluationFormController.$inject = ["$scope","$compile", "Auth", "loginData",  "global", "EvaluationsFactory", "ngDialog", "dataService", "$state", "arcopmState"];
 
     // Controller Logic
-    function evaluationFormController($scope,$compile, Auth, loginData, global, EvaluationsFactory, ngDialog, dataService, $state) {
+    function evaluationFormController($scope,$compile, Auth, loginData, global, EvaluationsFactory, ngDialog, dataService, $state, arcopmState) {
 		$scope.message = "loading";
 		$scope.parseInt = parseInt;
 
@@ -27,6 +27,7 @@
 		$scope.state = dataService.getState();
 		$scope.resume = dataService.getResume();
 		$scope.list = dataService.getFromList();
+        $scope.arcopmState = arcopmState;
 
 
         // Initialize the evaluations
@@ -212,9 +213,9 @@
 
 
 		$scope.getRowColor = function(state){
-			if(state == 2){ return 'background-color : #ececec'; }
-			if(state == 3){ return 'background-color : #8eaf91'; }
-			if(state == 4){ return 'background-color : #c5e0b6'; }
+			if(state == arcopmState.EvalByEmployee){ return 'background-color : #ececec'; }
+			if(state == arcopmState.EvalByDotted){ return 'background-color : #8eaf91'; }
+			if(state == arcopmState.EvalByEvaluator){ return 'background-color : #c5e0b6'; }
 		};
 
 
@@ -272,8 +273,8 @@
 			$scope.message = "loading";
 			window.scrollTo(0,100);					//go to top of page in every Next, Back, Finish or Pause button
 			var sectionQuestions = [];
-			if(state < 6){
-				if(state > 2 && $scope.userRole == 'emp'){		//case of 'My Evaluation' of employee. He can always view it without saving anything(his own answers, even if it is not completed by evaluator/dotted)
+			if(state < arcopmState.EvalComplete){
+				if(state > arcopmState.EvalByEmployee && $scope.userRole == 'emp'){		//case of 'My Evaluation' of employee. He can always view it without saving anything(his own answers, even if it is not completed by evaluator/dotted)
 					$scope.activeSection = nextback;
 					$scope.message = "none";
 				}else{
@@ -287,14 +288,14 @@
 						sectionQuestion.GoalID = null;
 					});
 					angular.forEach($scope.goals, function(goal) {
-						if(section == 3 && state !=3 && state != 6){
+						if(section == 3 && state != arcopmState.EvalByDotted && state != arcopmState.EvalComplete){
 							var tempGoalAnswer = {};
 							tempGoalAnswer.GoalID = goal.GoalID;
-							if(state==2){
+							if(state==arcopmState.EvalByEmployee){
 								tempGoalAnswer.answer = goal.EmpAchievement;
-							}else if(state == 4){
+							}else if(state == arcopmState.EvalByEvaluator){
 								tempGoalAnswer.answer = goal.EvalAchievement;
-							}else if(state == 5){
+							}else if(state == arcopmState.EvalByReviewer){
 								tempGoalAnswer.answer = goal.RevAchievement;
 							}
 							tempGoalAnswer.QuestionID = null;
@@ -316,7 +317,7 @@
 								$scope.getScores($scope.evaluation,$scope.state);
 							}
 							else if($scope.activeSection == nextback){					//case when we user press 'Save and Exit' (activeSection remains the same as before)
-								$state.go('evaluationLists');
+                                $state.go('evaluationLists',{fromList:$scope.list});
 							}else{														//all other cases -'Next', 'Back', 'Finish'- (in this cases activeSection always changes)
 								$scope.activeSection = nextback;
 								$scope.getScores($scope.evaluation,$scope.state);
@@ -486,11 +487,11 @@
 		//function which manages questions' status(enabled or disabled) and questions' requirement
 		$scope.questionStatus = function(evalStatus,questionFillBy,userrole){
 			//false -> enabled -> required, true -> disabled -> non required
-			if(evalStatus == 2 && questionFillBy.search("emp") != -1 && (userrole == 'emp' || userrole == 'eval')) return false;
-			if(evalStatus == 3 && questionFillBy.search("dot") != -1 && userrole == 'dotted') return false;
-			if(evalStatus == 4 && questionFillBy.search("eval") != -1 && userrole == 'eval') return false;
-			if(evalStatus == 5 && questionFillBy.search("eval") != -1 && userrole == 'eval') return false;
-			if(evalStatus == 6) return true;
+			if(evalStatus == arcopmState.EvalByEmployee && questionFillBy.search("emp") != -1 && (userrole == 'emp' || userrole == 'eval')) return false;
+			if(evalStatus == arcopmState.EvalByDotted && questionFillBy.search("dot") != -1 && userrole == 'dotted') return false;
+			if(evalStatus == arcopmState.EvalByEvaluator && questionFillBy.search("eval") != -1 && userrole == 'eval') return false;
+			if(evalStatus == arcopmState.EvalByReviewer && questionFillBy.search("eval") != -1 && userrole == 'eval') return false;
+			if(evalStatus == arcopmState.EvalComplete) return true;
 			return true;
 		};
 

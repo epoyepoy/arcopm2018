@@ -387,7 +387,7 @@
 								<h3 class="panel-title pull-left" style="color: #575757;">Questionnaire Sections</h3><br/>
 								<div>
 									<button ng-repeat="section in questionnaireSections"
-											class="w3-button w3-circle w3-small {{(section.SectionID==activeSection) ? 'w3-light-blue-custom' : (state==6 || ( state > 2 && list == 'mylist')) ? 'w3-green' : (section.SectionNo == '7') ? 'w3-grey-custom' : (section.RequiredAnswers==0) ? 'w3-light-green' : (section.PendingAnswers==0) ? 'w3-green' : (section.PendingAnswers==section.RequiredAnswers) ? 'w3-grey-custom' : 'w3-red-custom'}}"
+											class="w3-button w3-circle w3-small {{(section.SectionID==activeSection) ? 'w3-light-blue-custom' : (state==arcopmState.EvalComplete || ( state > arcopmState.EvalByEmployee && list == 'mylist')) ? 'w3-green' : (section.SectionNo == '7') ? 'w3-grey-custom' : (section.RequiredAnswers==0) ? 'w3-light-green' : (section.PendingAnswers==0) ? 'w3-green' : (section.PendingAnswers==section.RequiredAnswers) ? 'w3-grey-custom' : 'w3-red-custom'}}"
 											ng-click="setActiveSection(section.SectionID,empDetails.State)" style="margin-right: 3px; padding: 11px 14px; {{(section.SectionID==activeSection) ? 'pointer-events: none;' : ''}}">
 										<span style="padding: 2px;">{{section.SectionOrder}}</span>
 									</button>
@@ -425,26 +425,26 @@
 										<h3 class="panel-title pull-left">SECTION {{section.SectionOrder}} - {{section.SectionDescription}}</h3><br/>
 										<button type="button" class="btn btn-default pull-right" ng-click="setAnswers(questionnaireSections[$index+1].SectionID,section.SectionID,empDetails.State,0)" ng-hide="parseInt($index+1)>=parseInt(sections) && resume == 0">Next <span class="glyphicon glyphicon-chevron-right"></span></button>
 
-										<button type="button" class="btn btn-success pull-right" ng-if="((state >= 2 && state < 5) && list != 'mylist') || (list == 'mylist' && state == 2)" ng-click="setAnswers(questionnaireSections[$index+1].SectionID,section.SectionID,empDetails.State,0,1)" ng-hide="parseInt($index+1)!=parseInt(sections)" ng-disabled="!form.$valid || pendingAnswers" style="margin-right: 2px;"
+										<button type="button" class="btn btn-success pull-right" ng-if="((state >= arcopmState.EvalByEmployee && state < arcopmState.EvalByReviewer) && list != 'mylist') || (list == 'mylist' && state == arcopmState.EvalByEmployee)" ng-click="setAnswers(questionnaireSections[$index+1].SectionID,section.SectionID,empDetails.State,0,1)" ng-hide="parseInt($index+1)!=parseInt(sections)" ng-disabled="!form.$valid || pendingAnswers" style="margin-right: 2px;"
 												tooltip-placement="top" tooltip-trigger="'mouseenter'" ng-attr-uib-tooltip="{{!form.$valid || pendingAnswers ? 'Button will become active only after you answer all required questions in all sections. Check sections with red and grey color.' : ''}}"><span class="glyphicon glyphicon-floppy-disk"></span> Finish & Submit</button>
 												
-										<button type="button" class="btn btn-success pull-right" ng-if="(state == 5 && list != 'mylist')" ng-click="setAnswers(questionnaireSections[$index+1].SectionID,section.SectionID,empDetails.State,0,1)" ng-hide="parseInt($index+1)!=parseInt(sections)" style="margin-right: 2px;"
+										<button type="button" class="btn btn-success pull-right" ng-if="(state == arcopmState.EvalByReviewer && list != 'mylist')" ng-click="setAnswers(questionnaireSections[$index+1].SectionID,section.SectionID,empDetails.State,0,1)" ng-hide="parseInt($index+1)!=parseInt(sections)" style="margin-right: 2px;"
 												tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-check-square-o" aria-hidden="true"></i> Submit Review & Finalize</button>
 
 										<button type="button" class="btn btn-default pull-right" ng-click="setAnswers(questionnaireSections[$index-1].SectionID,section.SectionID,empDetails.State,0)" ng-hide="parseInt($index)==0 && resume == 0" style="margin-right: 2px;"><span class="glyphicon glyphicon-chevron-left"></span> Back</button>
 
-										<button type="button" class="btn btn-default pull-right" ng-if="((state >= 2 && state < 6) && list != 'mylist') || (list == 'mylist' && state == 2)" ng-click="setAnswers(questionnaireSections[$index].SectionID,section.SectionID,empDetails.State,1)" style="margin-right: 50px;"><span class="glyphicon glyphicon-pause"></span> Save & Exit</button>
+										<button type="button" class="btn btn-default pull-right" ng-if="((state >= arcopmState.EvalByEmployee && state < arcopmState.EvalComplete) && list != 'mylist') || (list == 'mylist' && state == arcopmState.EvalByEmployee)" ng-click="setAnswers(questionnaireSections[$index].SectionID,section.SectionID,empDetails.State,1)" style="margin-right: 50px;"><span class="glyphicon glyphicon-pause"></span> Save & Exit</button>
 
-										<button type="button" class="btn btn-default pull-right" ng-if="state==6 || (state < 6 && list == 'mylist')" ng-click="$state.go('evaluationLists')" style="margin-right: 50px;"><span class="fa fa-users"></span> Return to Evaluations</button>
+										<button type="button" class="btn btn-default pull-right" ng-if="state==arcopmState.EvalComplete || (state > arcopmState.EvalByEmployee && state < arcopmState.EvalComplete && list == 'mylist')" ng-click="$state.go('evaluationLists',{fromList:list})" style="margin-right: 50px;"><span class="fa fa-users"></span> Return to Evaluations</button>
 
-										<button type="button" class="btn btn-default pull-right" ng-if="state==6" ng-click="showEvalPreviewForPDF(evaluation,empid)"><span class="glyphicon glyphicon-eye-open"></span> PDF Summary</button>
+										<button type="button" class="btn btn-default pull-right" ng-if="state==arcopmState.EvalComplete" ng-click="showEvalPreviewForPDF(evaluation,empid)"><span class="glyphicon glyphicon-eye-open"></span> PDF Summary</button>
 
 										<div class="clearfix"></div>
 									</div>
-									<div class="alert alert-warning" ng-if="empid != userid && state == 2" style="border-radius: 0px; font-weight: bold; font-size: 17px; color: #c25d5d;">
+									<div class="alert alert-warning" ng-if="empid != userid && state == arcopmState.EvalByEmployee" style="border-radius: 0px; font-weight: bold; font-size: 17px; color: #c25d5d;">
 										Evaluating on behalf of {{behalfUser}}
 									</div>
-									<div class="alert alert-warning" ng-if="empDetails.empNo !== empDetails.SelfEvalUser && state > 2" style="border-radius: 0px; font-weight: bold; font-size: 17px; color: #c25d5d;">
+									<div class="alert alert-warning" ng-if="empDetails.empNo !== empDetails.SelfEvalUser && state > arcopmState.EvalByEmployee" style="border-radius: 0px; font-weight: bold; font-size: 17px; color: #c25d5d;">
 										Self Evaluation was completed on behalf of the employee by their Evaluator.
 									</div>
 									<div class="panel-body">
@@ -458,8 +458,8 @@
 																<th style="width:20%; vertical-align: middle;">ATTRIBUTE</th>
 																<th style="width:25%; vertical-align: middle;">GOAL</th>
 																<th class="center" style="width:5%">WEIGHT %</th>
-																<th class="center" ng-attr-style="{{state == 2 ? 'width:50%' : 'width:5%'}}">EMPLOYEE ACHIEVEMENT %</th>
-																<th ng-if="userRole != 'emp' || (userRole == 'emp' && state==6) " class="center" ng-attr-style="{{(state == 4 || state == 5) ? 'width:50%' : 'width:5%'}}">EVALUATOR ACHIEVEMENT %</th>
+																<th class="center" ng-attr-style="{{state == arcopmState.EvalByEmployee ? 'width:50%' : 'width:5%'}}">EMPLOYEE ACHIEVEMENT %</th>
+																<th ng-if="userRole != 'emp' || (userRole == 'emp' && state==arcopmState.EvalComplete) " class="center" ng-attr-style="{{(state == arcopmState.EvalByEvaluator || state == arcopmState.EvalByReviewer) ? 'width:50%' : 'width:5%'}}">EVALUATOR ACHIEVEMENT %</th>
 															</tr>
 														</thead>
 														<tbody>
@@ -468,8 +468,8 @@
 																<td style="vertical-align: middle;" ><span uib-tooltip="{{goal.AttributeFullDescription}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">{{goal.AttributeCode}} - {{goal.CodeDescription}}</span></td>
 																<td style="vertical-align: middle;">{{goal.GoalDescription}}</td>
 																<td class="center">{{goal.Weight}}</td>
-																<td ng-attr-style="{{state != 2 ? 'vertical-align: middle; text-align: center;' : ''}}">
-																	<div ng-if="state == 2" layout="" ng-init="goal.EmpAchievement ? goal.EmpAchievement = parseInt(goal.EmpAchievement) : goal.EmpAchievement = 0" style="padding: 30px 0px 0px 0px;">
+																<td ng-attr-style="{{state != arcopmState.EvalByEmployee ? 'vertical-align: middle; text-align: center;' : ''}}">
+																	<div ng-if="state == arcopmState.EvalByEmployee" layout="" ng-init="goal.EmpAchievement ? goal.EmpAchievement = parseInt(goal.EmpAchievement) : goal.EmpAchievement = 0" style="padding: 30px 0px 0px 0px;">
 																		<div flex="10" layout="" layout-align="center center">
 																			<span class="md-body-1">0</span>
 																		</div>
@@ -481,16 +481,16 @@
 																			<input flex type="number" ng-model="goal.EmpAchievement" ng-change="noNullEmpAchievement(goal)"  step="1" min="0" aria-label="green" aria-controls="green-slider" style="width: 100%" required>
 																		</div>
 																	</div>
-																	<div ng-if="state == 2" style="text-align: center;">
+																	<div ng-if="state == arcopmState.EvalByEmployee" style="text-align: center;">
 																		<label ng-if="goal.EmpAchievement >= 0 && goal.EmpAchievement < 75">Performance Improvement Needed</label>
 																		<label ng-if="goal.EmpAchievement >= 75 && goal.EmpAchievement < 90">Building Capability</label>
 																		<label ng-if="goal.EmpAchievement >= 90 && goal.EmpAchievement < 105">Achieving Performance</label>
 																		<label ng-if="goal.EmpAchievement >= 105 && goal.EmpAchievement <= 120">Leading Performance</label>
 																	</div>
-																	<span ng-if="state != 2">{{goal.EmpAchievement}}</span>
+																	<span ng-if="state != arcopmState.EvalByEmployee">{{goal.EmpAchievement}}</span>
 																</td>
-																<td ng-if="userRole != 'emp' || (userRole == 'emp' && state==6)" ng-attr-style="{{(state != 4 && state != 5) ? 'vertical-align: middle; text-align: center;' : ''}}">
-																	<div ng-if="state == 4" layout="" ng-init="goal.EvalAchievement ? goal.EvalAchievement = parseInt(goal.EvalAchievement) : goal.EvalAchievement = 0" style="padding: 30px 0px 0px 0px;">
+																<td ng-if="userRole != 'emp' || (userRole == 'emp' && state==arcopmState.EvalComplete)" ng-attr-style="{{(state != arcopmState.EvalByEvaluator && state != arcopmState.EvalByReviewer) ? 'vertical-align: middle; text-align: center;' : ''}}">
+																	<div ng-if="state == arcopmState.EvalByEvaluator" layout="" ng-init="goal.EvalAchievement ? goal.EvalAchievement = parseInt(goal.EvalAchievement) : goal.EvalAchievement = 0" style="padding: 30px 0px 0px 0px;">
 																		<div flex="10" layout="" layout-align="center center">
 																			<span class="md-body-1">0</span>
 																		</div>
@@ -502,7 +502,7 @@
 																			<input flex type="number" ng-model="goal.EvalAchievement" ng-change="noNullEvalAchievement(goal)"  step="1" min="0" aria-label="green" aria-controls="green-slider" style="width: 100%" required>
 																		</div>
 																	</div>
-																	<div ng-if="state == 5" layout="" ng-init="goal.RevAchievement ? goal.RevAchievement = parseInt(goal.RevAchievement) : goal.RevAchievement = parseInt(goal.EvalAchievement)" style="padding: 30px 0px 0px 0px;">
+																	<div ng-if="state == arcopmState.EvalByReviewer" layout="" ng-init="goal.RevAchievement ? goal.RevAchievement = parseInt(goal.RevAchievement) : goal.RevAchievement = parseInt(goal.EvalAchievement)" style="padding: 30px 0px 0px 0px;">
 																		<div flex="10" layout="" layout-align="center center">
 																			<span class="md-body-1">0</span>
 																		</div>
@@ -514,19 +514,19 @@
 																			<input flex type="number" ng-model="goal.RevAchievement" ng-change="noNullEvalRevAchievement(goal)"  step="1" min="0" aria-label="green" aria-controls="green-slider" style="width: 100%" required>
 																		</div>
 																	</div>
-																	<div ng-if="state == 4" style="text-align: center;">
+																	<div ng-if="state == arcopmState.EvalByEvaluator" style="text-align: center;">
 																		<label ng-if="goal.EvalAchievement >= 0 && goal.EvalAchievement < 75">Performance Improvement Needed</label>
 																		<label ng-if="goal.EvalAchievement >= 75 && goal.EvalAchievement < 90">Building Capability</label>
 																		<label ng-if="goal.EvalAchievement >= 90 && goal.EvalAchievement < 105">Achieving Performance</label>
 																		<label ng-if="goal.EvalAchievement >= 105 && goal.EvalAchievement <= 120">Leading Performance</label>
 																	</div>
-																	<div ng-if="state == 5" style="text-align: center;">
+																	<div ng-if="state == arcopmState.EvalByReviewer" style="text-align: center;">
 																		<label ng-if="goal.RevAchievement >= 0 && goal.RevAchievement < 75">Performance Improvement Needed</label>
 																		<label ng-if="goal.RevAchievement >= 75 && goal.RevAchievement < 90">Building Capability</label>
 																		<label ng-if="goal.RevAchievement >= 90 && goal.RevAchievement < 105">Achieving Performance</label>
 																		<label ng-if="goal.RevAchievement >= 105 && goal.RevAchievement <= 120">Leading Performance</label>
 																	</div>
-																	<span ng-if="state != 4 && state != 5">{{goal.RevAchievement ? goal.RevAchievement : goal.EvalAchievement}}</span>
+																	<span ng-if="state != arcopmState.EvalByEvaluator && state != arcopmState.EvalByReviewer">{{goal.RevAchievement ? goal.RevAchievement : goal.EvalAchievement}}</span>
 																</td>
 															</tr>
 														</tbody>
@@ -535,8 +535,8 @@
 											</div>
 
 											<div class="row" ng-repeat="question in questions" ng-if="question.SectionID == section.SectionID">
-												<!--ng-init below : in case we are in state 5(reviewer) we preload the answers. If evaluation is not paused then we preload evaluator's answers.  -->
-												<div class="form-group col-xs-12 col-md-12"  style="margin-top: -15px; margin-bottom: 0px;" ng-init="(state == 5 && !question.answer) ? question.answer = question.EvalAnswer : exit;">	
+												<!--ng-init below : in case we are in state 6(reviewer) we preload the answers. If evaluation is not paused then we preload evaluator's answers.  -->
+												<div class="form-group col-xs-12 col-md-12"  style="margin-top: -15px; margin-bottom: 0px;" ng-init="(state == arcopmState.EvalByReviewer && !question.answer) ? question.answer = question.EvalAnswer : exit;">	
 													<label>{{question.Title}}</label><br/>
 													<label ng-hide="question.NumberingOff==1" style="display: initial;">{{question.QuestionOrder}}. </label><label style="font-weight: initial; display: initial; margin-bottom: 0px;">{{question.QuestionDescripton}}</label>&nbsp;<label ng-if="question.isRequired=='1'" style="color:red">*</label>
 													<div class="clearfix" style="height: 30px;"></div>
@@ -552,7 +552,7 @@
 																			<th class="center">By When?</th>
 																			<th class="center" title="Refers to the person who is responsible for the implementation of the developmental action. For example, who is responsible to conduct the on-the-job training to the employee?">By Whom?<br/><span style="font-style: italic; font-weight: initial;">(where applicable)</span></th>
 																			<th style="width:5%"><br/>
-																				<div ng-if="showAddNewDevplanButton && (((state >= 2 && state < 6) && list != 'mylist') || (list == 'mylist' && state == 2))" class="add-new-devplan" ng-click="showAddNewDevplanPopup(evaluation,state)" style="text-align: center;"
+																				<div ng-if="showAddNewDevplanButton && (((state >= arcopmState.EvalByEmployee && state < arcopmState.EvalComplete) && list != 'mylist') || (list == 'mylist' && state == arcopmState.EvalByEmployee))" class="add-new-devplan" ng-click="showAddNewDevplanPopup(evaluation,state)" style="text-align: center;"
 																					uib-tooltip="Add New Development Plan" tooltip-placement="left" tooltip-trigger="'mouseenter'">
 																					<i class="fa fa-plus-circle fa-2x" aria-hidden="true" style="color: #0BC512;"></i>
 																				</div>
@@ -560,13 +560,13 @@
 																		</tr>
 																	</thead>
 																	<tbody>
-																		<tr ng-repeat="historydevplan in historydevplans" ng-if="(historydevplan.State != state || historydevplan.UserID != userid) && ((userRole == 'emp' && historydevplan.State == 2) || (userRole != 'emp'))" ng-class="{'oddRow' : $odd, 'evenRow': $even}" ng-attr-style="{{getRowColor(historydevplan.State)}}">
-																			<td class="center" style="{{historydevplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{historydevplan.Objective}}</td>
-																			<td class="center" style="{{historydevplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{historydevplan.Action==1 ? ' On-the-job training' : historydevplan.Action==2 ? 'Classroom training, formal learning or education' : historydevplan.Action==3 ? 'Other action' : ''}}</td>
-																			<td class="center" style="{{historydevplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{historydevplan.AdditionalInfo}}</td>
-																			<td class="center" style="{{historydevplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{historydevplan.ByWhen}}</td>
-																			<td class="center" style="{{historydevplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{historydevplan.ByWhom}}</td>
-																			<td class="center" style="{{historydevplan.State == 3 ? 'color: #3B3B3B;' : ''}}"></td>
+																		<tr ng-repeat="historydevplan in historydevplans" ng-if="(historydevplan.State != state || historydevplan.UserID != userid) && ((userRole == 'emp' && historydevplan.State == arcopmState.EvalByEmployee) || (userRole != 'emp'))" ng-class="{'oddRow' : $odd, 'evenRow': $even}" ng-attr-style="{{getRowColor(historydevplan.State)}}">
+																			<td class="center" style="{{historydevplan.State == arcopmState.EvalByDotted ? 'color: #3B3B3B;' : ''}}">{{historydevplan.Objective}}</td>
+																			<td class="center" style="{{historydevplan.State == arcopmState.EvalByDotted ? 'color: #3B3B3B;' : ''}}">{{historydevplan.Action==1 ? ' On-the-job training' : historydevplan.Action==2 ? 'Classroom training, formal learning or education' : historydevplan.Action==3 ? 'Other action' : ''}}</td>
+																			<td class="center" style="{{historydevplan.State == arcopmState.EvalByDotted ? 'color: #3B3B3B;' : ''}}">{{historydevplan.AdditionalInfo}}</td>
+																			<td class="center" style="{{historydevplan.State == arcopmState.EvalByDotted ? 'color: #3B3B3B;' : ''}}">{{historydevplan.ByWhen}}</td>
+																			<td class="center" style="{{historydevplan.State == arcopmState.EvalByDotted ? 'color: #3B3B3B;' : ''}}">{{historydevplan.ByWhom}}</td>
+																			<td class="center" style="{{historydevplan.State == arcopmState.EvalByDotted ? 'color: #3B3B3B;' : ''}}"></td>
 																		</tr>
 																		<tr ng-repeat="devplan in devplans" ng-if="userid == devplan.UserID">
 																			<td class="center">{{devplan.Objective}}</td>
@@ -575,10 +575,10 @@
 																			<td class="center">{{devplan.ByWhen}}</td>
 																			<td class="center">{{devplan.ByWhom}}</td>
 																			<td class="center" style="display: -moz-inline-box;">
-																				<span ng-if="((state >= 2 && state < 6) && list != 'mylist') || (list == 'mylist' && state == 2)">
+																				<span ng-if="((state >= arcopmState.EvalByEmployee && state < arcopmState.EvalComplete) && list != 'mylist') || (list == 'mylist' && state == arcopmState.EvalByEmployee)">
 																					<button class="sitesBtn" ng-click="showEditDevplanPopup(evaluation,devplan,state)" uib-tooltip="Edit Development Plan" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-pencil" aria-hidden="true"  ></span></button>
 																				</span>
-																				<span ng-if="((state >= 2 && state < 6) && list != 'mylist') || (list == 'mylist' && state == 2)">
+																				<span ng-if="((state >= arcopmState.EvalByEmployee && state < arcopmState.EvalComplete) && list != 'mylist') || (list == 'mylist' && state == arcopmState.EvalByEmployee)">
 																					<button class="sitesBtn" ng-click="showDeleteDevplanPopup(evaluation,devplan,state)" uib-tooltip="Delete Development Plan" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-trash" aria-hidden="true"  ></span></button>
 																				</span>
 																			</td>
@@ -594,15 +594,15 @@
 														</div>
 													</div>
 													<div class="radioButtondemoBasicUsage" style="margin-left: 5%; width: 95%; display: inline-flex; position: relative;" ng-if="question.QuestionTypeID == 1 || question.QuestionTypeID == 4">
-														<md-radio-group class="md-primary questions" ng-model="question.answer" ng-disabled="questionStatus(state,question.Fillinby,userRole)" ng-required="question.isRequired==1 && !questionStatus(state,question.Fillinby,userRole) && state!=6" style="width: 85%;">
+														<md-radio-group class="md-primary questions" ng-model="question.answer" ng-disabled="questionStatus(state,question.Fillinby,userRole)" ng-required="question.isRequired==1 && !questionStatus(state,question.Fillinby,userRole) && state!=arcopmState.EvalComplete" style="width: 85%;">
 															<md-radio-button ng-repeat="answer in mySplit(question.TypeValues)" value="{{answer}}"
-																	ng-attr-style="{{(answer == question.EmpAnswer && state > 2) ? 'background-color: #ececec; border-radius: 9px; display: flex;' : ((answer == question.EvalAnswer || answer == question.EvalRevision) && state > 4) ? 'background-color: #c5e0b6; border-radius: 9px; display: flex;'  : ''}}"
+																	ng-attr-style="{{(answer == question.EmpAnswer && state > arcopmState.EvalByEmployee) ? 'background-color: #ececec; border-radius: 9px; display: flex;' : (answer == question.EvalRevision && state > arcopmState.EvalByEvaluator) ? 'background-color: #c5e0b6; border-radius: 9px; display: flex;' : ((answer == question.EvalAnswer  && !question.EvalRevision) && state > arcopmState.EvalByEvaluator) ? 'background-color: #c5e0b6; border-radius: 9px; display: flex;'  : ''}}"
 																	><span>{{answer}}</span><span style="font-style: italic">{{answer=='1' ? ' - Performance Improvement Needed' : answer=='2' ? ' - Building Capability' : answer=='3' ? ' - Achieving Performance' : answer=='4' ? ' - Leading Performance' : '';}}</span>
 																<span class="previous-answer" style="background-color: #c5e0b6;">
-																	<label style="margin-bottom: 0px;" ng-if="(answer == question.EvalAnswer || answer == question.EvalRevision ) && state > 4">&nbsp&nbsp&nbsp Evaluator's Answer &nbsp&nbsp</label>
+																	<label style="margin-bottom: 0px;" ng-if="((answer == question.EvalAnswer && !question.EvalRevision) || answer == question.EvalRevision ) && state > arcopmState.EvalByEvaluator">&nbsp&nbsp&nbsp Evaluator's Answer &nbsp&nbsp</label>
 																</span>
 																<span class="previous-answer">
-																	<label style="margin-bottom: 0px;" ng-if="answer == question.EmpAnswer && state > 2">&nbsp&nbsp&nbsp Employee's Answer &nbsp&nbsp</label>
+																	<label style="margin-bottom: 0px;" ng-if="answer == question.EmpAnswer && state > arcopmState.EvalByEmployee">&nbsp&nbsp&nbsp Employee's Answer &nbsp&nbsp</label>
 																</span>
 															</md-radio-button>
 														</md-radio-group>
@@ -610,24 +610,25 @@
 
 													<div style="width: 95%; display: inline-flex; position: relative;" ng-if="question.QuestionTypeID == 2">
 														<div class="form-group col-xs-6 col-md-6">
-															<textarea class="form-control" rows="3" ng-model="question.answer" ng-if="!questionStatus(state,question.Fillinby,userRole)" ng-required="question.isRequired==1 && !questionStatus(state,question.Fillinby,userRole) && state!=6"></textarea>
+															<textarea class="form-control" rows="3" ng-model="question.answer" ng-if="!questionStatus(state,question.Fillinby,userRole)" ng-required="question.isRequired==1 && !questionStatus(state,question.Fillinby,userRole) && state!=arcopmState.EvalComplete"></textarea>
 														</div>
 														<div class="form-group col-xs-6 col-md-6">
 															<table class="table table-bordered" style="margin-bottom: 0px; width: 100%; font-size: 12px;">
 																<col width="35%" />
 																<col width="65%" />
 																<tbody>
-																	<tr ng-if="question.EmpAnswer && state > 2" style="background-color: #ececec;">
+																	<tr ng-if="question.EmpAnswer && state > arcopmState.EvalByEmployee" style="background-color: #ececec;">
 																		<td style="text-align: center;"><b>Employee's Answer</b></td>
 																		<td style="text-align: center;">{{question.EmpAnswer}}</td>
 																	</tr>
-																	<tr ng-repeat="dottedComment in dottedComments" ng-if="state > 3 && question.QuestionID == dottedComment.QuestionID && question.SectionID == dottedComment.SectionID && userRole != 'emp'"  style="background-color: #8eaf91;">
+                                                                    <!--/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////-->
+																	<tr ng-repeat="dottedComment in dottedComments" ng-if="state = arcopmState.EvalByDotted && dottedComment.userID!=userid && question.QuestionID == dottedComment.QuestionID && question.SectionID == dottedComment.SectionID && userRole != 'emp'"  style="background-color: #8eaf91;">
 																		<td style="text-align: center;"><b>Dotted Line Manager - {{dottedComment.DotteLineName}}</b></td>
 																		<td style="text-align: center;">{{dottedComment.Answer}}</td>
 																	</tr>
-																	<tr ng-if="(question.EvalAnswer || question.EvalRevision) && state > 4" style="background-color: #c5e0b6;">
+																	<tr ng-if="(question.EvalAnswer || question.EvalRevision) && state > arcopmState.EvalByEvaluator" style="background-color: #c5e0b6;">
 																		<td style="text-align: center;"><b>Evaluator's Answer</b></td>
-																		<td style="text-align: center;">{{state==5 ? question.EvalAnswer : question.EvalRevision}}</td>
+																		<td style="text-align: center;">{{state==arcopmState.EvalByReviewer ? question.EvalAnswer : question.EvalRevision}}</td>
 																	</tr>
 																</tbody>
 															</table>
@@ -641,19 +642,19 @@
 										<div class="buttons" ng-show="section.SectionID==activeSection"style="margin-top: -40px">
 											<button type="button" class="btn btn-default pull-right" ng-click="setAnswers(questionnaireSections[$index+1].SectionID,section.SectionID,empDetails.State,0)" ng-hide="parseInt($index+1)>=parseInt(sections) && resume == 0"> Next<span class="glyphicon glyphicon-chevron-right"></span></button>
 
-											<button type="button" class="btn btn-success pull-right" ng-if="((state >= 2 && state < 5) && list != 'mylist') || (list == 'mylist' && state == 2)" ng-click="setAnswers(questionnaireSections[$index+1].SectionID,section.SectionID,empDetails.State,0,1)" ng-hide="parseInt($index+1)!=parseInt(sections)" ng-disabled="!form.$valid || pendingAnswers" style="margin-right: 2px;"
+											<button type="button" class="btn btn-success pull-right" ng-if="((state >= arcopmState.EvalByEmployee && state < arcopmState.EvalByReviewer) && list != 'mylist') || (list == 'mylist' && state == arcopmState.EvalByEmployee)" ng-click="setAnswers(questionnaireSections[$index+1].SectionID,section.SectionID,empDetails.State,0,1)" ng-hide="parseInt($index+1)!=parseInt(sections)" ng-disabled="!form.$valid || pendingAnswers" style="margin-right: 2px;"
 													tooltip-placement="top" tooltip-trigger="'mouseenter'" ng-attr-uib-tooltip="{{!form.$valid || pendingAnswers ? 'Button will become active only after you answer all required questions in all sections. Check sections with red and grey color.' : ''}}"><span class="glyphicon glyphicon-floppy-disk"></span> Finish & Submit</button>
 													
-											<button type="button" class="btn btn-success pull-right" ng-if="(state == 5 && list != 'mylist')" ng-click="setAnswers(questionnaireSections[$index+1].SectionID,section.SectionID,empDetails.State,0,1)" ng-hide="parseInt($index+1)!=parseInt(sections)" style="margin-right: 2px;"
+											<button type="button" class="btn btn-success pull-right" ng-if="(state == arcopmState.EvalByReviewer && list != 'mylist')" ng-click="setAnswers(questionnaireSections[$index+1].SectionID,section.SectionID,empDetails.State,0,1)" ng-hide="parseInt($index+1)!=parseInt(sections)" style="margin-right: 2px;"
 													tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-check-square-o" aria-hidden="true"></i> Submit Review & Finalize</button>
 
 											<button type="button" class="btn btn-default pull-right" ng-click="setAnswers(questionnaireSections[$index-1].SectionID,section.SectionID,empDetails.State,0)" ng-hide="parseInt($index)==0 && resume == 0" style="margin-right: 2px;"><span class="glyphicon glyphicon-chevron-left"></span> Back</button>
 
-											<button type="button" class="btn btn-default pull-right" ng-if="((state >= 2 && state < 6) && list != 'mylist') || (list == 'mylist' && state == 2)" ng-click="setAnswers(questionnaireSections[$index].SectionID,section.SectionID,empDetails.State,1)" style="margin-right: 50px;"><span class="glyphicon glyphicon-pause"></span> Save & Exit</button>
+											<button type="button" class="btn btn-default pull-right" ng-if="((state >= arcopmState.EvalByEmployee && state < arcopmState.EvalComplete) && list != 'mylist') || (list == 'mylist' && state == arcopmState.EvalByEmployee)" ng-click="setAnswers(questionnaireSections[$index].SectionID,section.SectionID,empDetails.State,1)" style="margin-right: 50px;"><span class="glyphicon glyphicon-pause"></span> Save & Exit</button>
 
-											<button type="button" class="btn btn-default pull-right" ng-if="state==6 || (state < 6 && list == 'mylist')" ng-click="$state.go('evaluationLists')" style="margin-right: 50px;"><span class="fa fa-users"></span> Return to Evaluations</button>
+                                            <button type="button" class="btn btn-default pull-right" ng-if="state==arcopmState.EvalComplete || (state > arcopmState.EvalByEmployee && state < arcopmState.EvalComplete && list == 'mylist')" ng-click="$state.go('evaluationLists',{fromList:list})" style="margin-right: 50px;"><span class="fa fa-users"></span> Return to Evaluations</button>
 
-											<button type="button" class="btn btn-default pull-right" ng-if="state==6" ng-click="showEvalPreviewForPDF(evaluation,empid)"><span class="glyphicon glyphicon-eye-open"></span> PDF Summary</button>
+											<button type="button" class="btn btn-default pull-right" ng-if="state==arcopmState.EvalComplete" ng-click="showEvalPreviewForPDF(evaluation,empid)"><span class="glyphicon glyphicon-eye-open"></span> PDF Summary</button>
 										</div>
 									</div>
 								</div>
@@ -667,7 +668,7 @@
 										<i class="fa fa-check-circle" style="font-size: 15em; color: #80cb80;"></i>
 									</div>
 									<div>
-										<button class="sitesBtn pull-left" ng-click="$state.go('evaluationLists')" uib-tooltip="Go to Evaluation's List" tooltip-placement="top" tooltip-trigger="'mouseenter'" style="border-radius: 5%;">
+										<button class="sitesBtn pull-left" ng-click="$state.go('evaluationLists',{fromList:list})" uib-tooltip="Go to Evaluation's List" tooltip-placement="top" tooltip-trigger="'mouseenter'" style="border-radius: 5%;">
 										<span class="fa fa-users" aria-hidden="true"></span> Return to Evaluations</button>
 									</div>
 								</div>
@@ -704,7 +705,7 @@
 														</span>
 													</a>
 												</li>
-												<li role="presentation" ng-attr-class="{{state==6 ? 'active' : 'disabled'}}" uib-tooltip="Complete" tooltip-placement="top" tooltip-trigger="'mouseenter'">
+												<li role="presentation" ng-attr-class="{{state==arcopmState.EvalComplete ? 'active' : 'disabled'}}" uib-tooltip="Complete" tooltip-placement="top" tooltip-trigger="'mouseenter'">
 													<a href aria-controls="complete" role="tab" title="Complete"  >
 														<span class="round-tab">
 															<i class="glyphicon glyphicon-ok" ></i>

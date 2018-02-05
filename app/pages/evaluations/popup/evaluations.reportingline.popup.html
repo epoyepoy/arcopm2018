@@ -12,7 +12,7 @@
             <h4 >Reporting Line :<br /> {{evaluationObject.EmployeeID}} - {{evaluationObject.employeeName}}</h4>
         </div>
         <div class="panel-body" id="uploadEvalationPopupBody">
-			<div class="dataTable" ng-show="showExtraMessage('none')">
+			<div class="dataTable" ng-show="showExtraMessagePopup('none')">
 				<table>
 					<thead>
 						<tr class="headerRow">
@@ -32,7 +32,7 @@
 					</tbody>
 				</table>
 			</div>
-			<div ng-show="showExtraMessage('loading')">
+			<div ng-show="showExtraMessagePopup('loading')">
 				<div class="content">
 					<div class="circle"></div>
 					<div class="circle1"></div>

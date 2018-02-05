@@ -23,12 +23,12 @@
 						</thead>
 						<tbody>
 							<tr ng-repeat="devplan in historydevplans" ng-class="{'oddRow' : $odd, 'evenRow': $even}" ng-attr-style="{{getRowColor(devplan.State)}}">
-								<td class="center" style="{{devplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{$index+1}}</td>
-								<td class="center" style="{{devplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{devplan.Objective}}</td>
-								<td class="center" style="{{devplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{devplan.Action==1 ? ' On-the-job training' : devplan.Action==2 ? 'Classroom training, formal learning or education' : devplan.Action==3 ? 'Other action' : ''}}</td>
-								<td class="center" style="{{devplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{devplan.AdditionalInfo}}</td>
-								<td class="center" style="{{devplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{devplan.ByWhen}}</td>
-								<td class="center" style="{{devplan.State == 3 ? 'color: #3B3B3B;' : ''}}">{{devplan.ByWhom}}</td>
+								<td class="center" style="{{devplan.State == arcopmState.EvalByDotted ? 'color: #3B3B3B;' : ''}}">{{$index+1}}</td>
+								<td class="center" style="{{devplan.State == arcopmState.EvalByDotted ? 'color: #3B3B3B;' : ''}}">{{devplan.Objective}}</td>
+								<td class="center" style="{{devplan.State == arcopmState.EvalByDotted ? 'color: #3B3B3B;' : ''}}">{{devplan.Action==1 ? ' On-the-job training' : devplan.Action==2 ? 'Classroom training, formal learning or education' : devplan.Action==3 ? 'Other action' : ''}}</td>
+								<td class="center" style="{{devplan.State == arcopmState.EvalByDotted ? 'color: #3B3B3B;' : ''}}">{{devplan.AdditionalInfo}}</td>
+								<td class="center" style="{{devplan.State == arcopmState.EvalByDotted ? 'color: #3B3B3B;' : ''}}">{{devplan.ByWhen}}</td>
+								<td class="center" style="{{devplan.State == arcopmState.EvalByDotted ? 'color: #3B3B3B;' : ''}}">{{devplan.ByWhom}}</td>
 							</tr>
 						</tbody>
 					</table>

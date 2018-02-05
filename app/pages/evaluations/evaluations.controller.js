@@ -7,14 +7,15 @@
 
     // Inject services to the Controller
 
-    evaluationsController.$inject = ["$scope", "Auth", "loginData",  "global", "EvaluationsFactory", "ngDialog", "dataService", "$state"];
+    evaluationsController.$inject = ["$scope", "Auth", "loginData",  "global", "EvaluationsFactory", "ngDialog", "dataService", "$state", "$stateParams", "arcopmState"];
 
 
 
     // Controller Logic
 
 
-    function evaluationsController($scope, Auth, loginData, global, EvaluationsFactory, ngDialog, dataService, $state) {
+    function evaluationsController($scope, Auth, loginData, global, EvaluationsFactory, ngDialog, dataService, $state, $stateParams, arcopmState) {
+        $scope.arcopmState = arcopmState;
         $scope.message = "none";
 		$scope.extraMessage = "none";
 		$scope.extraMessagePopup = "none";
@@ -22,8 +23,6 @@
 		$scope.MainEvalFilter4_9 = "all";
 		$scope.MainEvalFilter10 = "all";
         $scope.MyEvalFilter="all";
-		$scope.myEvaluations = false;
-		$scope.employeesToEvaluate = false;
 		$scope.goal = {};
 		$scope.parseInt = parseInt;
 		$scope.tempConfig = {};
@@ -36,8 +35,16 @@
 		$scope.selectAllCheckBox1_3 = false;
 		$scope.selectAllCheckBox4_9 = false;
 		$scope.selectAllCheckBox10 = false;
-
-
+        console.log($stateParams);
+        if($stateParams.fromList == 'mylist'){              //from 'My Evaluations'
+            $scope.myEvaluations = true;
+        }else if($stateParams.fromList == 'emplist'){       //from 'Employees Evaluations'    
+            $scope.employeesToEvaluate = true;
+        }else if($stateParams.fromList == 'menu'){          //from Main Menu(default)
+            $scope.myEvaluations = false;
+            $scope.employeesToEvaluate = false;    
+        }
+        
         // Initialize the evaluations
         $scope.init = function () {
             if (!$scope.checkLogin()) {
@@ -75,7 +82,7 @@
 				$scope.checkifLoggedout(result);
 				$scope.evaluations = result.evaluations;
 				angular.forEach(result.evaluations, function(value) {
-					if(value.State == 5){
+					if(value.State == arcopmState.EvalByReviewer){
 						if(value.grade <= 3) ($scope.status5Evals1_3).push(value.EvaluationID);
 						if(value.grade >= 4 && value.grade <= 9) ($scope.status5Evals4_9).push(value.EvaluationID);
 						if(value.grade >= 10) ($scope.status5Evals10).push(value.EvaluationID);
@@ -84,6 +91,20 @@
 				$scope.message = "none";
             });
 		};
+        
+		$scope.getMyEvaluations = function(){
+			if (!$scope.checkLogin()) {
+                return;
+            }
+			$scope.extraMessage = "loading";
+			EvaluationsFactory.GetMyEvaluations(loginData.user.id).then(function (result) {
+				$scope.checkifLoggedout(result);
+				$scope.personalevaluations = result.myevaluations;
+				$scope.extraMessage = "none";
+            });
+		};
+        
+        
 		
 		$scope.toggle = function (item, list) {
 			var idx = list.indexOf(item);
@@ -146,7 +167,7 @@
 		
 		
 		$scope.checkBoxAppear = function(evaluation,group){
-			if(evaluation.State==5 && evaluation.resumeSection==0 && evaluation.editBy==loginData.user.id && evaluation.finishedFlag==0){
+			if(evaluation.State==arcopmState.EvalByReviewer && evaluation.resumeSection==0 && evaluation.editBy==loginData.user.id && evaluation.finishedFlag==0){
 				if(group == '1_3'){
 					$scope.selectAllCheckBox1_3 = true;		//if we find at least one checkbox in a line of group 1_3, then we show also the correspondance 'select all' checkbox
 				}else if(group == '4_9'){
@@ -209,18 +230,6 @@
 		};
 
 
-		$scope.getMyEvaluations = function(){
-			if (!$scope.checkLogin()) {
-                return;
-            }
-			$scope.extraMessage = "loading";
-			EvaluationsFactory.GetMyEvaluations(loginData.user.id).then(function (result) {
-				$scope.checkifLoggedout(result);
-				$scope.personalevaluations = result.myevaluations;
-				$scope.extraMessage = "none";
-            });
-		};
-
 		$scope.getEvaluationsCycles = function(){
 			if (!$scope.checkLogin()) {
                 return;
@@ -236,11 +245,11 @@
 			if (!$scope.checkLogin()) {
                 return;
             }
-            $scope.extraMessage = "loading";
+            $scope.extraMessagePopup = "loading";
 			EvaluationsFactory.GetUserReportingLine(evaluationObject.EmployeeID,cycleid).then(function (result) {
 				$scope.checkifLoggedout(result);
 				$scope.empReportingLine = result.empReportingLine;
-				$scope.extraMessage = "none";
+				$scope.extraMessagePopup = "none";
             });
 			$scope.evaluationObject = evaluationObject;
 			$scope.todoPopup = ngDialog.open({
@@ -378,7 +387,7 @@
 			if(!angular.isUndefined(fromList)){
 				var list = fromList;
 			}else{
-				var list = '';
+				var list = 'emplist';
 			}
 			dataService.setEvaluationID(evalID);
 			dataService.setBehalfUser(behalfUser);
@@ -423,12 +432,14 @@
                     tempScope = $scope.MyEvalFilter;
                 }
 				if (tempScope === "all") return true;
-                if (tempScope === "1" && evaluationObject.State < "2" ) return true;
-                if (tempScope === "2" && evaluationObject.State >= "2"  && evaluationObject.State <= "4") return true;
-                if (tempScope === "3" && evaluationObject.State === "5" ) return true;
+                if (tempScope === "1" && evaluationObject.State < arcopmState.EvalByEmployee ) return true;
+                if (tempScope === "2" && evaluationObject.State >= arcopmState.EvalByEmployee  && evaluationObject.State <= arcopmState.EvalByEvaluator) return true;
+                if (tempScope === "3" && evaluationObject.State === arcopmState.EvalByReviewer ) return true;
 				if (tempScope === "4" && evaluationObject.wrongManager === "1" ) return true;
 				if (tempScope === "5" && evaluationObject.isForAction === "1" && evaluationObject.wrongManager !== "1" && evaluationObject.finishedFlag==0) return true;
 				if (tempScope === "6" && evaluationObject.isForAction === "2" && evaluationObject.wrongManager !== "1" && evaluationObject.finishedFlag==0) return true;
+                if (tempScope === "7" && evaluationObject.yourActionState === "4" ) return true;
+                if (tempScope === "8" && evaluationObject.yourActionState === "5" ) return true;
                 return false;
 			};
 		};

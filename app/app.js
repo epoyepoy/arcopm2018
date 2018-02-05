@@ -111,6 +111,7 @@
                 .state('evaluationLists', {
                     url: '/evaluationLists',
                     templateUrl: 'app/pages/evaluations/evaluations.view.html',
+                    params: { fromList: 'menu'}
                 });
             $stateProvider
                 .state('evaluationForm', {

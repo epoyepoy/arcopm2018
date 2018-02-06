@@ -34,7 +34,7 @@ class EvaluationsDAO{
 				CASE WHEN ISNULL(ev.State,0) = 6 THEN 5 ELSE ISNULL(ev.State,0) END <=yourEvalAction.estate
 				AND onBehalf.flag=0)
 				THEN CASE
-						WHEN (ISNULL(Ev.State,0) in (0,2) AND isnull(resumeFlag.Section, 0)=0 AND CASE
+						WHEN (ISNULL(Ev.State,0) in (0,3) AND isnull(resumeFlag.Section, 0)=0 AND CASE
 																									WHEN isnull(Ev.empGrade,-1)=-1 THEN Hr.grade
 																									ELSE Ev.empGrade
 																									END >3 )
@@ -69,7 +69,7 @@ class EvaluationsDAO{
 			   ) resumeFlag
 		OUTER APPLY (
 			   SELECT empnotarget as editBy FROM ReportingLine WHERE empnotarget=@userid AND empnosource=ev.EmployeeID
-			   AND ( State=isnull(Ev.State,0) or (isnull(Ev.State,0)=2 and state=5) or (isnull(Ev.State,0)=6 and state=5))
+			   AND ( State=isnull(Ev.State,0) or (isnull(Ev.State,0)=3 and state=5) or (isnull(Ev.State,0)=6 and state=5))
 			   ) editBy
 		OUTER APPLY (
 			   SELECT TOP 1  CASE WHEN state=4 THEN 'Complete as Dotted Line Manager'
@@ -407,7 +407,7 @@ class EvaluationsDAO{
 					CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
 					FROM dbo.Answers A2
 					INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
-					WHERE A2.EvaluationID=E.EvaluationID AND A2.State=2
+					WHERE A2.EvaluationID=E.EvaluationID AND A2.State=3
 				) EmpAnswers
 		OUTER APPLY (
 					SELECT --CAST(SUM((CAST(G2.Weight as decimal(5,2))/100) * CAST(A2.Answer as decimal(5,2))) AS DECIMAL(5,2)) AS WeightedScore

@@ -598,7 +598,7 @@ class EvaluationsDAO{
 		LEFT JOIN vw_arco_employee VEM on VEM.empno=RL.empnotarget
 		WHERE E.EvaluationID=@evalid
 		UNION
-		SELECT 5, 'EMPLOYEE''S REVIEWER' AS 'RelationshipDesc', VEM.empno as 'empNo', rtrim(ltrim(VEM.family_name))+' '+rtrim(ltrim(VEM.first_name)) as 'empName', VEM.job_desc as 'empPosition',
+		SELECT 6, 'EMPLOYEE''S REVIEWER' AS 'RelationshipDesc', VEM.empno as 'empNo', rtrim(ltrim(VEM.family_name))+' '+rtrim(ltrim(VEM.first_name)) as 'empName', VEM.job_desc as 'empPosition',
 		VEM.family_desc as 'empDepartment', VEM.pay_cs as 'empSite', VEM.site_desc as 'empSiteDesc'
 		FROM ReportingLine RL
 		LEFT JOIN vw_arco_employee EMP on EMP.empno=RL.empnosource

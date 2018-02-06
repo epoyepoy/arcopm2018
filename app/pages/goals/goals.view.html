@@ -117,7 +117,25 @@
 				<input type="text" class="form-control" aria-label="" ng-readonly='true' ng-model="filterDesc1" style="font-weight: bold;font-size: 16px;padding-left: 10px;width: 100px; text-align:right;">
 				<!--<span ng-show="filterDesc1.trim() == '2016' && !myGoals" style="padding: 10px;vertical-align: middle;position: absolute;font-style: italic;"> *Goal setting for 2016 is optional for evaluators.</span>
 				<span ng-show="filterDesc1.trim() == '2017' && !myGoals" style="padding: 10px;vertical-align: middle;position: absolute;font-style: italic;"> *Goal setting for 2017 is obligatory for evaluators.</span>-->
-		 	</div>
+		 	</div><br/>
+            <div class="filtersContainer" >
+				<input type="radio" id="AllGoalFilter" ng-model="GoalFilter"   value="all" checked />
+				<label for="AllGoalFilter" >
+					 All
+				</label>
+				<input type="radio" id="MyActionsGoalFilter" ng-model="GoalFilter"  value="1" />
+				<label for="MyActionsGoalFilter" style="color: #90EE90;">
+					My Actions
+				</label>
+				<input type="radio" id="DottedGoalFilter" ng-model="GoalFilter"  value="2" />
+				<label for="DottedGoalFilter">
+					As Dotted
+				</label>
+				<input type="radio" id="EvaluatorGoalFilter" ng-model="GoalFilter"   value="3" />
+				<label for="EvaluatorGoalFilter">
+					As Evaluator
+				</label>
+			</div>
 			<div class="dataTable" >
 				<table>
 					<thead>
@@ -135,7 +153,7 @@
 						</tr>
 					</thead>
 					<tbody ng-show="!showExtraMessage('loading')">
-						<tr ng-repeat="cycleGoal in cycleGoals" ng-class="{'oddRow' : $odd, 'evenRow': $even, 'strikeout':cycleGoal.wrongManager>0}" uib-tooltip="
+						<tr ng-repeat="cycleGoal in cycleGoals | filter: applyGoalFilters()" ng-class="{'oddRow' : $odd, 'evenRow': $even, 'strikeout':cycleGoal.wrongManager>0}" uib-tooltip="
 							{{cycleGoal.wrongManager>0 ? 'You have reported this evaluation as it has been mistakenly sent to you. It is being corrected by HR Department at this moment. Once corrected it will be removed from your list. ' : ''}}" tooltip-placement="top" tooltip-trigger="'mouseenter'">
 							<td class="center">{{$index+1}} </td>
 							<td class="center"><a href ng-click="reportingLineDialog(cycleGoal)">{{cycleGoal.Empno}}</a></td>
@@ -151,7 +169,7 @@
 							<td style="text-align:right !important;">
 								<div ng-if="cycleGoal.wrongManager==0">
                                     <!-- green arrow -->
-									<span ng-if="evaluation.isForAction==1" class="fa fa-arrow-circle-right" aria-hidden="true" style="color: #90EE90; margin-right:10px; margin-top:10px;"></span>
+									<span ng-if="cycleGoal.isForAction==1" class="fa fa-arrow-circle-right" aria-hidden="true" style="color: #90EE90; margin-right:10px; margin-top:10px;"></span>
 									
 									<span ng-if=" (cycleGoal.EvalState == arcopmState.GoalsByDotted || cycleGoal.EvalState == arcopmState.GoalsByEvaluator || cycleGoal.EvalState == arcopmState.EvalByEmployee) && cycleGoal.grade > 3 && cycleGoal.flagEvalAnswers == 0">
 											<button class="sitesBtn" ng-click="showSendBackPopup(cycleGoal)" style="width: 38px;" uib-tooltip="Send Back Goals & Configuration for Review" tooltip-placement="top" tooltip-trigger="'mouseenter'"><i class="fa fa-step-backward" aria-hidden="true"></i></button>

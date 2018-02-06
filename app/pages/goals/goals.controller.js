@@ -27,6 +27,7 @@
 		$scope.arcopmState = arcopmState;
 		$scope.loggedinUser = loginData.user.id;
 		$scope.addSlideEffect = false;
+        $scope.GoalFilter="all";
 
 
         // Initialize the evaluations
@@ -870,6 +871,20 @@
         $scope.lowerGoalsState = function(state){
 			return function(item){
 				return item.GoalState < state;
+			};
+		};
+        
+        
+        $scope.applyGoalFilters = function(){
+            return function (goalObject) {
+				var tempScope;
+				tempScope = $scope.GoalFilter;
+                
+				if (tempScope === "all") return true;
+                if (tempScope === "1" && goalObject.isForAction == 1) return true;
+                if (tempScope === "2" && goalObject.yourActionState == 4) return true;
+                if (tempScope === "3" && goalObject.yourActionState == 5) return true;
+                return false;
 			};
 		};
 

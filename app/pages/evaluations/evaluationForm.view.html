@@ -621,8 +621,7 @@
 																		<td style="text-align: center;"><b>Employee's Answer</b></td>
 																		<td style="text-align: center;">{{question.EmpAnswer}}</td>
 																	</tr>
-                                                                    <!--/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////-->
-																	<tr ng-repeat="dottedComment in dottedComments" ng-if="state = arcopmState.EvalByDotted && dottedComment.userID!=userid && question.QuestionID == dottedComment.QuestionID && question.SectionID == dottedComment.SectionID && userRole != 'emp'"  style="background-color: #8eaf91;">
+																	<tr ng-repeat="dottedComment in dottedComments" ng-if="state = arcopmState.EvalByDotted && dottedComment.UserID!=userid && question.QuestionID == dottedComment.QuestionID && question.SectionID == dottedComment.SectionID && userRole != 'emp'"  style="background-color: #8eaf91;">
 																		<td style="text-align: center;"><b>Dotted Line Manager - {{dottedComment.DotteLineName}}</b></td>
 																		<td style="text-align: center;">{{dottedComment.Answer}}</td>
 																	</tr>

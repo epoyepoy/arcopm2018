@@ -35,7 +35,6 @@
 		$scope.selectAllCheckBox1_3 = false;
 		$scope.selectAllCheckBox4_9 = false;
 		$scope.selectAllCheckBox10 = false;
-        console.log($stateParams);
         if($stateParams.fromList == 'mylist'){              //from 'My Evaluations'
             $scope.myEvaluations = true;
         }else if($stateParams.fromList == 'emplist'){       //from 'Employees Evaluations'    
@@ -433,8 +432,8 @@
                 }
 				if (tempScope === "all") return true;
                 if (tempScope === "1" && evaluationObject.State < arcopmState.EvalByEmployee ) return true;
-                if (tempScope === "2" && evaluationObject.State >= arcopmState.EvalByEmployee  && evaluationObject.State <= arcopmState.EvalByEvaluator) return true;
-                if (tempScope === "3" && evaluationObject.State === arcopmState.EvalByReviewer ) return true;
+                if (tempScope === "2" && evaluationObject.State >= arcopmState.EvalByEmployee  && evaluationObject.State <= arcopmState.EvalByReviewer) return true;
+                if (tempScope === "3" && evaluationObject.State == arcopmState.EvalComplete ) return true;
 				if (tempScope === "4" && evaluationObject.wrongManager === "1" ) return true;
 				if (tempScope === "5" && evaluationObject.isForAction === "1" && evaluationObject.wrongManager !== "1" && evaluationObject.finishedFlag==0) return true;
 				if (tempScope === "6" && evaluationObject.isForAction === "2" && evaluationObject.wrongManager !== "1" && evaluationObject.finishedFlag==0) return true;

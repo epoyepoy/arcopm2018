@@ -291,18 +291,20 @@
 						if(section == 3 && state != arcopmState.EvalByDotted && state != arcopmState.EvalComplete){
 							var tempGoalAnswer = {};
 							tempGoalAnswer.GoalID = goal.GoalID;
+                            //if weight is 0, then we send null to database in order to avoid to save zero weight as it is forbidden
 							if(state==arcopmState.EvalByEmployee){
-								tempGoalAnswer.answer = goal.EmpAchievement;
+								goal.EmpAchievement!=0 ? tempGoalAnswer.answer = goal.EmpAchievement : tempGoalAnswer.answer = null;
 							}else if(state == arcopmState.EvalByEvaluator){
-								tempGoalAnswer.answer = goal.EvalAchievement;
+                                goal.EvalAchievement!=0 ? tempGoalAnswer.answer = goal.EvalAchievement : tempGoalAnswer.answer = null;
 							}else if(state == arcopmState.EvalByReviewer){
-								tempGoalAnswer.answer = goal.RevAchievement;
+                                goal.RevAchievement!=0 ? tempGoalAnswer.answer = goal.RevAchievement : tempGoalAnswer.answer = null;
 							}
 							tempGoalAnswer.QuestionID = null;
 							//sectionQuestions.push(nextback);
 							sectionQuestions.push(tempGoalAnswer);
 						}
 					});
+                    console.log(sectionQuestions);
 					//set variable finish to 1, only when user press 'Finish' button
 					if(angular.isUndefined(finish)){
 						finish = 0;

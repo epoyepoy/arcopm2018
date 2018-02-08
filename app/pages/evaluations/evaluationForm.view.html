@@ -458,8 +458,8 @@
 																<th style="width:20%; vertical-align: middle;">ATTRIBUTE</th>
 																<th style="width:25%; vertical-align: middle;">GOAL</th>
 																<th class="center" style="width:5%">WEIGHT %</th>
-																<th class="center" ng-attr-style="{{state == arcopmState.EvalByEmployee ? 'width:50%' : 'width:5%'}}">EMPLOYEE ACHIEVEMENT %</th>
-																<th ng-if="userRole != 'emp' || (userRole == 'emp' && state==arcopmState.EvalComplete) " class="center" ng-attr-style="{{(state == arcopmState.EvalByEvaluator || state == arcopmState.EvalByReviewer) ? 'width:50%' : 'width:5%'}}">EVALUATOR ACHIEVEMENT %</th>
+                                                                <th class="center" ng-attr-style="{{state == arcopmState.EvalByEmployee ? 'width:50%' : 'width:5%'}}">EMPLOYEE ACHIEVEMENT %<br/>( >0 )&nbsp;<label style="color:#a20a0a">*</label></th>
+																<th ng-if="userRole != 'emp' || (userRole == 'emp' && state==arcopmState.EvalComplete) " class="center" ng-attr-style="{{(state == arcopmState.EvalByEvaluator || state == arcopmState.EvalByReviewer) ? 'width:50%' : 'width:5%'}}">EVALUATOR ACHIEVEMENT %<br/>( >0 )</th>
 															</tr>
 														</thead>
 														<tbody>
@@ -478,11 +478,11 @@
 																			<span class="md-body-1">120</span>
 																		</div>
 																		<div flex="10" layout="" layout-align="center center" style="max-width: 13%;">
-																			<input flex type="number" ng-model="goal.EmpAchievement" ng-change="noNullEmpAchievement(goal)"  step="1" min="0" aria-label="green" aria-controls="green-slider" style="width: 100%" required>
+																			<input flex type="number" ng-model="goal.EmpAchievement" ng-change="noNullEmpAchievement(goal)"  step="1" min="0" aria-label="green" aria-controls="green-slider" style="width: 100%" required>&nbsp;<label style="color:red">*</label>
 																		</div>
 																	</div>
 																	<div ng-if="state == arcopmState.EvalByEmployee" style="text-align: center;">
-																		<label ng-if="goal.EmpAchievement >= 0 && goal.EmpAchievement < 75">Performance Improvement Needed</label>
+																		<label ng-if="goal.EmpAchievement > 0 && goal.EmpAchievement < 75">Performance Improvement Needed</label>
 																		<label ng-if="goal.EmpAchievement >= 75 && goal.EmpAchievement < 90">Building Capability</label>
 																		<label ng-if="goal.EmpAchievement >= 90 && goal.EmpAchievement < 105">Achieving Performance</label>
 																		<label ng-if="goal.EmpAchievement >= 105 && goal.EmpAchievement <= 120">Leading Performance</label>
@@ -499,7 +499,7 @@
 																			<span class="md-body-1">120</span>
 																		</div>
 																		<div flex="10" layout="" layout-align="center center" style="max-width: 13%;">
-																			<input flex type="number" ng-model="goal.EvalAchievement" ng-change="noNullEvalAchievement(goal)"  step="1" min="0" aria-label="green" aria-controls="green-slider" style="width: 100%" required>
+																			<input flex type="number" ng-model="goal.EvalAchievement" ng-change="noNullEvalAchievement(goal)"  step="1" min="0" aria-label="green" aria-controls="green-slider" style="width: 100%" required>&nbsp;<label style="color:red">*</label>
 																		</div>
 																	</div>
 																	<div ng-if="state == arcopmState.EvalByReviewer" layout="" ng-init="goal.RevAchievement ? goal.RevAchievement = parseInt(goal.RevAchievement) : goal.RevAchievement = parseInt(goal.EvalAchievement)" style="padding: 30px 0px 0px 0px;">
@@ -511,17 +511,17 @@
 																			<span class="md-body-1">120</span>
 																		</div>
 																		<div flex="10" layout="" layout-align="center center" style="max-width: 13%;">
-																			<input flex type="number" ng-model="goal.RevAchievement" ng-change="noNullEvalRevAchievement(goal)"  step="1" min="0" aria-label="green" aria-controls="green-slider" style="width: 100%" required>
+																			<input flex type="number" ng-model="goal.RevAchievement" ng-change="noNullEvalRevAchievement(goal)"  step="1" min="0" aria-label="green" aria-controls="green-slider" style="width: 100%" required>&nbsp;<label style="color:red">*</label>
 																		</div>
 																	</div>
 																	<div ng-if="state == arcopmState.EvalByEvaluator" style="text-align: center;">
-																		<label ng-if="goal.EvalAchievement >= 0 && goal.EvalAchievement < 75">Performance Improvement Needed</label>
+																		<label ng-if="goal.EvalAchievement > 0 && goal.EvalAchievement < 75">Performance Improvement Needed</label>
 																		<label ng-if="goal.EvalAchievement >= 75 && goal.EvalAchievement < 90">Building Capability</label>
 																		<label ng-if="goal.EvalAchievement >= 90 && goal.EvalAchievement < 105">Achieving Performance</label>
 																		<label ng-if="goal.EvalAchievement >= 105 && goal.EvalAchievement <= 120">Leading Performance</label>
 																	</div>
 																	<div ng-if="state == arcopmState.EvalByReviewer" style="text-align: center;">
-																		<label ng-if="goal.RevAchievement >= 0 && goal.RevAchievement < 75">Performance Improvement Needed</label>
+																		<label ng-if="goal.RevAchievement > 0 && goal.RevAchievement < 75">Performance Improvement Needed</label>
 																		<label ng-if="goal.RevAchievement >= 75 && goal.RevAchievement < 90">Building Capability</label>
 																		<label ng-if="goal.RevAchievement >= 90 && goal.RevAchievement < 105">Achieving Performance</label>
 																		<label ng-if="goal.RevAchievement >= 105 && goal.RevAchievement <= 120">Leading Performance</label>

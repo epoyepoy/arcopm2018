@@ -2563,3 +2563,22 @@ html.ngdialog-open, body.ngdialog-open {
 	box-shadow: 0px 1px 6px #6b747d;
 	background-color: #d9d9d9;
 }
+
+[data-notifications] {
+	position: relative;
+}
+
+[data-notifications]:after {
+	content: attr(data-notifications);
+	position: absolute;
+	background: red;
+	border-radius: 50%;
+	display: inline-block;
+	padding: 0.1em;
+	color: #f2f2f2;
+	right: 27px;
+	top: -10px;
+    min-width: 20px;
+    font-size: 11px;
+    border: 1px solid gainsboro;
+}

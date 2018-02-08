@@ -42,7 +42,7 @@
 							<label ng-attr-style="{{from == 'mylist' ? 'margin-left: 165px; margin-top: 5px;' : ''}}">Goals Assignment By Employee:</label>
 							<div style="float: right; margin-left: 30px;" ng-if="from == 'mylist'">
 								<span style="color: #1c8de1;">
-									<button class="sitesBtn goalsAssignment" ng-click="showCommentsPopup(cycleGoal,'show')" uib-tooltip="Show Comments" tooltip-placement="top" tooltip-trigger="'mouseenter'">
+									<button ng-attr-data-notifications="{{commentsCount!=0 ? commentsCount : undefined}}" class="sitesBtn goalsAssignment" ng-click="showCommentsPopup(cycleGoal,'show')" uib-tooltip="Show Comments" tooltip-placement="top" tooltip-trigger="'mouseenter'">
 										<i class="fa fa-comments" aria-hidden="true" style="font-size: 17px"></i>
 									</button>
 								</span>
@@ -122,7 +122,7 @@
 							<label ng-attr-style="{{cycleGoal.yourActionState == 4 ? 'margin-left: 165px; margin-top: 5px;' : ''}}">Goals Assignment By Dotted Line Managers:</label>
 							<div style="float: right; margin-left: 30px;" ng-if="cycleGoal.yourActionState == 4">
 								<span style="color: #1c8de1;">
-									<button class="sitesBtn goalsAssignment" ng-click="showCommentsPopup(cycleGoal,'show')" uib-tooltip="Show Comments" tooltip-placement="top" tooltip-trigger="'mouseenter'">
+									<button ng-attr-data-notifications="{{commentsCount!=0 ? commentsCount : undefined}}" class="sitesBtn goalsAssignment" ng-class="notifications" ng-click="showCommentsPopup(cycleGoal,'show')" uib-tooltip="Show Comments" tooltip-placement="top" tooltip-trigger="'mouseenter'">
 										<i class="fa fa-comments" aria-hidden="true" style="font-size: 17px"></i>
 									</button>
 								</span>
@@ -202,7 +202,7 @@
 							<label ng-attr-style="{{cycleGoal.yourActionState == 5 ? 'margin-left: 165px; margin-top: 5px;' : ''}}">Goals Assignment By Evaluator:</label>
 							<div style="float: right; margin-left: 30px;" ng-if="cycleGoal.yourActionState == 5">
 								<span style="color: #1c8de1;">
-									<button class="sitesBtn goalsAssignment" ng-click="showCommentsPopup(cycleGoal,'show');" uib-tooltip="Show Comments" tooltip-placement="top" tooltip-trigger="'mouseenter'">
+									<button ng-attr-data-notifications="{{commentsCount!=0 ? commentsCount : undefined}}" class="sitesBtn goalsAssignment" ng-click="showCommentsPopup(cycleGoal,'show');" uib-tooltip="Show Comments" tooltip-placement="top" tooltip-trigger="'mouseenter'">
 										<i class="fa fa-comments" aria-hidden="true" style="font-size: 17px"></i>
 									</button>
 								</span>
@@ -294,7 +294,7 @@
 						<!-- The code above is the right code, but we will use the temporary code below just for 2016, where goals are not required. But if we have even one goal, then goals are required with the known restrictions as above. -->
 						<!-- TEMPORARY CODE FOR 2016 -->
 						<input type="submit" ng-attr-value="{{cycleGoal.EvalState == arcopmState.GoalsByEmployee  && from == 'mylist' ? 'Finish & Submit to Evaluator' : 'Finish & Submit'}}" class="popupButtonSave"
-							   ng-attr-title="{{(remainingWeight!=0 && cycleGoal.CycleID==2 && role!='dotted') || (goals.length!=0 && remainingWeight!=0 && cycleGoal.CycleID==1 && role!='dotted')  ? 'Button will become active only after total Goals Weight will be 100% and Employee Manages Team has been chosen.' : ''}}"
+							   ng-attr-title="{{!form.$valid || (remainingWeight!=0 && cycleGoal.CycleID==2 && role!='dotted') || (goals.length!=0 && remainingWeight!=0 && cycleGoal.CycleID==1 && role!='dotted')  ? 'Button will become active only after total Goals Weight will be 100% and Employee Manages Team has been chosen.' : ''}}"
 							   tooltip-placement="top" tooltip-trigger="'mouseenter'" uib-tooltip="{{((((remainingWeight==0 || goals.length==0) && cycleGoal.CycleID==1) || (remainingWeight==0 && cycleGoal.CycleID==2)) && from == 'emplist') ? 'If you submit configuration, you will no longer be able to edit goals. Alternatively you can just close/exit the window.' : '' }}" 
 							   ng-click="updateState(cycleGoal,onbehalf);"
 							   ng-class="{ 'disabled': !form.$valid ||(remainingWeight!=0 && cycleGoal.CycleID==2 && from == 'emplist' && role!='dotted') ||

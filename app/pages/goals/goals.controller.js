@@ -170,6 +170,7 @@
 			$scope.evalID = goal.EvaluationID;
 			$scope.from = from;
 			$scope.onbehalf = onbehalf;
+            $scope.getComments(goal.EvaluationID);
 			if(goal.yourActionState == 4){
 				$scope.role = 'dotted';
 				$scope.active = 1;
@@ -226,7 +227,7 @@
 			$scope.prevAttrCode = goal.AttributeCode;
 			//we calculate remainingWeight only for employee
             if(role == 'emp'){
-                var totalRemainingWeight = parseInt($scope.remainingWeight)+parseInt(prevWeight);
+                var totalRemainingWeight = parseInt($scope.remainingWeight)+parseInt($scope.prevWeight);
                 $scope.totalRemainingWeight = totalRemainingWeight;
             }else{
                 $scope.totalRemainingWeight = 100;
@@ -808,7 +809,7 @@
             if (!$scope.checkLogin()) {
                 return;
             }
-            $scope.extraMessage = 'loading';
+            $scope.extraMessage = 'none';
 			$scope.textComment = false;
 			$scope.tempGoal = goal;
 			$scope.commentsMode = mode;
@@ -828,6 +829,7 @@
 			EvaluationsFactory.GetComments(evalid).then(function (result) {
 				$scope.checkifLoggedout(result);
 				$scope.comments = result.comments;
+                $scope.commentsCount = (result.comments).length;
 				$scope.extraMessage = 'none';
             });
 		};
@@ -843,7 +845,6 @@
 				$scope.checkifLoggedout(result);
 				if (result.success) {
 					$scope.getComments(goal.EvaluationID);
-					$scope.extraMessage = 'none';
 				} else {
 					$scope.message = 'error';
 					$scope.messageText = 'Something went wrong while creating a new Goal. Please contact your administrator.';

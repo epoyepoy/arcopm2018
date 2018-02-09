@@ -106,19 +106,21 @@ class GoalsDAO{
 			END as EvalState,
 			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, yourAction.yourAction as yourActionStateDescr, 
 			isnull(RL.wrongManager,0) as wrongManager,EvalAnswers.flagEvalAnswers,
-			CASE WHEN (ISNULL(Ev.State,0) in (0,1,2) AND yourEvalAction.estate=5 AND
-			CASE WHEN ISNULL(ev.State,0) = 6 THEN 5 ELSE ISNULL(ev.State,0) END <=yourEvalAction.estate
-			AND onBehalf.NoAsnwers=0)
-					THEN CASE
-						WHEN (ISNULL(Ev.State,0) in (0) AND isnull(resumeFlag.Section, 0)=0 AND CASE
-																									WHEN isnull(Ev.empGrade,-1)=-1 THEN Hr.grade
-																									ELSE Ev.empGrade
-																									END >3 )
+			CASE WHEN 
+						(ISNULL(Ev.State,0) in (0,2) 
+					AND yourEvalAction.estate=5 
+					AND CASE WHEN ISNULL(ev.State,0) = 6 THEN 5 ELSE ISNULL(ev.State,0) END <=yourEvalAction.estate
+					AND onBehalf.NoAsnwers=0)
+				THEN CASE
+						WHEN (ISNULL(Ev.State,0) in (0) AND CASE
+																WHEN isnull(Ev.empGrade,-1)=-1 THEN Hr.grade
+																ELSE Ev.empGrade
+															END >3 )
 							THEN 2
 						ELSE 1
 					END
 				WHEN -- For doted give action
-					yourNextAction.nstate=ISNULL(Ev.State,0)  AND onBehalf.NoAsnwers=0
+				yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
 				THEN 1
 			END AS  isForAction
 	        FROM dbo.ReportingLine RL
@@ -131,17 +133,6 @@ class GoalsDAO{
 			SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM Evaluations E
 			WHERE State=0 AND UserID<>@userid AND CycleID=@cycleid and E.EmployeeID=rl.empnosource
 			) onBehalf
-			OUTER APPLY (
-				SELECT distinct(A.Finished) as 'flag' FROM Answers A
-				WHERE A.State=Ev.State AND A.UserID=@userid AND A.EvaluationID=Ev.EvaluationID
-				) finished
-				OUTER APPLY (
-					SELECT TOP 1 QS.ID as Section FROM Answers A
-					INNER JOIN Questions Q on Q.ID=A.QuestionID
-					INNER JOIN QuestionSections QS on QS.ID=Q.SectionID
-					WHERE A.Finished=0 AND A.UserID=@userid AND A.EvaluationID=Ev.EvaluationID and A.State=Ev.State
-					ORDER BY A.Date DESC
-					) resumeFlag
 			OUTER APPLY (
 				SELECT case when count(*) >0 then 1 else 0 end as 'flagEvalAnswers' FROM ANSWERS 
 				WHERE EvaluationID=Ev.EvaluationID
@@ -171,11 +162,7 @@ class GoalsDAO{
 				END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
 				FROM ReportingLine WHERE
 				State>=
-				CASE
-					WHEN finished.flag=1 THEN ISNULL(Ev.State,0) + 1
-					WHEN Ev.State=6 THEN ISNULL(Ev.State,0) -1 -- for reviewer.
-					ELSE ISNULL(Ev.State,0)
-				END
+				CASE WHEN ISNULL(Ev.State,0) in (0,2) THEN 5 WHEN ISNULL(Ev.State,0) = 1 THEN 4 END
 				AND
 				empnotarget=@userid and empnosource=HR.empno
 				ORDER BY state asc
@@ -192,19 +179,19 @@ class GoalsDAO{
 			END as EvalState,
 			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, 
 			yourAction.yourAction as yourActionStateDescr, isnull(RL.wrongManager,0) as wrongManager,EvalAnswers.flagEvalAnswers,
-			CASE WHEN (ISNULL(Ev.State,0) in (0,1,2) AND yourEvalAction.estate=5 AND
+			CASE WHEN (ISNULL(Ev.State,0) in (0,2) AND yourEvalAction.estate=5 AND
 			CASE WHEN ISNULL(ev.State,0) = 6 THEN 5 ELSE ISNULL(ev.State,0) END <=yourEvalAction.estate
 			AND onBehalf.NoAsnwers=0)
 					THEN CASE
-						WHEN (ISNULL(Ev.State,0) in (0) AND isnull(resumeFlag.Section, 0)=0 AND CASE
-																									WHEN isnull(Ev.empGrade,-1)=-1 THEN Hr.grade
-																									ELSE Ev.empGrade
-																									END >3 )
+						WHEN (ISNULL(Ev.State,0) in (0) AND CASE
+																WHEN isnull(Ev.empGrade,-1)=-1 THEN Hr.grade
+																ELSE Ev.empGrade
+															END >3 )
 							THEN 2
 						ELSE 1
 					END
 				WHEN -- For doted give action
-					yourNextAction.nstate=ISNULL(Ev.State,0)  AND onBehalf.NoAsnwers=0
+					yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
 				THEN 1
 			END AS  isForAction
 	        FROM dbo.ReportingLineExceptions RL
@@ -217,17 +204,8 @@ class GoalsDAO{
 			SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM Evaluations E
 			WHERE State=0 AND UserID<>@userid AND CycleID=@cycleid and E.EmployeeID=rl.empnosource
 			) onBehalf
-			OUTER APPLY (
-				SELECT distinct(A.Finished) as 'flag' FROM Answers A
-				WHERE A.State=Ev.State AND A.UserID=@userid AND A.EvaluationID=Ev.EvaluationID
-				) finished
-				OUTER APPLY (
-					SELECT TOP 1 QS.ID as Section FROM Answers A
-					INNER JOIN Questions Q on Q.ID=A.QuestionID
-					INNER JOIN QuestionSections QS on QS.ID=Q.SectionID
-					WHERE A.Finished=0 AND A.UserID=@userid AND A.EvaluationID=Ev.EvaluationID and A.State=Ev.State
-					ORDER BY A.Date DESC
-					) resumeFlag
+			
+				
 			OUTER APPLY (
 				SELECT case when count(*) >0 then 1 else 0 end as 'flagEvalAnswers' FROM ANSWERS 
 				WHERE EvaluationID=Ev.EvaluationID
@@ -239,14 +217,14 @@ class GoalsDAO{
 						WHEN state=4 THEN 'Complete as Dotted Line Manager'
 						WHEN state=5 THEN 'Complete as Evaluator' END
 						 as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
-					FROM ReportingLine WHERE
+					FROM ReportingLineExceptions WHERE
 					State>=isnull(Ev.State,0)
 					and empnotarget=@userid and empnosource=HR.empno
 					ORDER BY state asc
 				) yourAction
 		OUTER APPLY (
 			SELECT isnull(state,0) as estate
-			FROM ReportingLine WHERE
+			FROM ReportingLineExceptions WHERE
 			State=5
 			AND
 			empnotarget=@userid and empnosource=HR.empno
@@ -255,13 +233,9 @@ class GoalsDAO{
 				SELECT TOP 1  CASE WHEN state=4 THEN 'Complete as Dotted Line Manager'
 				WHEN state=5 THEN CASE WHEN Ev.State=6 THEN 'Revise / Finalize as Evaluator' ELSE 'Complete as Evaluator' END
 				END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
-				FROM ReportingLine WHERE
+				FROM ReportingLineExceptions WHERE
 				State>=
-				CASE
-					WHEN finished.flag=1 THEN ISNULL(Ev.State,0) + 1
-					WHEN Ev.State=6 THEN ISNULL(Ev.State,0) -1 -- for reviewer.
-					ELSE ISNULL(Ev.State,0)
-				END
+				CASE WHEN ISNULL(Ev.State,0) in (0,2) THEN 5 WHEN ISNULL(Ev.State,0) = 1 THEN 4 END
 				AND
 				empnotarget=@userid and empnosource=HR.empno
 				ORDER BY state asc
@@ -279,19 +253,19 @@ class GoalsDAO{
 			END as EvalState,
 			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, 
 			ISNULL(yourAction.yourAction, 'No Action') as yourActionStateDescr, isnull(RL.wrongManager,0) as wrongManager, EvalAnswers.flagEvalAnswers,
-			CASE WHEN (ISNULL(Ev.State,0) in (0,1,2) AND yourEvalAction.estate=5 AND
+			CASE WHEN (ISNULL(Ev.State,0) in (0,2) AND yourEvalAction.estate=5 AND
 			CASE WHEN ISNULL(ev.State,0) = 6 THEN 5 ELSE ISNULL(ev.State,0) END <=yourEvalAction.estate
 			AND onBehalf.NoAsnwers=0)
 					THEN CASE
-						WHEN (ISNULL(Ev.State,0) in (0) AND isnull(resumeFlag.Section, 0)=0 AND CASE
-																									WHEN isnull(Ev.empGrade,-1)=-1 THEN Hr.grade
-																									ELSE Ev.empGrade
-																									END >3 )
+						WHEN (ISNULL(Ev.State,0) in (0) AND CASE
+																WHEN isnull(Ev.empGrade,-1)=-1 THEN Hr.grade
+																ELSE Ev.empGrade
+															END >3 )
 							THEN 2
 						ELSE 1
 					END
 				WHEN -- For doted give action
-					yourNextAction.nstate=ISNULL(Ev.State,0)  AND onBehalf.NoAsnwers=0
+				yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
 				THEN 1
 			END AS  isForAction
 	        FROM dbo.ReportingLine RL
@@ -304,17 +278,6 @@ class GoalsDAO{
 			SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM Evaluations E
 			WHERE State=0 AND UserID<>@userid AND CycleID=@cycleid and E.EmployeeID=rl.empnosource
 			) onBehalf
-			OUTER APPLY (
-				SELECT distinct(A.Finished) as 'flag' FROM Answers A
-				WHERE A.State=Ev.State AND A.UserID=@userid AND A.EvaluationID=Ev.EvaluationID
-				) finished
-				OUTER APPLY (
-					SELECT TOP 1 QS.ID as Section FROM Answers A
-					INNER JOIN Questions Q on Q.ID=A.QuestionID
-					INNER JOIN QuestionSections QS on QS.ID=Q.SectionID
-					WHERE A.Finished=0 AND A.UserID=@userid AND A.EvaluationID=Ev.EvaluationID and A.State=Ev.State
-					ORDER BY A.Date DESC
-					) resumeFlag
 			OUTER APPLY (
 				SELECT case when count(*) >0 then 1 else 0 end as 'flagEvalAnswers' FROM ANSWERS 
 				WHERE EvaluationID=Ev.EvaluationID
@@ -344,11 +307,7 @@ class GoalsDAO{
 				END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
 				FROM ReportingLine WHERE
 				State>=
-				CASE
-					WHEN finished.flag=1 THEN ISNULL(Ev.State,0) + 1
-					WHEN Ev.State=6 THEN ISNULL(Ev.State,0) -1 -- for reviewer.
-					ELSE ISNULL(Ev.State,0)
-				END
+				CASE WHEN ISNULL(Ev.State,0) in (0,2) THEN 5 WHEN ISNULL(Ev.State,0) = 1 THEN 4 END
 				AND
 				empnotarget=@userid and empnosource=HR.empno
 				ORDER BY state asc
@@ -622,7 +581,7 @@ class GoalsDAO{
 			$queryString = "
 			UPDATE E
 			SET E.STATE = 0
-			OUTPUT Inserted.EvaluationID 
+			--OUTPUT Inserted.EvaluationID 
 			FROM dbo.Evaluations E
 			LEFT JOIN (select EvaluationID, COUNT(*) as answerCNT
 			   from dbo.Answers
@@ -633,41 +592,54 @@ class GoalsDAO{
 			$query = $this->connection->prepare($queryString);
 			$query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
 			$result["success"] = $query->execute();
-            $result["errorMessage"] = $query->errorInfo();
-            if ($result["errorMessage"][1]!=null){
-                return $result;
-            }
-			$query->setFetchMode(PDO::FETCH_ASSOC);
-			//$query->nextRowset();
-			$id = $query->fetch();
-			$evalid=$id["EvaluationID"];
-            $queryString = "
-            SELECT E.EvaluationID, E.State, CONVERT(DATETIME2(0),E.StateDate) as StateDate, S.StateDescription, yourAction.nstate as yourActionState, isnull(yourAction.yourAction, 'No Action') as yourActionStateDescr
-            FROM Evaluations E
-			INNER JOIN StateRef S on S.State=E.State
-			OUTER APPLY
-			(
-				SELECT TOP 1
-				CASE
-				WHEN state=4 THEN 'Complete as Dotted Line Manager'
-				WHEN state=5 THEN 'Complete as Evaluator' END
-					 as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
-				FROM ReportingLine
-				WHERE
-				state>= CASE WHEN ISNULL(E.State,0) in (0,1) THEN 4 WHEN ISNULL(E.State,0) = 2 THEN 5 END
-						AND empnotarget=:userid and empnosource=E.EmployeeID
-				ORDER BY state asc
-			) yourAction
-            WHERE E.EvaluationID = :evalid
-            ";
-            $query = $this->connection->prepare($queryString);
-			$query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
-			$query->bindValue(':userid', $userid, PDO::PARAM_STR);
-            $result["success"] = $query->execute();
-            $result["errorMessage"] = $query->errorInfo();
-            $query->setFetchMode(PDO::FETCH_ASSOC);
-            $result["evaluation"] = $query->fetch();
-            return $result;
+			$result["errorMessage"] = $query->errorInfo();
+			return $result;
+            // if ($result["errorMessage"][1]!=null){
+            //     return $result;
+            // }
+			// $query->setFetchMode(PDO::FETCH_ASSOC);
+			// //$query->nextRowset();
+			// $id = $query->fetch();
+			// $evalid=$id["EvaluationID"];
+            // $queryString = "
+            // SELECT E.EvaluationID, E.State, CONVERT(DATETIME2(0),E.StateDate) as StateDate, S.StateDescription, yourAction.nstate as yourActionState, isnull(yourAction.yourAction, 'No Action') as yourActionStateDescr
+            // FROM Evaluations E
+			// INNER JOIN StateRef S on S.State=E.State
+			// OUTER APPLY
+			// (
+			// 	SELECT TOP 1
+			// 	CASE
+			// 	WHEN state=4 THEN 'Complete as Dotted Line Manager'
+			// 	WHEN state=5 THEN 'Complete as Evaluator' END
+			// 		 as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+			// 	FROM ReportingLine
+			// 	WHERE
+			// 	state>= CASE WHEN ISNULL(E.State,0) in (0,2) THEN 5 WHEN ISNULL(E.State,0) = 1 THEN 4 END
+			// 			AND empnotarget=:userid and empnosource=E.EmployeeID
+			// 	ORDER BY state asc
+			// 	UNION
+			// 	SELECT TOP 1
+			// 	CASE
+			// 	WHEN state=4 THEN 'Complete as Dotted Line Manager'
+			// 	WHEN state=5 THEN 'Complete as Evaluator' END
+			// 		 as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+			// 	FROM ReportingLineExceptions
+			// 	WHERE
+			// 	state>= CASE WHEN ISNULL(E.State,0) in (0,2) THEN 5 WHEN ISNULL(E.State,0) = 1 THEN 4 END
+			// 			AND empnotarget=:userid1 and empnosource=E.EmployeeID
+			// 	ORDER BY state asc
+			// ) yourAction
+            // WHERE E.EvaluationID = :evalid
+            // ";
+            // $query = $this->connection->prepare($queryString);
+			// $query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
+			// $query->bindValue(':userid', $userid, PDO::PARAM_STR);
+			// $query->bindValue(':userid1', $userid, PDO::PARAM_STR);
+            // $result["success"] = $query->execute();
+            // $result["errorMessage"] = $query->errorInfo();
+            // $query->setFetchMode(PDO::FETCH_ASSOC);
+            // $result["evaluation"] = $query->fetch();
+            // return $result;
 	}
 
 

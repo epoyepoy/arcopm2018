@@ -1270,7 +1270,7 @@ class EvaluationsDAO{
 			$query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
 			$query->bindValue(':onbehalf', $onBehalf, PDO::PARAM_INT);
 			$result["success"] = $query->execute();
-            $result["errorMessage"] = $query->errorInfo();
+			$result["errorMessage"] = $query->errorInfo();
             if ($result["errorMessage"][1]!=null){
                 return $result;
             }
@@ -1278,32 +1278,118 @@ class EvaluationsDAO{
 			//$query->nextRowset();
 			$id = $query->fetch();
 			$evalid=$id["EvaluationID"];
-            $queryString = "
-            SELECT E.EvaluationID, E.State, CONVERT(DATETIME2(0),E.StateDate) as StateDate, S.StateDescription, yourAction.nstate as yourActionState, isnull(yourAction.yourAction, 'No Action') as yourActionStateDescr
-            FROM Evaluations E
-			INNER JOIN StateRef S on S.State=E.State
-			OUTER APPLY
-			(
-				SELECT TOP 1
-				CASE
-				WHEN state=4 THEN 'Complete as Dotted Line Manager'
-				WHEN state=5 THEN 'Complete as Evaluator' END
-					 as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
-				FROM ReportingLine
-				WHERE
-				state>= CASE WHEN ISNULL(E.State,0) in (0,1) THEN 4 WHEN ISNULL(E.State,0) = 2 THEN 5 END
-						AND empnotarget=:userid and empnosource=E.EmployeeID
-				ORDER BY state asc
-			) yourAction
-            WHERE E.EvaluationID = :evalid
-            ";
-            $query = $this->connection->prepare($queryString);
-			$query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
-			$query->bindValue(':userid', $userid, PDO::PARAM_STR);
-            $result["success"] = $query->execute();
-            $result["errorMessage"] = $query->errorInfo();
-            $query->setFetchMode(PDO::FETCH_ASSOC);
-            $result["evaluation"] = $query->fetch();
+		// 	$queryString = "
+		// 	Declare @empnotarget as varchar(5) =:userid;
+        //     SELECT E.EvaluationID, E.State, CONVERT(DATETIME2(0),E.StateDate) as StateDate, S.StateDescription, yourAction.nstate as yourActionState, isnull(yourAction.yourAction, 'No Action') as yourActionStateDescr
+        //     FROM Evaluations E
+		// 	INNER JOIN StateRef S on S.State=E.State
+		// 	OUTER APPLY
+		// 	(
+		// 		SELECT TOP 1
+		// 		CASE
+		// 		WHEN RL.state=4 THEN 'Complete as Dotted Line Manager'
+		// 		WHEN RL.state=5 THEN 'Complete as Evaluator' END
+		// 			 as yourAction, isnull(RL.wrongManager,0) as wrongManager, isnull(RL.state,0) as nstate,
+		// 			 CASE WHEN (ISNULL(E.State,0) in (0,2) AND yourEvalAction.estate=5 AND
+		// 			 CASE WHEN ISNULL(e.State,0) = 6 THEN 5 ELSE ISNULL(e.State,0) END <=yourEvalAction.estate
+		// 			 AND onBehalf.NoAsnwers=0)
+		// 					 THEN CASE
+		// 						 WHEN (ISNULL(E.State,0) in (0) AND CASE
+		// 																 WHEN isnull(E.empGrade,-1)=-1 THEN Hr.grade
+		// 																 ELSE E.empGrade
+		// 															 END >3 )
+		// 							 THEN 2
+		// 						 ELSE 1
+		// 					 END
+		// 				 WHEN -- For doted give action
+		// 				 yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
+		// 				 THEN 1
+		// 			 END AS  isForAction
+		// 		FROM ReportingLine RL
+		// 		OUTER APPLY (
+		// 			SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM Evaluations E
+		// 			WHERE State=0 AND UserID<>@empnotarget AND CycleID=E.CycleID and E.EmployeeID=rl.empnosource
+		// 			) onBehalf
+		// 		OUTER APPLY (
+		// 			SELECT isnull(state,0) as estate
+		// 			FROM ReportingLine WHERE
+		// 			State=5
+		// 			AND
+		// 			empnotarget=@empnotarget and empnosource=HR.empno
+		// 			) yourEvalAction
+		// 		OUTER APPLY (
+		// 			SELECT TOP 1  CASE WHEN state=4 THEN 'Complete as Dotted Line Manager'
+		// 			WHEN state=5 THEN CASE WHEN Ev.State=6 THEN 'Revise / Finalize as Evaluator' ELSE 'Complete as Evaluator' END
+		// 			END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+		// 			FROM ReportingLine WHERE
+		// 			State>=
+		// 			CASE WHEN ISNULL(Ev.State,0) in (0,2) THEN 5 WHEN ISNULL(Ev.State,0) = 1 THEN 4 END
+		// 			AND
+		// 			empnotarget=@empnotarget and empnosource=HR.empno
+		// 			ORDER BY state asc
+		// 			) yourNextAction
+		// 		WHERE
+		// 		state>= CASE WHEN ISNULL(E.State,0) in (0,2) THEN 5 WHEN ISNULL(E.State,0) = 1 THEN 4 END
+		// 				AND empnotarget=@empnotarget and empnosource=E.EmployeeID
+		// 		ORDER BY state asc
+		// 		UNION
+		// 		SELECT TOP 1
+		// 		CASE
+		// 		WHEN state=4 THEN 'Complete as Dotted Line Manager'
+		// 		WHEN state=5 THEN 'Complete as Evaluator' END
+		// 			 as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate,
+		// 			 CASE WHEN (ISNULL(Ev.State,0) in (0,2) AND yourEvalAction.estate=5 AND
+		// 			 CASE WHEN ISNULL(ev.State,0) = 6 THEN 5 ELSE ISNULL(ev.State,0) END <=yourEvalAction.estate
+		// 			 AND onBehalf.NoAsnwers=0)
+		// 					 THEN CASE
+		// 						 WHEN (ISNULL(Ev.State,0) in (0) AND CASE
+		// 																 WHEN isnull(Ev.empGrade,-1)=-1 THEN Hr.grade
+		// 																 ELSE Ev.empGrade
+		// 															 END >3 )
+		// 							 THEN 2
+		// 						 ELSE 1
+		// 					 END
+		// 				 WHEN -- For doted give action
+		// 				 yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
+		// 				 THEN 1
+		// 			 END AS  isForAction
+		// 		FROM ReportingLineExceptions
+		// 		OUTER APPLY (
+		// 			SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM Evaluations E
+		// 			WHERE State=0 AND UserID<>@empnotarget AND CycleID=E.CycleID and E.EmployeeID=rl.empnosource
+		// 			) onBehalf
+		// 		OUTER APPLY (
+		// 			SELECT isnull(state,0) as estate
+		// 			FROM ReportingLineExceptions WHERE
+		// 			State=5
+		// 			AND
+		// 			empnotarget=@empnotarget and empnosource=HR.empno
+		// 			) yourEvalAction
+		// 		OUTER APPLY (
+		// 			SELECT TOP 1  CASE WHEN state=4 THEN 'Complete as Dotted Line Manager'
+		// 			WHEN state=5 THEN CASE WHEN Ev.State=6 THEN 'Revise / Finalize as Evaluator' ELSE 'Complete as Evaluator' END
+		// 			END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+		// 			FROM ReportingLineExceptions WHERE
+		// 			State>=
+		// 			CASE WHEN ISNULL(Ev.State,0) in (0,2) THEN 5 WHEN ISNULL(Ev.State,0) = 1 THEN 4 END
+		// 			AND
+		// 			empnotarget=@empnotarget and empnosource=HR.empno
+		// 			ORDER BY state asc
+		// 			) yourNextAction
+		// 		WHERE
+		// 		state>= CASE WHEN ISNULL(E.State,0) in (0,2) THEN 5 WHEN ISNULL(E.State,0) = 1 THEN 4 END
+		// 				AND empnotarget=@empnotarget and empnosource=E.EmployeeID
+		// 		ORDER BY state asc
+		// 	) yourAction
+        //     WHERE E.EvaluationID = :evalid
+        //     ";
+        //     $query = $this->connection->prepare($queryString);
+		// 	$query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
+		// 	$query->bindValue(':userid', $userid, PDO::PARAM_STR);
+        //     $result["success"] = $query->execute();
+        //     $result["errorMessage"] = $query->errorInfo();
+        //     $query->setFetchMode(PDO::FETCH_ASSOC);
+           $result["evaluation"] = $evalid;
            return $result;
 	}
 

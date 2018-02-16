@@ -229,49 +229,71 @@ class EvaluationsDAO{
     public function getQuestions($evalID, $userid, $state)
 	{
 	 $queryString = "
-        Declare @state as int;
-        SELECT @state=:state;
-        Declare @userid as varchar(5);
-        SELECT @userid=:userid;
-        Declare @evalid as int;
-        SELECT @evalid=:evalid;
-		Declare @hasgGoals as int = (SELECT CASE WHEN count (*)>0 THEN 1 ELSE 0 END FROM Goals WHERE EvaluationID=@evalid) ;
+		DECLARE @CycleID AS INT, @grade AS INT, @hasGoals AS INT, @evalid AS INT=:evalid,@userid as varchar(5)=:userid,@state AS INT=:state, @isManager AS INT
+		
+		SELECT	@CycleID=E.CycleID, @hasGoals=HasGoals.flag, @isManager=E.ManagesTeam, @grade =CASE 
+							WHEN E.empGrade >=10 
+								THEN 10
+							WHEN E.empGrade <=3 
+								THEN 1
+							ELSE 4
+						END
+		FROM  EVALUATIONS E
+		
+		OUTER APPLY(
+		SELECT CASE WHEN count (*)>0 THEN 1 ELSE 0 END  AS flag FROM Goals WHERE EvaluationID=E.EvaluationID
+		)HasGoals
+		WHERE EvaluationID=@evalid
+		
+
 		SELECT Q.SectionID, QS.SectionNo, ISNULL(QS.SectionSuffix, '') as SectionSuffix, QS.SectionDescription, Q.ID as QuestionID, ROW_NUMBER() OVER(PARTITION BY Q.SectionID Order By Q.SectionID) as QuestionOrder, Q.Title,
         Q.QuestionDescripton, QG.AppliedGrade, QG.ExcelCellEndYear, QG.ExcelCellHalfYear, Q.QuestionTypeID,
         QT.Description, QT.TypeValues, Q.Fillinby, QG.isRequired,
 		A.Answer as answer,
 		PAEmp.Answer as EmpAnswer,
+		PADot.Answer AS DottedAvgAnswer,
 		PAEval.Answer as EvalAnswer,
 		PARiv.Answer as EvalRevision,
 		isnull(Q.NumberingOff,0) as NumberingOff
+
 		FROM Questions Q
         INNER JOIN QuestionTypes QT on QT.ID=Q.QuestionTypeID
         INNER JOIN QuestionSections QS ON QS.ID=Q.SectionID
         INNER JOIN QuestionConfig QG ON QG.QuestionID=Q.ID
+		INNER JOIN dbo.QuestionConfigCycle QCC ON QCC.QuestionConfigID=QG.ID AND QCC.CycleID=@CycleID --get questions available to specific cycle only
 		LEFT JOIN Answers A ON A.QuestionID=Q.ID AND A.EvaluationID=@evalid AND  A.State=@state AND  UserID=@userid
-		OUTER APPLY (
-			SELECT TOP 1 Answer, State FROM Answers WHERE State=3 AND EvaluationID=@evalid and QuestionID=q.ID ORDER BY Date DESC
-		) PAEmp
-		OUTER APPLY (
-			SELECT TOP 1 AE.Answer, AE.State FROM Answers AE
-			INNER JOIN dbo.Evaluations EE ON EE.EvaluationID=AE.EvaluationID
-			WHERE
-			AE.State=5 AND AE.EvaluationID=@evalid and AE.QuestionID=q.ID
-			AND EE.EmployeeID<>@userid --this is in order not to retrieve the evaluator's answer if you are the employee
-			ORDER BY Date DESC
-		) PAEval
-		OUTER APPLY (
-			SELECT TOP 1 Answer, State FROM Answers WHERE State=6 AND EvaluationID=@evalid and QuestionID=q.ID ORDER BY Date DESC
-		) PARiv
-        WHERE QG.AppliedGrade=(SELECT
-                    CASE
-                        WHEN E.empGrade >=10 THEN 10
-                        WHEN E.empGrade <=3 THEN 1
-                        ELSE 4
-                    END
-        FROM  EVALUATIONS E
-        WHERE (E.EvaluationID=@evalid AND E.ManagesTeam=0 AND Q.SectionID NOT IN (6)) OR( E.EvaluationID=@evalid AND E.ManagesTeam=1))
-        AND QS.ID NOT IN (SELECT SectionID FROM QuestionSectionsConfig WHERE state=@state) AND ( Q.SectionID NOT IN (CASE WHEN @hasgGoals=1 THEN '' ELSE 3 END))
+		
+		OUTER APPLY(
+		SELECT TOP 1 Answer, State FROM Answers WHERE State=3 AND EvaluationID=@evalid and QuestionID=q.ID ORDER BY Date DESC
+		)PAEmp
+		
+		OUTER APPLY(
+		SELECT CAST(ROUND(AVG(CAST(AD.Answer AS DECIMAL(3,2))),0) AS INT) AS Answer, AD.State FROM Answers AD
+		INNER JOIN dbo.Evaluations ED ON ED.EvaluationID=AD.EvaluationID
+		LEFT JOIN dbo.Questions QD ON AD.QuestionID=QD.ID
+		WHERE
+		QD.QuestionTypeID=1 AND --Get only answers with number in order to get the average.
+		AD.State=4 AND AD.EvaluationID=@evalid and AD.QuestionID=q.ID
+		AND ED.EmployeeID<>@userid --this is in order not to retrieve the dotted's answer if you are the employee
+		GROUP BY AD.QuestionID, AD.State
+		)PADot
+
+		OUTER APPLY(
+		SELECT TOP 1 AE.Answer, AE.State FROM Answers AE
+		INNER JOIN dbo.Evaluations EE ON EE.EvaluationID=AE.EvaluationID
+		WHERE
+		AE.State=5 AND AE.EvaluationID=@evalid and AE.QuestionID=q.ID
+		AND EE.EmployeeID<>@userid --this is in order not to retrieve the evaluator's answer if you are the employee
+		ORDER BY Date DESC
+		)PAEval
+
+		OUTER APPLY(
+		SELECT TOP 1 Answer, State FROM Answers WHERE State=6 AND EvaluationID=@evalid and QuestionID=q.ID ORDER BY Date DESC
+		)PARiv
+        
+		WHERE QG.AppliedGrade=@grade  
+			 AND QS.ID NOT IN (SELECT SectionID FROM QuestionSectionsConfig WHERE state=@state) 
+			 AND (Q.SectionID NOT IN (CASE WHEN @hasGoals=1 THEN '' ELSE 3 END, CASE WHEN @isManager=1 THEN '' ELSE 5 END)) --validate for goals section and for leadership section
         ORDER BY Q.SectionID, Q.QuestionOrder
         ";
         $query = $this->connection->prepare($queryString);
@@ -363,7 +385,7 @@ class EvaluationsDAO{
 		 ) GoalsStatus
 
 		WHERE
-		QG.AppliedGrade=eval.empGrade AND ((eval.ManagesTeam=0 AND Q.SectionID NOT IN (6)) OR (eval.ManagesTeam=1)) AND ( Q.SectionID NOT IN (CASE WHEN @hasgGoals=1 THEN '' ELSE 3 END))
+		QG.AppliedGrade=eval.empGrade AND ((eval.ManagesTeam=0 AND Q.SectionID NOT IN (5)) OR (eval.ManagesTeam=1)) AND ( Q.SectionID NOT IN (CASE WHEN @hasgGoals=1 THEN '' ELSE 3 END))
 		AND QS.ID NOT IN (SELECT SectionID FROM QuestionSectionsConfig WHERE state=@state)
 		ORDER BY 7 ASC
         ";

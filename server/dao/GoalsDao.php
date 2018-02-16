@@ -24,17 +24,31 @@ class GoalsDAO{
 		WHEN G.State=1 THEN 'By Dotted'
 		WHEN G.State=2 THEN 'By Evaluator'
 		END as AddedByRole,
-				A.Answer as EmpAchievement,
-				AE.Answer as EvalAchievement,
-				AR.Answer as RevAchievement 
-				FROM dbo.GOALS G
-		        INNER JOIN Evaluations E ON E.EvaluationID=G.EvaluationID 
-				INNER JOIN GoalAttributes GA on GA.AttributeCode=G.AttributeCode
-				LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=G.UserID
-				LEFT JOIN Answers A ON A.GoalID=G.GoalID AND A.State=3
-				LEFT JOIN Answers AE ON AE.GoalID=G.GoalID AND AE.State=5 AND E.EmployeeID<>@userid --this is in order not to retrieve the evaluator's answer if you are the employee
-				LEFT JOIN Answers AR ON AR.GoalID=G.GoalID AND AR.State=6 AND (E.EmployeeID<>@userid OR (E.State=7 AND AR.Finished=1)) 
-				WHERE G.EvaluationID=@evalid AND G.State=2
+		A.Answer as EmpAchievement,
+		PADot.Answer AS DottedAvgAnswer,
+		AE.Answer as EvalAchievement,
+		AR.Answer as RevAchievement 
+
+		FROM dbo.GOALS G
+		INNER JOIN Evaluations E ON E.EvaluationID=G.EvaluationID 
+		INNER JOIN GoalAttributes GA on GA.AttributeCode=G.AttributeCode
+		LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=G.UserID
+		LEFT JOIN Answers A ON A.GoalID=G.GoalID AND A.State=3
+		LEFT JOIN Answers AE ON AE.GoalID=G.GoalID AND AE.State=5 AND E.EmployeeID<>@userid --this is in order not to retrieve the evaluator's answer if you are the employee
+		LEFT JOIN Answers AR ON AR.GoalID=G.GoalID AND AR.State=6 AND (E.EmployeeID<>@userid OR (E.State=7 AND AR.Finished=1)) 
+				
+		OUTER APPLY(
+		SELECT CAST(ROUND(AVG(CAST(AD.Answer AS DECIMAL(5,2))),0) AS INT) AS Answer, AD.State 
+		FROM Answers AD
+		INNER JOIN dbo.Evaluations ED ON ED.EvaluationID=AD.EvaluationID
+		WHERE
+		ISNULL(AD.GoalID,0)=G.GoalID AND
+		AD.State=4 AND AD.EvaluationID=@evalid
+		AND ED.EmployeeID<>@userid --this is in order not to retrieve the dotted's answer if you are the employee
+		GROUP BY AD.GoalID, AD.State
+		)PADot
+
+		WHERE G.EvaluationID=@evalid AND G.State=2
 		";
         $query = $this->connection->prepare($queryString);
         $query->bindValue(':userid', $userid, PDO::PARAM_STR);

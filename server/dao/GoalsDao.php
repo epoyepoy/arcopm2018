@@ -107,9 +107,8 @@ class GoalsDAO{
 	public function getUsersToSetGoals($userid, $cycleid)
 	{
 		$queryString="
-		Declare @cycleid as int=:cycleid;
-        Declare @userid as varchar(5)=:userid;
-		DECLARE @hasExc	AS INT=(SELECT COUNT(*) FROM dbo.ReportingLineExceptions WHERE empnotarget=@userid AND goalCycle=@cycleid)
+		DECLARE @cycleid as int=:cycleid, @userid as varchar(5)=:userid;
+		DECLARE @hasExc AS INT=(SELECT COUNT(*) FROM dbo.ReportingLineExceptions WHERE empnotarget=@userid AND goalCycle=@cycleid);
 		IF @hasExc>0
 		BEGIN
 			SELECT EvCycle.ID as CycleID, EvCycle.CycleDescription, EvCycle.goalsInputStatus, Ev.ManagesTeam, RL.empnosource AS Empno, HR.job_desc,
@@ -141,7 +140,7 @@ class GoalsDAO{
 				yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
 				THEN 1
 			END AS  isForAction, 
-			HasDotted.HasDottedFlag
+			HasDotted.HasDottedFlag, UserRelationship.RelationshipState
 
 	        FROM dbo.ReportingLine RL
 			LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
@@ -197,6 +196,10 @@ class GoalsDAO{
 			SELECT CASE WHEN COUNT(*) > 1 THEN 1 ELSE 0 END AS HasDottedFlag FROM dbo.ReportingLine WHERE empnosource=rl.empnosource AND state=4
 			)HasDotted
 
+			OUTER APPLY(
+			SELECT TOP 1 state RelationshipState FROM dbo.ReportingLine WHERE empnosource=rl.empnosource AND empnotarget=@userid
+			)UserRelationship
+
 	        WHERE RL.empnotarget=@userid AND ISNULL(RL.excludeFromCycles,0)<>@cycleid --AND RL.state=5
 			AND Rl.empnosource NOT IN (SELECT RLE2.empnosource FROM dbo.ReportingLineExceptions RLE2 --exclude employees that are in the ReportingLineException, keep employee in case user is
 			INNER JOIN dbo.ReportingLine RL2 ON RL2.empnosource=RLE2.empnosource AND  RLE2.state=5 WHERE RL2.empnotarget=@userid AND RLE2.empnotarget<>@userid AND RLE2.goalCycle=@cycleid)
@@ -232,7 +235,7 @@ class GoalsDAO{
 					yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
 				THEN 1
 			END AS  isForAction, 
-			HasDotted.HasDottedFlag
+			HasDotted.HasDottedFlag, UserRelationship.RelationshipState
 
 	        FROM dbo.ReportingLineExceptions RL
 			LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
@@ -288,6 +291,10 @@ class GoalsDAO{
 			SELECT CASE WHEN COUNT(*) > 1 THEN 1 ELSE 0 END AS HasDottedFlag FROM dbo.ReportingLineExceptions WHERE empnosource=rl.empnosource AND state=4
 			)HasDotted
 
+			OUTER APPLY(
+			SELECT TOP 1 state RelationshipState FROM dbo.ReportingLineExceptions WHERE empnosource=rl.empnosource AND empnotarget=@userid
+			)UserRelationship
+
 			WHERE RL.empnotarget=@userid --AND RL.state=5 --AND ISNULL(RL.excludeFromCycles,0)<>@cycleid
 			ORDER BY HR.grade ASC
 		END
@@ -326,7 +333,7 @@ class GoalsDAO{
 					yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
 				THEN 1
 			END AS  isForAction, 
-			HasDotted.HasDottedFlag
+			HasDotted.HasDottedFlag, UserRelationship.RelationshipState
 
 	        FROM dbo.ReportingLine RL
 			LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
@@ -377,6 +384,10 @@ class GoalsDAO{
 			OUTER APPLY(
 			SELECT CASE WHEN COUNT(*) > 1 THEN 1 ELSE 0 END AS HasDottedFlag FROM dbo.ReportingLine WHERE empnosource=rl.empnosource AND state=4
 			)HasDotted
+
+			OUTER APPLY(
+			SELECT TOP 1 state RelationshipState FROM dbo.ReportingLine WHERE empnosource=rl.empnosource AND empnotarget=@userid
+			)UserRelationship
 
 	        WHERE RL.empnotarget=@userid AND ISNULL(RL.excludeFromCycles,0)<>@cycleid --AND RL.state=5
 			AND RL.empnosource NOT IN (SELECT RLE2.empnosource FROM dbo.ReportingLineExceptions RLE2 --exclude employees that are in the ReportingLineException, keep employee in case user is

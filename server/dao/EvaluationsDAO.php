@@ -229,7 +229,7 @@ class EvaluationsDAO{
     public function getQuestions($evalID, $userid, $state)
 	{
 	 $queryString = "
-		DECLARE @CycleID AS INT, @grade AS INT, @hasGoals AS INT, @evalid AS INT=:evalid,@userid as varchar(5)=userid,@state AS INT=:state, @isManager AS INT,@empEval AS VARCHAR(5); 
+		DECLARE @CycleID AS INT, @grade AS INT, @hasGoals AS INT, @evalid AS INT=:evalid,@userid as varchar(5)=:userid,@state AS INT=:state, @isManager AS INT,@empEval AS VARCHAR(5); 
 		
 		SELECT	@CycleID=E.CycleID, @empEval=RL.empnotarget, @hasGoals=HasGoals.flag, @isManager=E.ManagesTeam, @grade =CASE 
 							WHEN E.empGrade >=10 

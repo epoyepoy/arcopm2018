@@ -275,6 +275,7 @@ class EvaluationsDAO{
 		WHERE
 		QD.QuestionTypeID=1 AND --Get only answers with number in order to get the average.
 		AD.State=4 AND AD.EvaluationID=@evalid and AD.QuestionID=q.ID AND
+		
 			(--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
 			1= CASE WHEN ED.State>4 AND @userid=@empEval THEN 1 END 
 			OR 
@@ -295,6 +296,15 @@ class EvaluationsDAO{
 		AND EE.EmployeeID<>@userid --this is in order not to retrieve the evaluator's answer if you are the employee
 		ORDER BY Date DESC
 		)PAEval
+
+		OUTER APPLY(
+		SELECT TOP 1 Answer, State FROM Answers WHERE State=6 AND EvaluationID=@evalid and QuestionID=q.ID ORDER BY Date DESC
+		)PARiv
+        
+		WHERE QG.AppliedGrade=@grade  
+			 AND QS.ID NOT IN (SELECT SectionID FROM QuestionSectionsConfig WHERE state=@state) 
+			 AND (Q.SectionID NOT IN (CASE WHEN @hasGoals=1 THEN '' ELSE 3 END, CASE WHEN @isManager=1 THEN '' ELSE 5 END)) --validate for goals section and for leadership section
+        ORDER BY Q.SectionID, Q.QuestionOrder
         ";
         $query = $this->connection->prepare($queryString);
         $query->bindValue(':evalid', $evalID, PDO::PARAM_INT);

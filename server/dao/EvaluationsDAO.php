@@ -407,15 +407,28 @@ class EvaluationsDAO{
 	public function getEvaluationScores($evalID, $userid, $state)
    {
 	$queryString = "
-		Declare @state as int;
-		SELECT @state=:state;
-		Declare @userid as varchar(5);
-		SELECT @userid=:userid;
-		Declare @evalid as int;
-		SELECT @evalid=:evalid;
-		Declare @hasgGoals as int = (SELECT CASE WHEN count (*)>0 THEN 1 ELSE 0 END FROM Goals WHERE EvaluationID=@evalid) ;
+		DECLARE @userid as varchar(5)=:userid, @evalid as int=:evalid, @hasgGoals as INT, @empEval AS VARCHAR(5); 
+		SELECT @hasgGoals = CASE WHEN count (G.GoalID)>0 THEN 1 ELSE 0 END,  @empEval=RL.empnotarget
+		FROM Goals G 
+		INNER JOIN dbo.Evaluations E ON E.EvaluationID=G.EvaluationID
+		INNER JOIN dbo.ReportingLine RL ON RL.empnosource=E.EmployeeID AND RL.state=5
+		WHERE G.EvaluationID=@evalid
+		GROUP BY RL.empnotarget;
+		
+		--First Get the response from all Dotted Scores for goals
+		WITH CTE_GScores (UserID,Score)
+			AS (	
+				SELECT 
+				A2.UserID, CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
+				FROM dbo.Answers A2
+				INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
+				WHERE A2.EvaluationID=@evalid AND A2.State=4 AND A2.Answer <> '0' --AND A2.UserID=@userid
+				GROUP BY a2.UserID
+				)
+
 		SELECT DISTINCT	E.EvaluationID, 3 AS SectionID, QS.SectionDescription, QSW.weight as ScoreWeight,
 	 	EmpAnswers.WeightedScore AS EmpScore,
+		DotAnswers.WeightedScore AS DotScore,
 		EvalAnswers.WeightedScore AS EvalScore,
 		RevAnswers.WeightedScore AS RevScore
 		FROM dbo.Answers A
@@ -423,58 +436,96 @@ class EvaluationsDAO{
 		INNER JOIN dbo.QuestionSections QS ON QS.ID=3
 		INNER JOIN Evaluations E on E.EvaluationID=A.EvaluationID
 		INNER JOIN QuestionSectionWeights QSW on QS.ID=QSW.sectionid AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasgGoals
-		OUTER APPLY (
-					SELECT --CAST(SUM((CAST(G2.Weight as decimal(5,2))/100) * CAST(A2.Answer as decimal(5,2))) AS DECIMAL(5,2)) AS WeightedScore
-					--CAST([dbo].[ConvertGoalScore](sum((G2.Weight/100) * cast(A2.Answer as integer))) AS DECIMAL(5,2)) AS WeightedScore
-					CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
-					FROM dbo.Answers A2
-					INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
-					WHERE A2.EvaluationID=E.EvaluationID AND A2.State=3
-				) EmpAnswers
-		OUTER APPLY (
-					SELECT --CAST(SUM((CAST(G2.Weight as decimal(5,2))/100) * CAST(A2.Answer as decimal(5,2))) AS DECIMAL(5,2)) AS WeightedScore
-					--CAST(SUM([dbo].[ConvertGoalScore](G2.Weight, A2.Answer)) AS DECIMAL(5,2)) AS WeightedScore
-					CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
-					FROM dbo.Answers A2
-					INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
-					WHERE A2.EvaluationID=E.EvaluationID AND A2.State=5
-					AND E.EmployeeID<>@userid --this is in order not to retrieve the evaluator's answer if you are the employee
-				) EvalAnswers
-		OUTER APPLY (
-					SELECT --CAST(SUM((CAST(G2.Weight as decimal(5,2))/100) * CAST(A2.Answer as decimal(5,2))) AS DECIMAL(5,2)) AS WeightedScore
-					--CAST(SUM([dbo].[ConvertGoalScore](G2.Weight, A2.Answer)) AS DECIMAL(5,2)) AS WeightedScore
-					CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
-					FROM dbo.Answers A2
-					INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
-					WHERE A2.EvaluationID=E.EvaluationID AND A2.State=6 AND (E.EmployeeID<>@userid OR (E.State=7 AND A2.Finished=1)) --this is in order not to retrieve the evaluator's answer if you are the employee
-				) RevAnswers
+		
+		OUTER APPLY(
+		SELECT 
+		CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
+		FROM dbo.Answers A2
+		INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
+		WHERE A2.EvaluationID=E.EvaluationID AND A2.State=3
+		)EmpAnswers
+		
+		OUTER APPLY(
+		SELECT CAST(AVG (CTE_GScores.Score) AS DECIMAL(5,2)) AS WeightedScore 
+		FROM CTE_GScores
+		WHERE 
+		--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
+		1= CASE WHEN E.State>4 AND E.EmployeeID<>@userid AND @userid = @empEval THEN 1 END
+		OR 
+		-- When Complete to see Average of all Scores
+		1= CASE WHEN E.State=7 THEN 1 END 
+		OR 
+		--For dotted to see only their score before its compelte
+		CTE_GScores.UserID =@userid AND E.State<7
+		)DotAnswers
+
+		OUTER APPLY(
+		SELECT 
+		CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
+		FROM dbo.Answers A2
+		INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
+		WHERE A2.EvaluationID=E.EvaluationID AND A2.State=5
+		AND E.EmployeeID<>@userid --this is in order NOT to retrieve the evaluator's answer if you are the employee
+		)EvalAnswers
+		
+		OUTER APPLY(
+		SELECT 
+		CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
+		FROM dbo.Answers A2
+		INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
+		WHERE A2.EvaluationID=E.EvaluationID AND A2.State=6 AND (E.EmployeeID<>@userid OR (E.State=7 AND A2.Finished=1)) --this is in order NOT to retrieve the evaluator's answer if you are the employee
+		)RevAnswers
+		
 		WHERE A.EvaluationID=@evalid
+		
 		UNION
-		SELECT DISTINCT	E.EvaluationID, Q.SectionID, QS.SectionDescription,QSW.weight as ScoreWeight, EmpAnswers.Score AS EmpScore, EvalAnswers.Score AS EvalScore,
+		
+		SELECT DISTINCT	E.EvaluationID, Q.SectionID, QS.SectionDescription,QSW.weight as ScoreWeight, EmpAnswers.Score AS EmpScore, DotAnswers.Score AS DotScore, EvalAnswers.Score AS EvalScore,
 		RevAnswers.Score AS RevScore
 		FROM dbo.Answers A
 		INNER JOIN dbo.Questions Q ON Q.ID=A.QuestionID
 		INNER JOIN dbo.QuestionSections QS ON QS.ID=Q.SectionID
 		INNER JOIN Evaluations E on E.EvaluationID=A.EvaluationID
 		INNER JOIN QuestionSectionWeights QSW on QS.ID=QSW.sectionid AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasgGoals
+		
+		OUTER APPLY(
+		SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
+		INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
+		WHERE A2.EvaluationID=E.EvaluationID AND A2.State=3 AND	Q2.SectionID=Q.SectionID
+		)EmpAnswers
+		
 		OUTER APPLY (
-					SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
-					INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
-					WHERE A2.EvaluationID=E.EvaluationID AND A2.State=3 AND	Q2.SectionID=Q.SectionID
-				) EmpAnswers
+		SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
+		INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
+		WHERE A2.EvaluationID=E.EvaluationID AND A2.State=4 AND	Q2.SectionID=Q.SectionID
+		AND 
+		(   
+		--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
+		1= CASE WHEN E.State>4 AND E.EmployeeID<>@userid AND @userid =@empEval THEN 1 END 
+		OR 
+		-- When Complete to see Average of all Scores
+		1= CASE WHEN E.State=7 THEN 1 END 
+		OR 
+		--For dotted to see only their score before its compelte
+		a2.UserID=@userid AND E.State<7
+		)--E.EmployeeID<>@userid --this is in order NOT to retrieve the evaluator's answer if you are the employee
+		)DotAnswers
+		
 		OUTER APPLY (
-					SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
-					INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
-					WHERE A2.EvaluationID=E.EvaluationID AND A2.State=5 AND	Q2.SectionID=Q.SectionID
-					AND E.EmployeeID<>@userid --this is in order not to retrieve the evaluator's answer if you are the employee
-				) EvalAnswers
+		SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
+		INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
+		WHERE A2.EvaluationID=E.EvaluationID AND A2.State=5 AND	Q2.SectionID=Q.SectionID
+		AND E.EmployeeID<>@userid --this is in order NOT to retrieve the evaluator's answer if you are the employee
+		)EvalAnswers
+		
 		OUTER APPLY (
-					SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
-					INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
-					WHERE A2.EvaluationID=E.EvaluationID AND A2.State=6 AND	Q2.SectionID=Q.SectionID
-					AND 1 = CASE WHEN E.EmployeeID=@userid AND E.State=7 THEN 1 WHEN E.EmployeeID<>@userid THEN 1 ELSE 0 END
-					--AND E.EmployeeID<>@userid --this is in order not to retrieve the evaluator's answer if you are the employee
-				) RevAnswers
+		SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
+		INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
+		WHERE A2.EvaluationID=E.EvaluationID AND A2.State=6 AND	Q2.SectionID=Q.SectionID
+		AND 1 = CASE WHEN E.EmployeeID=@userid AND E.State=7 THEN 1 WHEN E.EmployeeID<>@userid THEN 1 ELSE 0 END
+		--AND E.EmployeeID<>@userid --this is in order NOT to retrieve the evaluator's answer if you are the employee
+		)RevAnswers
+		
 		WHERE QS.HasScore=1 AND A.EvaluationID=@evalid;
 	   ";
 	   $query = $this->connection->prepare($queryString);

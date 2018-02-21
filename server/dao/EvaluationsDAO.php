@@ -229,9 +229,9 @@ class EvaluationsDAO{
     public function getQuestions($evalID, $userid, $state)
 	{
 	 $queryString = "
-		DECLARE @CycleID AS INT, @grade AS INT, @hasGoals AS INT, @evalid AS INT=:evalid,@userid as varchar(5)=:userid,@state AS INT=:state, @isManager AS INT
+		DECLARE @CycleID AS INT, @grade AS INT, @hasGoals AS INT, @evalid AS INT=:evalid,@userid as varchar(5)=userid,@state AS INT=:state, @isManager AS INT,@empEval AS VARCHAR(5); 
 		
-		SELECT	@CycleID=E.CycleID, @hasGoals=HasGoals.flag, @isManager=E.ManagesTeam, @grade =CASE 
+		SELECT	@CycleID=E.CycleID, @empEval=RL.empnotarget, @hasGoals=HasGoals.flag, @isManager=E.ManagesTeam, @grade =CASE 
 							WHEN E.empGrade >=10 
 								THEN 10
 							WHEN E.empGrade <=3 
@@ -239,7 +239,8 @@ class EvaluationsDAO{
 							ELSE 4
 						END
 		FROM  EVALUATIONS E
-		
+		INNER JOIN dbo.ReportingLine RL ON RL.empnosource=E.EmployeeID AND RL.state=5
+
 		OUTER APPLY(
 		SELECT CASE WHEN count (*)>0 THEN 1 ELSE 0 END  AS flag FROM Goals WHERE EvaluationID=E.EvaluationID
 		)HasGoals
@@ -270,11 +271,19 @@ class EvaluationsDAO{
 		OUTER APPLY(
 		SELECT CAST(ROUND(AVG(CAST(AD.Answer AS DECIMAL(3,2))),0) AS INT) AS Answer, AD.State FROM Answers AD
 		INNER JOIN dbo.Evaluations ED ON ED.EvaluationID=AD.EvaluationID
-		LEFT JOIN dbo.Questions QD ON AD.QuestionID=QD.ID
+		INNER JOIN dbo.Questions QD ON AD.QuestionID=QD.ID
 		WHERE
 		QD.QuestionTypeID=1 AND --Get only answers with number in order to get the average.
-		AD.State=4 AND AD.EvaluationID=@evalid and AD.QuestionID=q.ID
-		AND ED.EmployeeID<>@userid --this is in order not to retrieve the dotted's answer if you are the employee
+		AD.State=4 AND AD.EvaluationID=@evalid and AD.QuestionID=q.ID AND
+			(--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
+			1= CASE WHEN ED.State>4 AND @userid=@empEval THEN 1 END 
+			OR 
+			-- When Complete to see Average of all Scores
+			1= CASE WHEN ED.State=7 THEN 1 END 
+			OR 
+			--For dotted to see only their score before its compelte
+			AD.UserID=@userid AND ED.State<7
+			)
 		GROUP BY AD.QuestionID, AD.State
 		)PADot
 
@@ -286,15 +295,6 @@ class EvaluationsDAO{
 		AND EE.EmployeeID<>@userid --this is in order not to retrieve the evaluator's answer if you are the employee
 		ORDER BY Date DESC
 		)PAEval
-
-		OUTER APPLY(
-		SELECT TOP 1 Answer, State FROM Answers WHERE State=6 AND EvaluationID=@evalid and QuestionID=q.ID ORDER BY Date DESC
-		)PARiv
-        
-		WHERE QG.AppliedGrade=@grade  
-			 AND QS.ID NOT IN (SELECT SectionID FROM QuestionSectionsConfig WHERE state=@state) 
-			 AND (Q.SectionID NOT IN (CASE WHEN @hasGoals=1 THEN '' ELSE 3 END, CASE WHEN @isManager=1 THEN '' ELSE 5 END)) --validate for goals section and for leadership section
-        ORDER BY Q.SectionID, Q.QuestionOrder
         ";
         $query = $this->connection->prepare($queryString);
         $query->bindValue(':evalid', $evalID, PDO::PARAM_INT);
@@ -450,7 +450,7 @@ class EvaluationsDAO{
 		FROM CTE_GScores
 		WHERE 
 		--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
-		1= CASE WHEN E.State>4 AND E.EmployeeID<>@userid AND @userid = @empEval THEN 1 END
+		1= CASE WHEN E.State>4 AND @userid = @empEval THEN 1 END
 		OR 
 		-- When Complete to see Average of all Scores
 		1= CASE WHEN E.State=7 THEN 1 END 
@@ -499,16 +499,16 @@ class EvaluationsDAO{
 		INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
 		WHERE A2.EvaluationID=E.EvaluationID AND A2.State=4 AND	Q2.SectionID=Q.SectionID
 		AND 
-		(   
-		--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
-		1= CASE WHEN E.State>4 AND E.EmployeeID<>@userid AND @userid =@empEval THEN 1 END 
-		OR 
-		-- When Complete to see Average of all Scores
-		1= CASE WHEN E.State=7 THEN 1 END 
-		OR 
-		--For dotted to see only their score before its compelte
-		a2.UserID=@userid AND E.State<7
-		)--E.EmployeeID<>@userid --this is in order NOT to retrieve the evaluator's answer if you are the employee
+			(   
+			--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
+			1= CASE WHEN E.State>4 AND @userid =@empEval THEN 1 END 
+			OR 
+			-- When Complete to see Average of all Scores
+			1= CASE WHEN E.State=7 THEN 1 END 
+			OR 
+			--For dotted to see only their score before its compelte
+			a2.UserID=@userid AND E.State<7
+			)
 		)DotAnswers
 		
 		OUTER APPLY (

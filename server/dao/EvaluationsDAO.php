@@ -425,118 +425,205 @@ class EvaluationsDAO{
 		WHERE G.EvaluationID=@evalid
 		GROUP BY RL.empnotarget;
 		
-		--First Get the response from all Dotted Scores for goals
-		WITH CTE_GScores (UserID,Score)
-			AS (	
-				SELECT 
-				A2.UserID, CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
-				FROM dbo.Answers A2
-				INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
-				WHERE A2.EvaluationID=@evalid AND A2.State=4 AND A2.Answer <> '0' --AND A2.UserID=@userid
-				GROUP BY a2.UserID
-				)
+		IF @state<7
+		BEGIN
+			--First Get the response from all Dotted Scores for goals
+			WITH CTE_GScores (UserID,Score)
+				AS (	
+					SELECT 
+					A2.UserID, CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
+					FROM dbo.Answers A2
+					INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
+					WHERE A2.EvaluationID=@evalid AND A2.State=4 AND A2.Answer <> '0' --AND A2.UserID=@userid
+					GROUP BY a2.UserID
+					)
 
-		SELECT DISTINCT	E.EvaluationID, 3 AS SectionID, QS.SectionDescription, QSW.weight as ScoreWeight,
-	 	EmpAnswers.WeightedScore AS EmpScore,
-		DotAnswers.WeightedScore AS DotScore,
-		EvalAnswers.WeightedScore AS EvalScore,
-		RevAnswers.WeightedScore AS RevScore
-		FROM dbo.Answers A
-		INNER JOIN dbo.Goals G ON G.GoalID=A.GoalID
-		INNER JOIN dbo.QuestionSections QS ON QS.ID=3
-		INNER JOIN Evaluations E on E.EvaluationID=A.EvaluationID
-		INNER JOIN QuestionSectionWeights QSW on QS.ID=QSW.sectionid AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasgGoals
+			SELECT DISTINCT	E.EvaluationID, 3 AS SectionID, QS.SectionDescription, QSW.weight as ScoreWeight,
+	 		EmpAnswers.WeightedScore AS EmpScore,
+			DotAnswers.WeightedScore AS DotScore,
+			EvalAnswers.WeightedScore AS EvalScore,
+			RevAnswers.WeightedScore AS RevScore
+			FROM dbo.Answers A
+			INNER JOIN dbo.Goals G ON G.GoalID=A.GoalID
+			INNER JOIN dbo.QuestionSections QS ON QS.ID=3
+			INNER JOIN Evaluations E on E.EvaluationID=A.EvaluationID
+			INNER JOIN QuestionSectionWeights QSW on QS.ID=QSW.sectionid AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasgGoals
 		
-		OUTER APPLY(
-		SELECT 
-		CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
-		FROM dbo.Answers A2
-		INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
-		WHERE A2.EvaluationID=E.EvaluationID AND A2.State=3
-		)EmpAnswers
+			OUTER APPLY(
+			SELECT 
+			CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
+			FROM dbo.Answers A2
+			INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
+			WHERE A2.EvaluationID=E.EvaluationID AND A2.State=3
+			)EmpAnswers
 		
-		OUTER APPLY(
-		SELECT CAST(AVG (CTE_GScores.Score) AS DECIMAL(5,2)) AS WeightedScore 
-		FROM CTE_GScores
-		WHERE 
-		--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
-		1= CASE WHEN E.State>4 AND @userid = @empEval THEN 1 END
-		OR 
-		-- When Complete to see Average of all Scores
-		1= CASE WHEN E.State=7 THEN 1 END 
-		OR 
-		--For dotted to see only their score before its compelte
-		CTE_GScores.UserID =@userid AND E.State<7
-		)DotAnswers
-
-		OUTER APPLY(
-		SELECT 
-		CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
-		FROM dbo.Answers A2
-		INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
-		WHERE A2.EvaluationID=E.EvaluationID AND A2.State=5
-		AND E.EmployeeID<>@userid --this is in order NOT to retrieve the evaluator's answer if you are the employee
-		)EvalAnswers
-		
-		OUTER APPLY(
-		SELECT 
-		CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
-		FROM dbo.Answers A2
-		INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
-		WHERE A2.EvaluationID=E.EvaluationID AND A2.State=6 AND (E.EmployeeID<>@userid OR (E.State=7 AND A2.Finished=1)) --this is in order NOT to retrieve the evaluator's answer if you are the employee
-		)RevAnswers
-		
-		WHERE A.EvaluationID=@evalid
-		
-		UNION
-		
-		SELECT DISTINCT	E.EvaluationID, Q.SectionID, QS.SectionDescription,QSW.weight as ScoreWeight, EmpAnswers.Score AS EmpScore, DotAnswers.Score AS DotScore, EvalAnswers.Score AS EvalScore,
-		RevAnswers.Score AS RevScore
-		FROM dbo.Answers A
-		INNER JOIN dbo.Questions Q ON Q.ID=A.QuestionID
-		INNER JOIN dbo.QuestionSections QS ON QS.ID=Q.SectionID
-		INNER JOIN Evaluations E on E.EvaluationID=A.EvaluationID
-		INNER JOIN QuestionSectionWeights QSW on QS.ID=QSW.sectionid AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasgGoals
-		
-		OUTER APPLY(
-		SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
-		INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
-		WHERE A2.EvaluationID=E.EvaluationID AND A2.State=3 AND	Q2.SectionID=Q.SectionID
-		)EmpAnswers
-		
-		OUTER APPLY (
-		SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
-		INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
-		WHERE A2.EvaluationID=E.EvaluationID AND A2.State=4 AND	Q2.SectionID=Q.SectionID
-		AND 
-			(   
+			OUTER APPLY(
+			SELECT CAST(AVG (CTE_GScores.Score) AS DECIMAL(5,2)) AS WeightedScore 
+			FROM CTE_GScores
+			WHERE 
 			--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
-			1= CASE WHEN E.State>4 AND @userid =@empEval THEN 1 END 
+			1= CASE WHEN E.State>4 AND @userid = @empEval THEN 1 END
 			OR 
 			-- When Complete to see Average of all Scores
 			1= CASE WHEN E.State=7 THEN 1 END 
 			OR 
 			--For dotted to see only their score before its compelte
-			a2.UserID=@userid AND E.State<7
-			)
-		)DotAnswers
+			CTE_GScores.UserID =@userid AND E.State<7
+			)DotAnswers
+
+			OUTER APPLY(
+			SELECT 
+			CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
+			FROM dbo.Answers A2
+			INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
+			WHERE A2.EvaluationID=E.EvaluationID AND A2.State=5
+			AND E.EmployeeID<>@userid --this is in order NOT to retrieve the evaluator's answer if you are the employee
+			)EvalAnswers
 		
-		OUTER APPLY (
-		SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
-		INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
-		WHERE A2.EvaluationID=E.EvaluationID AND A2.State=5 AND	Q2.SectionID=Q.SectionID
-		AND E.EmployeeID<>@userid --this is in order NOT to retrieve the evaluator's answer if you are the employee
-		)EvalAnswers
+			OUTER APPLY(
+			SELECT 
+			CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
+			FROM dbo.Answers A2
+			INNER JOIN dbo.Goals G2 on G2.GoalID=A2.GoalID
+			WHERE A2.EvaluationID=E.EvaluationID AND A2.State=6 AND (E.EmployeeID<>@userid OR (E.State=7 AND A2.Finished=1)) --this is in order NOT to retrieve the evaluator's answer if you are the employee
+			)RevAnswers
 		
-		OUTER APPLY (
-		SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
-		INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
-		WHERE A2.EvaluationID=E.EvaluationID AND A2.State=6 AND	Q2.SectionID=Q.SectionID
-		AND 1 = CASE WHEN E.EmployeeID=@userid AND E.State=7 THEN 1 WHEN E.EmployeeID<>@userid THEN 1 ELSE 0 END
-		--AND E.EmployeeID<>@userid --this is in order NOT to retrieve the evaluator's answer if you are the employee
-		)RevAnswers
+			WHERE A.EvaluationID=@evalid
 		
-		WHERE QS.HasScore=1 AND A.EvaluationID=@evalid;
+			UNION
+		
+			SELECT DISTINCT	E.EvaluationID, Q.SectionID, QS.SectionDescription,QSW.weight as ScoreWeight, EmpAnswers.Score AS EmpScore, DotAnswers.Score AS DotScore, EvalAnswers.Score AS EvalScore,
+			RevAnswers.Score AS RevScore
+			FROM dbo.Answers A
+			INNER JOIN dbo.Questions Q ON Q.ID=A.QuestionID
+			INNER JOIN dbo.QuestionSections QS ON QS.ID=Q.SectionID
+			INNER JOIN Evaluations E on E.EvaluationID=A.EvaluationID
+			INNER JOIN QuestionSectionWeights QSW on QS.ID=QSW.sectionid AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasgGoals
+		
+			OUTER APPLY(
+			SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
+			INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
+			WHERE A2.EvaluationID=E.EvaluationID AND A2.State=3 AND	Q2.SectionID=Q.SectionID
+			)EmpAnswers
+		
+			OUTER APPLY (
+			SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
+			INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
+			WHERE A2.EvaluationID=E.EvaluationID AND A2.State=4 AND	Q2.SectionID=Q.SectionID
+			AND 
+				(   
+				--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
+				1= CASE WHEN E.State>4 AND @userid =@empEval THEN 1 END 
+				OR 
+				-- When Complete to see Average of all Scores
+				1= CASE WHEN E.State=7 THEN 1 END 
+				OR 
+				--For dotted to see only their score before its compelte
+				a2.UserID=@userid AND E.State<7
+				)
+			)DotAnswers
+		
+			OUTER APPLY (
+			SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
+			INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
+			WHERE A2.EvaluationID=E.EvaluationID AND A2.State=5 AND	Q2.SectionID=Q.SectionID
+			AND E.EmployeeID<>@userid --this is in order NOT to retrieve the evaluator's answer if you are the employee
+			)EvalAnswers
+		
+			OUTER APPLY (
+			SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
+			INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)
+			WHERE A2.EvaluationID=E.EvaluationID AND A2.State=6 AND	Q2.SectionID=Q.SectionID
+			AND 1 = CASE WHEN E.EmployeeID=@userid AND E.State=7 THEN 1 WHEN E.EmployeeID<>@userid THEN 1 ELSE 0 END
+			--AND E.EmployeeID<>@userid --this is in order NOT to retrieve the evaluator's answer if you are the employee
+			)RevAnswers
+		
+			WHERE QS.HasScore=1 AND A.EvaluationID=@evalid;
+		END
+		ELSE
+		BEGIN
+			SELECT E.EvaluationID, 2 AS SectionID, QS.SectionDescription, QSW.weight AS ScoreWeight,
+			ESE.PScore AS EmpScore,
+			DotScores.avgScore AS DotScore,
+			ESEV.PScore AS EvalScore,
+			ESR.PScore AS RevScore
+
+			FROM  dbo.Evaluations E
+			INNER JOIN QuestionSectionWeights QSW on QSW.sectionid=2 AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasgGoals
+			INNER JOIN dbo.QuestionSections QS ON QS.ID=QSW.sectionid
+			LEFT JOIN dbo.EvaluationScores ESE ON ESE.EvaluationID=E.EvaluationID AND ESE.State=3
+			LEFT JOIN dbo.EvaluationScores ESEV ON ESEV.EvaluationID=E.EvaluationID AND ESEV.State=5
+			LEFT JOIN dbo.EvaluationScores ESR ON ESR.EvaluationID=E.EvaluationID AND ESR.State=6
+
+			OUTER APPLY(
+			SELECT CAST(AVG(PScore) AS DECIMAL(5,2)) AS avgScore FROM dbo.EvaluationScores WHERE EvaluationID=@evalid AND State=4
+			)DotScores
+
+			WHERE E.EvaluationID=@evalid 
+			
+			UNION
+
+			SELECT E.EvaluationID, 3 AS SectionID, QS.SectionDescription, QSW.weight AS ScoreWeight,
+			ESE.GScore AS EmpScore,
+			DotScores.avgScore AS DotScore,
+			ESEV.GScore AS EvalScore,
+			ESR.GScore AS RevScore
+
+			FROM  dbo.Evaluations E
+			INNER JOIN QuestionSectionWeights QSW on QSW.sectionid=3 AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasgGoals
+			INNER JOIN dbo.QuestionSections QS ON QS.ID=QSW.sectionid
+			LEFT JOIN dbo.EvaluationScores ESE ON ESE.EvaluationID=E.EvaluationID AND ESE.State=3
+			LEFT JOIN dbo.EvaluationScores ESEV ON ESEV.EvaluationID=E.EvaluationID AND ESEV.State=5
+			LEFT JOIN dbo.EvaluationScores ESR ON ESR.EvaluationID=E.EvaluationID AND ESR.State=6
+
+			OUTER APPLY(
+			SELECT CAST(AVG(GScore) AS DECIMAL(5,2)) AS avgScore FROM dbo.EvaluationScores WHERE EvaluationID=@evalid AND State=4
+			)DotScores
+
+			WHERE E.EvaluationID=@evalid 
+
+			UNION
+
+			SELECT E.EvaluationID, 4 AS SectionID, QS.SectionDescription, QSW.weight AS ScoreWeight,
+			ESE.CScore AS EmpScore,
+			DotScores.avgScore AS DotScore,
+			ESEV.CScore AS EvalScore,
+			ESR.CScore AS RevScore
+
+			FROM  dbo.Evaluations E
+			INNER JOIN QuestionSectionWeights QSW on QSW.sectionid=4 AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasgGoals
+			INNER JOIN dbo.QuestionSections QS ON QS.ID=QSW.sectionid
+			LEFT JOIN dbo.EvaluationScores ESE ON ESE.EvaluationID=E.EvaluationID AND ESE.State=3
+			LEFT JOIN dbo.EvaluationScores ESEV ON ESEV.EvaluationID=E.EvaluationID AND ESEV.State=5
+			LEFT JOIN dbo.EvaluationScores ESR ON ESR.EvaluationID=E.EvaluationID AND ESR.State=6
+
+			OUTER APPLY(
+			SELECT CAST(AVG(CScore) AS DECIMAL(5,2)) AS avgScore FROM dbo.EvaluationScores WHERE EvaluationID=@evalid AND State=4
+			)DotScores
+
+			WHERE E.EvaluationID=@evalid 
+
+			UNION
+
+			SELECT E.EvaluationID, 5 AS SectionID, QS.SectionDescription, QSW.weight AS ScoreWeight,
+			ESE.LScore AS EmpScore,
+			DotScores.avgScore AS DotScore,
+			ESEV.LScore AS EvalScore,
+			ESR.LScore AS RevScore
+
+			FROM  dbo.Evaluations E
+			INNER JOIN QuestionSectionWeights QSW on QSW.sectionid=5 AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasgGoals
+			INNER JOIN dbo.QuestionSections QS ON QS.ID=QSW.sectionid
+			LEFT JOIN dbo.EvaluationScores ESE ON ESE.EvaluationID=E.EvaluationID AND ESE.State=3
+			LEFT JOIN dbo.EvaluationScores ESEV ON ESEV.EvaluationID=E.EvaluationID AND ESEV.State=5
+			LEFT JOIN dbo.EvaluationScores ESR ON ESR.EvaluationID=E.EvaluationID AND ESR.State=6
+
+			OUTER APPLY(
+			SELECT CAST(AVG(LScore) AS DECIMAL(5,2)) AS avgScore FROM dbo.EvaluationScores WHERE EvaluationID=@evalid AND State=4
+			)DotScores
+
+			WHERE E.EvaluationID=@evalid 
+		END
 	   ";
 	   $query = $this->connection->prepare($queryString);
 	   $query->bindValue(':evalid', $evalID, PDO::PARAM_INT);
@@ -969,7 +1056,7 @@ class EvaluationsDAO{
 
 
 				-- check if there is record in the evaluation scores otherwise create it
-				UPDATE dbo.EvaluationScores SET EvaluationID=@evalid WHERE  EvaluationID=@evalid AND state=@state;
+				UPDATE dbo.EvaluationScores SET EvaluationID=@evalid WHERE  EvaluationID=@evalid AND state=@state AND UserID=@userid;
 					IF @@ROWCOUNT = 0
 					BEGIN
 						INSERT INTO dbo.EvaluationScores VALUES(@evalid, @userid, @state,0, '', 0, 0,0, '', 0, 0,0, '', 0, 0,0, '',  0, 0,0,'');

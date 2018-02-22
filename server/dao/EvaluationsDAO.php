@@ -74,7 +74,7 @@ class EvaluationsDAO{
 		LEFT JOIN   dbo.StateRef SR on SR.State = Ev.State
 		
 		OUTER APPLY(
-		SELECT CASE WHEN COUNT(*) > 1 THEN 1 ELSE 0 END AS HasDottedFlag 
+		SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END AS HasDottedFlag 
 		FROM dbo.ReportingLine 
 		WHERE empnosource=rl.empnosource AND state=4
 		)HasDotted

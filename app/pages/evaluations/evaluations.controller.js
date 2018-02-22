@@ -104,6 +104,10 @@
 		};
         
         
+        $scope.changeList = function(fromlist){
+            $stateParams.fromList = fromlist;
+        };
+        
 		
 		$scope.toggle = function (item, list) {
 			var idx = list.indexOf(item);

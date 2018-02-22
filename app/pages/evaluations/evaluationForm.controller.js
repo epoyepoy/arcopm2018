@@ -104,13 +104,15 @@
 				//we add here the removal of loading because is the last query call of the controller in $scope.initNavigation
 				$scope.message = 'none';
 				var pendingAnswers = false;
-				angular.forEach(result.sections, function(value) {
-					if(value.PendingAnswers != 0){
-						//sections counter
-						pendingAnswers = true;
-					}
-					$scope.pendingAnswers = pendingAnswers;
-				});
+                if(state != arcopmState.EvalByDotted){
+                    angular.forEach(result.sections, function(value) {
+                        if(value.PendingAnswers != 0){
+                            //sections counter
+                            pendingAnswers = true;
+                        }
+                        $scope.pendingAnswers = pendingAnswers;
+                    });
+                }
             });
 		};
 
@@ -125,28 +127,31 @@
 				$scope.scoresMessage = 'none';
 				$scope.scores = result.evalScores;
 				var totalEmpScore = 0; var totalEmpWeightScore = 0;
+                var totalDotScore = 0; var totalDotWeightScore = 0;
 				var totalEvalScore = 0; var totalEvalWeightScore = 0;
 				var totalRevScore = 0; var totalRevWeightScore = 0;
 				var totalWeight = 0;
-				var tempCalc=0;
-				var tempCalc1=0;
 				var i = 0;
 				angular.forEach(result.evalScores, function(value) {
 					i++;
 					totalWeight += parseFloat(value.ScoreWeight);
 					totalEmpScore += parseFloat(value.EmpScore);
+                    totalDotScore += parseFloat(value.DotScore);
 					totalEvalScore += parseFloat(value.EvalScore);
 					totalRevScore += parseFloat(value.RevScore);
 					totalEmpWeightScore +=  parseFloat($scope.roundUp(value.EmpScore * value.ScoreWeight));
+                    totalDotWeightScore +=  parseFloat($scope.roundUp(value.DotScore * value.ScoreWeight));
 					totalEvalWeightScore +=  parseFloat($scope.roundUp(parseFloat(value.EvalScore * value.ScoreWeight)));
 					//console.log($scope.roundUp(parseFloat(value.EvalScore * value.ScoreWeight)));
 					totalRevWeightScore +=   parseFloat($scope.roundUp(parseFloat(value.RevScore * value.ScoreWeight)));
 				});
 				$scope.totalWeight = totalWeight;
 				$scope.averageEmpScore = totalEmpScore/i;
+                $scope.averageDotScore = totalDotScore/i;
 				$scope.averageEvalScore = totalEvalScore/i;
 				$scope.averageRevScore = totalRevScore/i;
 				$scope.totalEmpWeightScore = totalEmpWeightScore;
+                $scope.totalDotWeightScore = totalDotWeightScore;
 				$scope.totalEvalWeightScore = totalEvalWeightScore;
 				$scope.totalRevWeightScore = totalRevWeightScore;
             });
@@ -288,12 +293,14 @@
 						sectionQuestion.GoalID = null;
 					});
 					angular.forEach($scope.goals, function(goal) {
-						if(section == 3 && state != arcopmState.EvalByDotted && state != arcopmState.EvalComplete){
+						if(section == 3 && state != arcopmState.EvalComplete){
 							var tempGoalAnswer = {};
 							tempGoalAnswer.GoalID = goal.GoalID;
                             //if weight is 0, then we send null to database in order to avoid to save zero weight as it is forbidden
 							if(state==arcopmState.EvalByEmployee){
 								goal.EmpAchievement!=0 ? tempGoalAnswer.answer = goal.EmpAchievement : tempGoalAnswer.answer = null;
+							}else if(state==arcopmState.EvalByDotted){
+								goal.DottedAvgAnswer!=0 ? tempGoalAnswer.answer = goal.DottedAvgAnswer : tempGoalAnswer.answer = null;
 							}else if(state == arcopmState.EvalByEvaluator){
                                 goal.EvalAchievement!=0 ? tempGoalAnswer.answer = goal.EvalAchievement : tempGoalAnswer.answer = null;
 							}else if(state == arcopmState.EvalByReviewer){
@@ -304,7 +311,7 @@
 							sectionQuestions.push(tempGoalAnswer);
 						}
 					});
-                    console.log(sectionQuestions);
+                    //console.log(sectionQuestions);
 					//set variable finish to 1, only when user press 'Finish' button
 					if(angular.isUndefined(finish)){
 						finish = 0;
@@ -522,6 +529,16 @@
 				goal.EmpAchievement = 120;
 			}
 		};
+        
+        $scope.noNullDottedAvgAnswer = function(goal){
+			if(angular.isUndefined(goal.DottedAvgAnswer)){
+				goal.DottedAvgAnswer = 0;
+			}
+			else if(goal.DottedAvgAnswer>120)
+			{
+				goal.DottedAvgAnswer = 120;
+			}
+		};       
 
 		$scope.noNullEvalAchievement = function(goal){
 			if(angular.isUndefined(goal.EvalAchievement)){

@@ -161,7 +161,7 @@
 
 
         // Shows Evaluation Configuration popup
-        $scope.showEvalConfiguration = function (goal,from,onbehalf) {
+        $scope.showEvalConfiguration = function (goal,from,onbehalf,mode) {
             if (!$scope.checkLogin()) {
                 return;
             }
@@ -170,17 +170,22 @@
 			$scope.evalID = goal.EvaluationID;
 			$scope.from = from;
 			$scope.onbehalf = onbehalf;
+            $scope.mode = mode;
             $scope.getComments(goal.EvaluationID);
-			if(goal.yourActionState == 4){
-				$scope.role = 'dotted';
-				$scope.active = 1;
-			}else if(goal.yourActionState == 5){
-				$scope.role = 'eval';
-				$scope.active = 2;
-			}else{
-				$scope.role = 'emp';
-				$scope.active = 0;
-			}
+            if(mode == 'view'){
+                $scope.active = 0;
+            }else{
+                if(goal.yourActionState == 4){
+                    $scope.role = 'dotted';
+                    $scope.active = 1;
+                }else if(goal.yourActionState == 5){
+                    $scope.role = 'eval';
+                    $scope.active = 2;
+                }else{
+                    $scope.role = 'emp';
+                    $scope.active = 0;
+                }
+            }
 
             $scope.goalConfigurationPopup = ngDialog.open({
                 template: 'app/pages/goals/popup/configuration.popup.html',
@@ -525,7 +530,7 @@
 		};
 
 		//Updating state function after pressing 'Submit Goals' button in configuration popup
-		$scope.updateState = function(goal,onbehalf){
+		$scope.updateState = function(goal,onbehalf,from){
 			if (!$scope.checkLogin()) {
                 return;
             }
@@ -535,9 +540,14 @@
 			EvaluationsFactory.UpdateState(0,goal.CycleID,loginData.user.id,goal.Empno,onbehalf).then(function (result) {
 				$scope.checkifLoggedout(result);
 				if (result.success) {
-					$scope.cycleGoal.EvalState = result.evaluation.State;
-					$scope.cycleGoal.EvaluationID = result.evaluation.EvaluationID;
-                    $scope.cycleGoal.yourActionStateDescr = result.evaluation.yourActionStateDescr;
+//					$scope.cycleGoal.EvalState = result.evaluation.State;
+//					$scope.cycleGoal.EvaluationID = result.evaluation.EvaluationID;
+//                  $scope.cycleGoal.yourActionStateDescr = result.evaluation.yourActionStateDescr;
+                    if(from == 'mylist'){
+                        $scope.getMyGoalsPerCycle(goal.CycleID, goal.CycleDescription);
+                    }else{
+                        $scope.getGoalsPerCycle(goal.CycleID, goal.CycleDescription);
+                    }
                     $scope.goals = [];
 					//$scope.extraMessage = 'none';
 					$scope.message = 'created';

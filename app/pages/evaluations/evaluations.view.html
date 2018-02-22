@@ -22,12 +22,12 @@
 		<div class="row">
 			<div class="col-lg-12" style="text-align: center;" ng-hide="myEvaluations || employeesToEvaluate">
 				<p>
-					<a href class="btn btn-sq-lg btn-warning warning-custom" ng-click="myEvaluations=true">
+					<a href class="btn btn-sq-lg btn-warning warning-custom" ng-click="myEvaluations=true; changeList('mylist')">
 						<i class="fa fa-user fa-5x"></i><br/>
 						<span style="font-size: 1.4em; font-weight: bold;">MY EVALUATIONS</span><br/>
 						<span style="font-size: 1em; font-style: italic;">My own evaluations.<br/> List of pending or completed evaluations.</span>
 					</a>
-					<a href class="btn btn-sq-lg btn-success success-custom" style="margin-left: 5px;" ng-click="employeesToEvaluate=true">
+					<a href class="btn btn-sq-lg btn-success success-custom" style="margin-left: 5px;" ng-click="employeesToEvaluate=true; changeList('emplist')">
 						<i class="fa fa-users fa-5x"></i><br/>
 						<span style="font-size: 1.4em; font-weight: bold;">EMPLOYEES TO EVALUATE</span><br/>
 						<span style="font-size: 1em; font-style: italic;">See pending evaluations either as<br/> Evaluator or Dotted Line Manager.</span>

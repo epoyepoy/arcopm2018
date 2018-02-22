@@ -1122,7 +1122,7 @@ class EvaluationsDAO{
 								 INNER JOIN dbo.Goals G on G.GoalID=A.GoalID
 								 INNER JOIN dbo.QuestionSections QS ON QS.ID=@SectionID
 								 INNER JOIN QuestionSectionWeights QSW on QS.ID=QSW.sectionid AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasGoals
-								 WHERE E.EvaluationID=@evalid AND A.State=@state
+								 WHERE E.EvaluationID=@evalid AND A.State=@state AND A.userID=@userid
 								 GROUP BY QSW.weight
 								 -- update
 								 UPDATE dbo.EvaluationScores SET GScore=@score, GWeight=@weight, GWeightedScore=@wscore, GSDEscription=@scoreDesc
@@ -1140,6 +1140,7 @@ class EvaluationsDAO{
 								 INNER JOIN dbo.QuestionSections QS ON QS.ID=Q.SectionID
 								 INNER JOIN QuestionSectionWeights QSW on QS.ID=QSW.sectionid AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasGoals
 								 WHERE E.EvaluationID=@evalid AND A.State=@state AND QS.HasScore=1 AND QS.ID=@SectionID AND Q.QuestionTypeID=1 AND isnull(A.GoalID,0)=0
+								 AND A.userID=@userid
 								 GROUP BY QSW.weight
 								 -- update
 								 UPDATE dbo.EvaluationScores SET PScore=@score, PWeight=@weight, PWeightedScore=@wscore, PSDEscription=@scoreDesc
@@ -1157,6 +1158,7 @@ class EvaluationsDAO{
 								 INNER JOIN dbo.QuestionSections QS ON QS.ID=Q.SectionID
 								 INNER JOIN QuestionSectionWeights QSW on QS.ID=QSW.sectionid AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasGoals
 								 WHERE E.EvaluationID=@evalid AND A.State=@state AND QS.HasScore=1 AND QS.ID=@SectionID AND Q.QuestionTypeID=1 AND isnull(A.GoalID,0)=0
+								 AND A.userID=@userid
 								 GROUP BY QSW.weight
 								 -- update
 								 UPDATE dbo.EvaluationScores SET CScore=@score, CWeight=@weight, CWeightedScore=@wscore, CSDEscription=@scoreDesc
@@ -1174,6 +1176,7 @@ class EvaluationsDAO{
 								 INNER JOIN dbo.QuestionSections QS ON QS.ID=Q.SectionID
 								 INNER JOIN QuestionSectionWeights QSW on QS.ID=QSW.sectionid AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasGoals
 								 WHERE E.EvaluationID=@evalid AND A.State=@state AND QS.HasScore=1 AND QS.ID=@SectionID AND Q.QuestionTypeID=1 AND isnull(A.GoalID,0)=0
+								 AND A.userID=@userid
 								 GROUP BY QSW.weight
 								 -- update
 								 UPDATE dbo.EvaluationScores SET LScore=@score, LWeight=@weight, LWeightedScore=@wscore, LSDEscription=@scoreDesc

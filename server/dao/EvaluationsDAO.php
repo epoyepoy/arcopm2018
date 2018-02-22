@@ -417,13 +417,13 @@ class EvaluationsDAO{
 	public function getEvaluationScores($evalID, $userid, $state)
    {
 	$queryString = "
-		DECLARE @userid as varchar(5)=:userid, @evalid as int=:evalid, @hasgGoals as INT, @empEval AS VARCHAR(5); 
-		SELECT @hasgGoals = CASE WHEN count (G.GoalID)>0 THEN 1 ELSE 0 END,  @empEval=RL.empnotarget
+		DECLARE @userid as varchar(5)=:userid, @evalid as int=:evalid, @hasgGoals as INT, @empEval AS VARCHAR(5),  @state AS INT; 
+		SELECT @state=E.State, @hasgGoals = CASE WHEN count (G.GoalID)>0 THEN 1 ELSE 0 END,  @empEval=RL.empnotarget
 		FROM Goals G 
 		INNER JOIN dbo.Evaluations E ON E.EvaluationID=G.EvaluationID
 		INNER JOIN dbo.ReportingLine RL ON RL.empnosource=E.EmployeeID AND RL.state=5
 		WHERE G.EvaluationID=@evalid
-		GROUP BY RL.empnotarget;
+		GROUP BY RL.empnotarget, e.State;
 		
 		IF @state<7
 		BEGIN

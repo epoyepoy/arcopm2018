@@ -193,7 +193,9 @@ class GoalsDAO{
 			)yourNextAction
 
 			OUTER APPLY(
-			SELECT CASE WHEN COUNT(*) > 1 THEN 1 ELSE 0 END AS HasDottedFlag FROM dbo.ReportingLine WHERE empnosource=rl.empnosource AND state=4
+			SELECT CASE WHEN COUNT(*) > 1 THEN 1 ELSE 0 END AS HasDottedFlag 
+			FROM dbo.ReportingLine 
+			WHERE empnosource=rl.empnosource AND state=4
 			)HasDotted
 
 			OUTER APPLY(

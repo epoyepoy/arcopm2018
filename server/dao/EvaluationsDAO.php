@@ -18,87 +18,121 @@ class EvaluationsDAO{
     public function getPendingEvaluations($user)
 	{
         $queryString="
-		Declare @cycleid as int;
-		Declare @userid as varchar(5);
-		SELECT @userid=:userid;
+		DECLARE @cycleid as INT, @userid as varchar(5)=:userid;
+		
 		SELECT @cycleid = ID FROM EvaluationsCycle WHERE status=1 and questionaireInputStatus=1
+		
 		SELECT Ev.EvaluationID, HR.empno as 'EmployeeID',  rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'employeeName', hr.grade , hr.job_desc,
-	   	CASE WHEN SR.StateDescription IS NULL AND CASE WHEN isnull(Ev.empGrade,-1)=-1 THEN Hr.grade ELSE Ev.empGrade END>3 THEN 'Goal Setting By Employee'
-			WHEN (SR.StateDescription IS NULL or Ev.State=0) AND HR.grade<4 THEN 'Configuration By Evaluator' ELSE SR.StateDescription END as 'StateDescription',
-	   	CASE WHEN isnull(Ev.State,0)=0 THEN 0 ELSE Ev.State END as 'State', CONVERT(DATETIME2(0),Ev.StateDate) as StateDate,
-		   onBehalf.flag as onBehalfFlag, isnull(finished.flag,0) as finishedFlag, Ev.ManagesTeam, isnull(resumeFlag.Section, 0) as resumeSection, editBy.editBy,
-		   ISNULL(yourNextAction.yourAction, 'No Action') yourAction, isnull(yourNextAction.wrongManager,0) as wrongManager,
-		   yourNextAction.nstate AS yourActionState,  Ev.UploadedFile, CONVERT(DATETIME2(0),Ev.UploadedDate) AS UploadedDate,
-		     CASE -- check if you are evaluator and give either optional or actual action
-				WHEN (ISNULL(Ev.State,0) in (0,1,2,3,5,6) AND yourEvalAction.estate=5 AND
-				CASE WHEN ISNULL(ev.State,0) = 6 THEN 5 ELSE ISNULL(ev.State,0) END <=yourEvalAction.estate
+	   	CASE 
+			WHEN SR.StateDescription IS NULL AND	CASE 
+														WHEN isnull(Ev.empGrade,-1)=-1 THEN Hr.grade 
+														ELSE Ev.empGrade 
+													END>3 
+				THEN 'Goal Setting By Employee'
+			WHEN (SR.StateDescription IS NULL or Ev.State=0) AND HR.grade<4 
+				THEN 'Configuration By Evaluator' 
+			ELSE SR.StateDescription 
+		END as 'StateDescription',
+	   	CASE 
+			WHEN isnull(Ev.State,0)=0 
+				THEN 0 
+			ELSE Ev.State 
+		END as 'State', CONVERT(DATETIME2(0),Ev.StateDate) as StateDate,
+		onBehalf.flag as onBehalfFlag, isnull(finished.flag,0) as finishedFlag, Ev.ManagesTeam, isnull(resumeFlag.Section, 0) as resumeSection, editBy.editBy,
+		ISNULL(yourNextAction.yourAction, 'No Action') yourAction, isnull(yourNextAction.wrongManager,0) as wrongManager,
+		yourNextAction.nstate AS yourActionState,  Ev.UploadedFile, CONVERT(DATETIME2(0),Ev.UploadedDate) AS UploadedDate,
+		CASE -- check if you are evaluator and give either optional or actual action
+			WHEN (ISNULL(Ev.State,0) in (0,1,2,3,5,6) AND yourEvalAction.estate=5 AND
+				CASE 
+					WHEN ISNULL(ev.State,0) = 6 
+						THEN 5 
+					ELSE ISNULL(ev.State,0) 
+				END <=yourEvalAction.estate
 				AND onBehalf.flag=0)
-				THEN CASE
-						WHEN (ISNULL(Ev.State,0) in (0,3) AND isnull(resumeFlag.Section, 0)=0 AND CASE
-																									WHEN isnull(Ev.empGrade,-1)=-1 THEN Hr.grade
-																									ELSE Ev.empGrade
-																									END >3 )
-							THEN 2
-						ELSE 1
-					 END
-				WHEN -- For doted give action
-					yourNextAction.nstate=ISNULL(Ev.State,0)  AND onBehalf.flag=0
-				THEN 1
-			 END AS  isForAction
-	   FROM dbo.ReportingLine RL
-	   INNER JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
-	   LEFT JOIN   dbo.Evaluations Ev on Ev.EmployeeID=RL.empnosource AND Ev.CycleID=@cycleid
-	   LEFT JOIN   dbo.EvaluationsCycle EC on EC.ID=Ev.CycleID AND EC.ID=@cycleid AND EC.questionaireInputStatus=1
-	   LEFT JOIN   dbo.Answers A on A.EvaluationID=Ev.EvaluationID AND  a.State=ev.State
-	   LEFT JOIN   dbo.StateRef SR on SR.State = Ev.State
-	   OUTER APPLY (
-		   SELECT case when count(distinct(UA.userid)) >0 then 1 else 0 end as 'flag' FROM Answers UA
-		  INNER JOIN Evaluations E on E.EvaluationID=UA.EvaluationID and E.EvaluationID=Ev.EvaluationID
-		  WHERE UA.State=2 AND E.State=2 AND UA.UserID=E.EmployeeID AND E.CycleID=@cycleid
-			   ) onBehalf -- if at state 2 there is at least one answer from the emploee dont allow to do on behalf.
-		OUTER APPLY (
+			THEN 
+				CASE
+					WHEN	(ISNULL(Ev.State,0) in (0,3) AND isnull(resumeFlag.Section, 0)=0 
+								AND CASE
+										WHEN isnull(Ev.empGrade,-1)=-1 THEN Hr.grade
+										ELSE Ev.empGrade
+									END >3 
+							)
+						THEN 2
+					ELSE 1
+				END
+			WHEN -- For doted give action
+				yourNextAction.nstate=ISNULL(Ev.State,0)  AND onBehalf.flag=0
+			THEN 1
+		END AS  isForAction, 
+		HasDotted.HasDottedFlag
+		
+		FROM dbo.ReportingLine RL
+		INNER JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
+		LEFT JOIN   dbo.Evaluations Ev on Ev.EmployeeID=RL.empnosource AND Ev.CycleID=@cycleid
+		LEFT JOIN   dbo.EvaluationsCycle EC on EC.ID=Ev.CycleID AND EC.ID=@cycleid AND EC.questionaireInputStatus=1
+		LEFT JOIN   dbo.Answers A on A.EvaluationID=Ev.EvaluationID AND  a.State=ev.State
+		LEFT JOIN   dbo.StateRef SR on SR.State = Ev.State
+		
+		OUTER APPLY(
+		SELECT CASE WHEN COUNT(*) > 1 THEN 1 ELSE 0 END AS HasDottedFlag 
+		FROM dbo.ReportingLine 
+		WHERE empnosource=rl.empnosource AND state=4
+		)HasDotted
+
+		OUTER APPLY(
+		SELECT case when count(distinct(UA.userid)) >0 then 1 else 0 end as 'flag' FROM Answers UA
+		INNER JOIN Evaluations E on E.EvaluationID=UA.EvaluationID and E.EvaluationID=Ev.EvaluationID
+		WHERE UA.State=2 AND E.State=2 AND UA.UserID=E.EmployeeID AND E.CycleID=@cycleid
+		)onBehalf -- if at state 2 there is at least one answer from the emploee dont allow to do on behalf.
+		
+		OUTER APPLY(
 		SELECT distinct(A.Finished) as 'flag' FROM Answers A
 		WHERE A.State=Ev.State AND A.UserID=@userid AND A.EvaluationID=Ev.EvaluationID
-		) finished
-	   OUTER APPLY (
-			   SELECT TOP 1 QS.ID as Section FROM Answers A
-			   INNER JOIN Questions Q on Q.ID=A.QuestionID
-			   INNER JOIN QuestionSections QS on QS.ID=Q.SectionID
-			   WHERE A.Finished=0 AND A.UserID=@userid AND A.EvaluationID=Ev.EvaluationID and A.State=Ev.State
-			   ORDER BY A.Date DESC
-			   ) resumeFlag
-		OUTER APPLY (
-			   SELECT empnotarget as editBy FROM ReportingLine WHERE empnotarget=@userid AND empnosource=ev.EmployeeID
-			   AND ( State=isnull(Ev.State,0) or (isnull(Ev.State,0)=3 and state=5) or (isnull(Ev.State,0)=6 and state=5))
-			   ) editBy
-		OUTER APPLY (
-			   SELECT TOP 1  CASE WHEN state=4 THEN 'Complete as Dotted Line Manager'
-			   WHEN state=5 THEN CASE WHEN Ev.State=6 THEN 'Revise / Finalize as Evaluator' ELSE 'Complete as Evaluator' END
-			   END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
-			   FROM ReportingLine WHERE
-			   State>=
-			   CASE
-			   	WHEN finished.flag=1 THEN ISNULL(Ev.State,0) + 1
-			   	WHEN Ev.State=6 THEN ISNULL(Ev.State,0) -1 -- for reviewer.
-				ELSE ISNULL(Ev.State,0)
-			   END
-			   AND
-			   empnotarget=@userid and empnosource=HR.empno
-			   ORDER BY state asc
-			   ) yourNextAction
-		OUTER APPLY (
-			   SELECT isnull(state,0) as estate
-			   FROM ReportingLine WHERE
-			   State=5
-			   AND
-			   empnotarget=@userid and empnosource=HR.empno
-			   ) yourEvalAction
-	   WHERE RL.empnotarget=@userid AND isnull(RL.excludeFromCycles,0)<>1
-	   GROUP BY Ev.EvaluationID, HR.empno, Hr.grade, Ev.empGrade, HR.family_name, HR.first_name, hr.grade,hr.job_desc, SR.StateDescription,
-	   Ev.State, Ev.StateDate, onBehalf.flag, Ev.ManagesTeam, resumeFlag.Section, RL.empnotarget, editBy.editBy, yourNextAction.yourAction,  yourNextAction.wrongManager, yourNextAction.nstate, finished.flag,
-	   yourEvalAction.estate,Ev.UploadedFile, Ev.UploadedDate
-	   --HAVING count(A.Answer)=0
-	   ORDER BY HR.grade
+		)finished
+
+		OUTER APPLY(
+		SELECT TOP 1 QS.ID as Section FROM Answers A
+		INNER JOIN Questions Q on Q.ID=A.QuestionID
+		INNER JOIN QuestionSections QS on QS.ID=Q.SectionID
+		WHERE A.Finished=0 AND A.UserID=@userid AND A.EvaluationID=Ev.EvaluationID and A.State=Ev.State
+		ORDER BY A.Date DESC
+		)resumeFlag
+		
+		OUTER APPLY(
+		SELECT empnotarget as editBy FROM ReportingLine WHERE empnotarget=@userid AND empnosource=ev.EmployeeID
+		AND ( State=isnull(Ev.State,0) or (isnull(Ev.State,0)=3 and state=5) or (isnull(Ev.State,0)=6 and state=5))
+		)editBy
+
+		OUTER APPLY(
+		SELECT TOP 1  CASE WHEN state=4 THEN 'Complete as Dotted Line Manager'
+		WHEN state=5 THEN CASE WHEN Ev.State=6 THEN 'Revise / Finalize as Evaluator' ELSE 'Complete as Evaluator' END
+		END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+		FROM ReportingLine WHERE
+		State>=
+		CASE
+		WHEN finished.flag=1 THEN ISNULL(Ev.State,0) + 1
+		WHEN Ev.State=6 THEN ISNULL(Ev.State,0) -1 -- for reviewer.
+		ELSE ISNULL(Ev.State,0)
+		END
+		AND
+		empnotarget=@userid and empnosource=HR.empno
+		ORDER BY state asc
+		)yourNextAction
+
+		OUTER APPLY(
+		SELECT isnull(state,0) as estate
+		FROM ReportingLine WHERE
+		State=5
+		AND
+		empnotarget=@userid and empnosource=HR.empno
+		)yourEvalAction
+		
+		WHERE RL.empnotarget=@userid AND isnull(RL.excludeFromCycles,0)<>1
+		GROUP BY Ev.EvaluationID, HR.empno, Hr.grade, Ev.empGrade, HR.family_name, HR.first_name, hr.grade,hr.job_desc, SR.StateDescription,
+		Ev.State, Ev.StateDate, onBehalf.flag, Ev.ManagesTeam, resumeFlag.Section, RL.empnotarget, editBy.editBy, yourNextAction.yourAction, 
+		yourNextAction.wrongManager, yourNextAction.nstate, finished.flag,
+		yourEvalAction.estate,Ev.UploadedFile, Ev.UploadedDate, HasDotted.HasDottedFlag
+		ORDER BY HR.grade
         ";
         $query = $this->connection->prepare($queryString);
         $query->bindValue(':userid', $user, PDO::PARAM_STR);

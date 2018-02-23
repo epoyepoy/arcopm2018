@@ -10,7 +10,7 @@
 	
 	# Use the DAO to access the database
 
-    $data = $developmentDao->updateDevelopmentPlan($devplan, $userid);
+    $data = $developmentDao->updateDevelopmentPlanStatus($devplan, $userid);
     # Encode the data to JSON
 	$json = json_encode($data);
 	

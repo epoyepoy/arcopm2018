@@ -85,11 +85,12 @@ class DevelopmentDAO{
 
 	public function updateDevelopmentPlanStatus($evalPlan, $userID)
 	{
-        $queryString = "UPDATE dbo.DevelopmentPlan SET ApprovedByEvaluator = :ApprovedByEvaluator
+        $queryString = "UPDATE dbo.DevelopmentPlan SET ApprovedByEvaluator = :ApprovedByEvaluator, UserID=:userid
         WHERE DevelopmentPlanID= :id";
         $query = $this->connection->prepare($queryString);
         $query->bindValue(':id', $evalPlan["DevelopmentPlanID"], PDO::PARAM_INT);
-        $query->bindValue(':ApprovedByEvaluator', $evalPlan["ApprovedByEvaluator"], PDO::PARAM_STR);
+		$query->bindValue(':ApprovedByEvaluator', $evalPlan["ApprovedByEvaluator"], PDO::PARAM_INT);
+		$query->bindValue(':userid', $userID, PDO::PARAM_STR);
         $result["success"] = $query->execute();
         $result["errorMessage"] = $query->errorInfo();
 		return $result;

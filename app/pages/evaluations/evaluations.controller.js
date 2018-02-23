@@ -398,6 +398,7 @@
 			dataService.setState(evaluationObject.State);
 			dataService.setResume(evaluationObject.resumeSection);
 			dataService.setFromList(list);
+            dataService.setHasDotted(evaluationObject.HasDottedFlag);
             $state.go("evaluationForm");
         };
 

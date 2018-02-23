@@ -9,6 +9,7 @@
   var resume;
   var empid;
   var fromList;
+  var hasDotted;
 
   // public API
        return {
@@ -65,6 +66,15 @@
 			setFromList: function(value) {
                 fromList = value;
                 sessionStorage["list"]=value; 
+            },
+			getHasDotted: function () {
+                if(angular.isUndefined(hasDotted))
+                    {hasDotted=sessionStorage["HasDottedFlag"]; }
+                return hasDotted;
+            },
+			setHasDotted: function(value) {
+                hasDotted = value;
+                sessionStorage["HasDottedFlag"]=value; 
             }
   };
 })

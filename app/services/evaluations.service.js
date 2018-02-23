@@ -42,6 +42,7 @@
 		factory.UpdateState = UpdateState;
 		factory.GetGoalAttributes = GetGoalAttributes;
 		factory.GetDevPlanHistory = GetDevPlanHistory;
+        factory.UpdateDevelopmentPlanStatus = UpdateDevelopmentPlanStatus;
 		factory.GetActiveGoalCycles = GetActiveGoalCycles;
 		factory.UpdateGoalState = UpdateGoalState;
 		factory.SetWrongManager = SetWrongManager;
@@ -127,6 +128,11 @@
 		function GetDevPlanHistory(evalID)
 		{
 			return $http.get(api + '/evaluations/devplanhistory/'+evalID).then(handleSuccess, handleError);
+		}
+        
+        function UpdateDevelopmentPlanStatus(devplan,userid)
+		{
+			return $http.post(api + '/evaluations/updatedevplanstatus/'+userid,devplan).then(handleSuccess, handleError);
 		}
 
         function GetEmpDetails(evalID)

@@ -72,7 +72,7 @@
 						</div>
 						<div class="popupButtons center">
 							<div class="popupButtonCancel" ng-click="closeThisDialog();">Cancel</div>
-							<input type="submit" value="Submit" class="popupButtonSave" ng-class="{ 'disabled': !form.$valid}" ng-click="editDevPlan(tempEvalID,tempDevPlan,tempState);" ng-disabled="!form.$valid"
+							<input type="submit" value="Submit" class="popupButtonSave" ng-class="{ 'disabled': !form.$valid}" ng-click="editDevPlan(tempEvalID,tempDevPlan);" ng-disabled="!form.$valid"
 								ng-attr-uib-tooltip="{{devplan.Objective==null ? 'Button will become active only after Developmental Objective, which is required, has been filled.' : ''}}"  tooltip-placement="top" tooltip-trigger="'mouseenter'"/>
 						</div>
 						</form>
@@ -90,7 +90,7 @@
                 <div class="popupMessage">Development Plan Deleted Successfully! </div>
                 <div class="popupButtonSave" ng-click="closeThisDialog();">OK!</div>
             </div>
-			<div class="container" ng-show="showMessage('loading')" >
+			<div class="container" ng-show="showExtraMessage('loading')" >
 				<div class="content">
 					<div class="circle"></div>
 					<div class="circle1"></div>

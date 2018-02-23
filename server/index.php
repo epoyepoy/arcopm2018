@@ -222,6 +222,11 @@ $app->post('/evaluations/updatedevplan/{userid}', function ($request, $response,
     require 'actions/evaluations.devplan.update.php';
 });
 
+//Update development plan status
+$app->post('/evaluations/updatedevplanstatus/{userid}', function ($request, $response, $args) {
+    require 'actions/evaluations.devplanstatus.update.php';
+});
+
 //Delete development plan
 $app->post('/evaluations/deletedevplan/{devplanid}', function ($request, $response, $args) {
     require 'actions/evaluations.devplan.delete.php';

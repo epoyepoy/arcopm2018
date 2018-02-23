@@ -1,0 +1,27 @@
+<div class="message" ng-show="showExtraMessage('created')">
+	<div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/successIcon.svg"/></div>
+	<div class="popupMessage">Selection Saved Successfully! </div>
+	<div class="popupButtonSave" ng-click="closeThisDialog();">OK</div>
+</div>
+<div class="message" ng-show="showExtraMessage('deleted')">
+	<div class="popupIcon"><img class="popupSuccessIconImg" src="assets/images/successIcon.svg" /></div>
+	<div class="popupMessage">Selection Deleted Successfully! </div>
+	<div class="popupButtonSave" ng-click="closeThisDialog();">OK!</div>
+</div>
+<div class="container" ng-show="showExtraMessage('loading')" >
+	<div class="content">
+		<div class="circle"></div>
+		<div class="circle1"></div>
+	</div>
+</div>
+<div class="message" ng-show="showExtraMessage('error')">
+	<div class="popupError">
+		<div class="popupErrorIcon"><img class="popupErrorIconImg" src="assets/images/errorIcon.svg"/></div>
+		<div class="popupErrorText">Error!</div>
+		<div class="popupErrorMessage">{{extraMessageText}}</div>
+	</div>
+	<div class="popupButtonSave" ng-click="closeThisDialog();">OK</div>
+</div>
+   
+   
+   

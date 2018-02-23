@@ -66,7 +66,7 @@
 							<td class="center">
 								<div style="display: inline-flex; margin-left: 10px;">
 									<span ng-if="(myevaluation.State==arcopmState.EvalByEmployee) && myevaluation.resumeSection==0 && myevaluation.onBehalfFlag==0">
-										<button class="sitesBtn" ng-click="gotoEvalForm(myevaluation.EvaluationID,myevaluation)" uib-tooltip="Go to Evaluation Form" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"  ></span></button>
+										<button class="sitesBtn" ng-click="gotoEvalForm(myevaluation.EvaluationID,myevaluation,'mylist')" uib-tooltip="Go to Evaluation Form" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"  ></span></button>
 									</span>
 									<span ng-if="myevaluation.State>arcopmState.EvalByEmployee">
 										<button class="sitesBtn" ng-click="gotoEvalForm(myevaluation.EvaluationID,myevaluation,'mylist')" uib-tooltip="View the Evaluation" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-ok" aria-hidden="true"  ></span></button>

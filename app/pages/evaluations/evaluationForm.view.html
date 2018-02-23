@@ -69,16 +69,16 @@
 				<table class="table table-bordered formNotes table-bordered-custom" ng-show="showScoresMessage('none')">
 					<col width="25%" />
 					<col width="25%" />
-					<col ng-if="state == arcopmState.EvalComplete" width="25%" />
+                    <col ng-if="state >= arcopmState.EvalByDotted && hasDotted == 1" width="25%" />
 					<col width="25%" />
 					<thead>
 						<tr>
 							<th rowspan="2" style="text-align: center;"><b>Performance Elements</b></th>
-							<th colspan="{{state == arcopmState.EvalComplete ? '3' : '2'}}" style="text-align: center;"><b>Actual Scores</b></th>
+                            <th colspan="{{state >= arcopmState.EvalByDotted && hasDotted ? '3' : '2'}}" style="text-align: center;"><b>Actual Scores</b></th>
 						</tr>
 						<tr>
 							<th style="text-align: center;"><b>Employee Score</b></th>
-                            <th ng-if="state == arcopmState.EvalComplete" style="text-align: center;"><b>Dotted Score</b></th>
+                            <th ng-if="state >= arcopmState.EvalByDotted && hasDotted == 1" style="text-align: center;"><b>Dotted Score</b></th>
 							<th ng-if="userRole != 'emp'" style="text-align: center;"><b>Evaluator Score</b></th>
 							<th ng-if="userRole == 'emp'" style="text-align: center;"><b>Evaluation Final Score</b></th>
 						</tr>
@@ -87,13 +87,13 @@
 						<tr class="{{scoreClasses[$index]}}" >
 							<td rowspan="2"><br/><b>{{score.SectionDescription}}' Score Average</b></td>
 							<td style="text-align: center; font-size: 12px;">{{score.EmpScore == null ? '-' : score.EmpScore}}</td>
-                            <td ng-if="state == arcopmState.EvalComplete" style="text-align: center; font-size: 12px;">{{score.DotScore == null ? '-' : score.DotScore}}</td>
+                            <td ng-if="state >= arcopmState.EvalByDotted && hasDotted == 1" style="text-align: center; font-size: 12px;">{{score.DotScore == null ? '-' : score.DotScore}}</td>
 							<td ng-if="userRole != 'emp'" style="text-align: center; font-size: 12px;">{{score.EvalScore == null ? '-' : score.EvalScore}} / <label style="color: green;">{{score.RevScore == null ? '-' : score.RevScore}}</label></td>
 							<td ng-if="userRole == 'emp'" style="text-align: center; font-size: 12px;">{{score.RevScore == null ? '-' : score.RevScore}}</td>
 						</tr>
 						<tr class="{{scoreClasses[$index]}}">
 							<td ng-if='score.SectionID!=3' style="text-align: center;"><b>{{score.EmpScore == null ? '-' : score.EmpScore < 1.50 ? scoreDefinition[0] : score.EmpScore < 3 ? scoreDefinition[1] : score.EmpScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
-                            <td ng-if='score.SectionID!=3 && state == arcopmState.EvalComplete' style="text-align: center;"><b>{{score.DotScore == null ? '-' : score.DotScore < 1.50 ? scoreDefinition[0] : score.DotScore < 3 ? scoreDefinition[1] : score.DotScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
+                            <td ng-if='score.SectionID!=3 && state >= arcopmState.EvalByDotted && hasDotted == 1' style="text-align: center;"><b>{{score.DotScore == null ? '-' : score.DotScore < 1.50 ? scoreDefinition[0] : score.DotScore < 3 ? scoreDefinition[1] : score.DotScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
 							<td ng-if='score.SectionID!=3 && userRole != "emp"' style="text-align: center;">
 								<b>{{score.EvalScore == null ? '-' : score.EvalScore < 1.50 ? scoreDefinition[0] : score.EvalScore < 3 ? scoreDefinition[1] : score.EvalScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b>
 								/ <label ng-if="score.RevScore" style="color: green;">{{score.RevScore == null ? '-' : score.RevScore < 1.50 ? scoreDefinition[0] : score.RevScore < 3 ? scoreDefinition[1] : score.RevScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</label>
@@ -101,7 +101,7 @@
 							<td ng-if='score.SectionID!=3 && userRole == "emp"' style="text-align: center;"><b>{{score.RevScore == null ? '-' : score.RevScore < 1.50 ? scoreDefinition[0] : score.RevScore < 3 ? scoreDefinition[1] : score.RevScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
 
 							<td ng-if='score.SectionID==3' style="text-align: center;"><b>{{score.EmpScore == null ? '-' : score.EmpScore < 2.5 ? scoreDefinition[0] : score.EmpScore < 3 ? scoreDefinition[1] : score.EmpScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
-                            <td ng-if='score.SectionID==3 && state == arcopmState.EvalComplete' style="text-align: center;"><b>{{score.DotScore == null ? '-' : score.DotScore < 2.5 ? scoreDefinition[0] : score.DotScore < 3 ? scoreDefinition[1] : score.DotScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
+                            <td ng-if='score.SectionID==3 && state >= arcopmState.EvalByDotted && hasDotted == 1' style="text-align: center;"><b>{{score.DotScore == null ? '-' : score.DotScore < 2.5 ? scoreDefinition[0] : score.DotScore < 3 ? scoreDefinition[1] : score.DotScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
 							<td ng-if='score.SectionID==3 && userRole != "emp"' style="text-align: center;">
 								<b>{{score.EvalScore == null ? '-' : score.EvalScore < 2.5 ? scoreDefinition[0] : score.EvalScore < 3 ? scoreDefinition[1] : score.EvalScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b>
 								/ <label ng-if="score.RevScore" style="color: green;">{{score.RevScore == null ? '-' : score.RevScore < 2.5 ? scoreDefinition[0] : score.RevScore < 3 ? scoreDefinition[1] : score.RevScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</label>
@@ -129,12 +129,12 @@
 						<tr>
 							<th rowspan="2" style="vertical-align: middle;"><b>Performance Elements</b></th>
 							<th rowspan="2" style="vertical-align: middle; text-align: center;"><b>Weight %</b></th>
-							<th colspan="{{state == arcopmState.EvalComplete ? '3' : '2'}}" style="text-align: center;"><b>Weighted Scores</b></th>  <!-- colspan="6" if we open the 3 columns we commented out below-->
+                            <th colspan="{{state >= arcopmState.EvalByDotted && hasDotted == 1 ? '3' : '2'}}" style="text-align: center;"><b>Weighted Scores</b></th>  <!-- colspan="6" if we open the 3 columns we commented out below-->
 						</tr>
 						<tr>
 							<!--<th style="text-align: center; border-left-width: 2px;"><b>Actual Employee Score</th>-->
 							<th style="text-align: center; border-right-width: 2px;"><b>Employee Score</b></th>
-                            <th ng-if="state == arcopmState.EvalComplete" style="text-align: center; border-right-width: 2px;"><b>Dotted Score</b></th>
+                            <th ng-if="state >= arcopmState.EvalByDotted && hasDotted == 1" style="text-align: center; border-right-width: 2px;"><b>Dotted Score</b></th>
 							<!--<th style="text-align: center;"><b>Actual Evaluator Score</b></th>-->
 							<th ng-if="userRole != 'emp'" style="text-align: center; border-right-width: 2px;"><b>Evaluator Score</b></th>
 							<!--<th style="text-align: center;"><b>Actual Revision Score</b></th>-->
@@ -147,7 +147,7 @@
 							<td style="text-align: center; font-size: 12px; border-right-width: 2px;">{{score.ScoreWeight * 100}}</td>
 							<!--<td style="text-align: center; font-size: 12px;">{{score.EmpScore}}</td>-->
 							<td style="text-align: center; font-size: 12px; border-right-width: 2px;">{{score.EmpScore ? roundUp(score.ScoreWeight * score.EmpScore) : '-'}} </td>
-                            <td ng-if="state == arcopmState.EvalComplete" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{score.DotScore ? roundUp(score.ScoreWeight * score.DotScore) : '-'}} </td>
+                            <td ng-if="state >= arcopmState.EvalByDotted && hasDotted == 1" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{score.DotScore ? roundUp(score.ScoreWeight * score.DotScore) : '-'}} </td>
 							<!--<td style="text-align: center; font-size: 12px;">{{score.EvalScore}}</td>-->
 							<td ng-if="userRole != 'emp'" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{score.EvalScore ? roundUp(score.ScoreWeight * score.EvalScore) : '-'}} / <label style="color: green;">{{score.RevScore ? roundUp(score.ScoreWeight * score.RevScore) : '-'}}</label></td>
 							<!--<td style="text-align: center; font-size: 12px;">{{score.RevScore}}</td>-->
@@ -158,7 +158,7 @@
 							<td rowspan="2" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{totalWeight * 100}}</td>
 							<!--<td style="text-align: center; font-size: 12px;">{{averageEmpScore ? averageEmpScore.toFixed(2): ''}}</td>-->
 							<td style="text-align: center; font-size: 12px; border-right-width: 2px;">{{totalEmpWeightScore ? roundUp(totalEmpWeightScore) : '-'}}</td>
-                            <td ng-if="state == arcopmState.EvalComplete" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{totalDotWeightScore ? roundUp(totalDotWeightScore) : '-'}}</td>
+                            <td ng-if="state >= arcopmState.EvalByDotted && hasDotted == 1" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{totalDotWeightScore ? roundUp(totalDotWeightScore) : '-'}}</td>
 							<!--<td style="text-align: center; font-size: 12px;">{{averageEvalScore ? averageEvalScore.toFixed(2) : ''}}</td>-->
 							<td ng-if="userRole != 'emp'" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{totalEvalWeightScore ? roundUp(totalEvalWeightScore) : '-'}} / <label style="color: green;">{{totalRevWeightScore ? roundUp(totalRevWeightScore) : '-'}}</label></td>
 							<!--<td style="text-align: center; font-size: 12px;">{{averageRevScore ? averageRevScore.toFixed(2) : ''}}</td>-->
@@ -168,7 +168,7 @@
 							<!-- colspan="2" bellow if we open the 3 columns we commented out above -->
 
 							<td style="text-align: center; border-right-width: 2px;"><b>{{totalEmpWeightScore == 0 ? '-' : totalEmpWeightScore < scoreScales.ScaleTo1 ? scoreDefinition[0] : totalEmpWeightScore < scoreScales.ScaleTo2 ? scoreDefinition[1] : totalEmpWeightScore < scoreScales.ScaleTo3 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
-                            <td ng-if="state == arcopmState.EvalComplete" style="text-align: center; border-right-width: 2px;"><b>{{totalDotWeightScore == 0 ? '-' : totalDotWeightScore < scoreScales.ScaleTo1 ? scoreDefinition[0] : totalDotWeightScore < scoreScales.ScaleTo2 ? scoreDefinition[1] : totalDotWeightScore < scoreScales.ScaleTo3 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
+                            <td ng-if="state >= arcopmState.EvalByDotted && hasDotted == 1" style="text-align: center; border-right-width: 2px;"><b>{{totalDotWeightScore == 0 ? '-' : totalDotWeightScore < scoreScales.ScaleTo1 ? scoreDefinition[0] : totalDotWeightScore < scoreScales.ScaleTo2 ? scoreDefinition[1] : totalDotWeightScore < scoreScales.ScaleTo3 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
 							<td ng-if="userRole != 'emp'" style="text-align: center; border-right-width: 2px;">
 								<b>{{totalEvalWeightScore == 0 ? '-' : totalEvalWeightScore < scoreScales.ScaleTo1 ? scoreDefinition[0] : totalEvalWeightScore < scoreScales.ScaleTo2 ? scoreDefinition[1] : totalEvalWeightScore < scoreScales.ScaleTo3 ? scoreDefinition[2] : scoreDefinition[3] }}</b>
 								/ <label style="color: green;">{{totalRevWeightScore == 0 ? '-' : totalRevWeightScore < scoreScales.ScaleTo1 ? scoreDefinition[0] : totalRevWeightScore < scoreScales.ScaleTo2 ? scoreDefinition[1] : totalRevWeightScore < scoreScales.ScaleTo3 ? scoreDefinition[2] : scoreDefinition[3] }}</label>
@@ -581,7 +581,8 @@
 																			<th class="center">Additional Information / Clarifications</th>
 																			<th class="center">By When?</th>
 																			<th class="center" title="Refers to the person who is responsible for the implementation of the developmental action. For example, who is responsible to conduct the on-the-job training to the employee?">By Whom?<br/><span style="font-style: italic; font-weight: initial;">(where applicable)</span></th>
-																			<th style="width:5%"><br/>
+																			<th class="center" style="width:11%" ng-if="state == arcopmState.EvalByEvaluator || state == arcopmState.EvalByReviewer">Evaluator's<br/>Approval</th>
+                                                                            <th style="width:5%"><br/>
 																				<div ng-if="showAddNewDevplanButton && (((state >= arcopmState.EvalByEmployee && state < arcopmState.EvalComplete) && list != 'mylist') || (list == 'mylist' && state == arcopmState.EvalByEmployee))" class="add-new-devplan" ng-click="showAddNewDevplanPopup(evaluation,state)" style="text-align: center;"
 																					uib-tooltip="Add New Development Plan" tooltip-placement="left" tooltip-trigger="'mouseenter'">
 																					<i class="fa fa-plus-circle fa-2x" aria-hidden="true" style="color: #0BC512;"></i>
@@ -590,15 +591,33 @@
 																		</tr>
 																	</thead>
 																	<tbody>
-																		<tr ng-repeat="historydevplan in historydevplans" ng-if="(historydevplan.State != state || historydevplan.UserID != userid) && ((userRole == 'emp' && historydevplan.State == arcopmState.EvalByEmployee) || (userRole != 'emp'))" ng-class="{'oddRow' : $odd, 'evenRow': $even}" ng-attr-style="{{getRowColor(historydevplan.State)}}">
+																		<tr ng-repeat="historydevplan in historydevplans" ng-class="{'oddRow' : $odd, 'evenRow': $even}" ng-attr-style="{{getRowColor(historydevplan.State)}}">
 																			<td class="center">{{historydevplan.Objective}}</td>
 																			<td class="center">{{historydevplan.Action==1 ? ' On-the-job training' : historydevplan.Action==2 ? 'Classroom training, formal learning or education' : historydevplan.Action==3 ? 'Other action' : ''}}</td>
 																			<td class="center">{{historydevplan.AdditionalInfo}}</td>
 																			<td class="center">{{historydevplan.ByWhen}}</td>
 																			<td class="center">{{historydevplan.ByWhom}}</td>
-																			<td class="center"></td>
+                                                                            <td ng-if="state == arcopmState.EvalByEvaluator || state == arcopmState.EvalByReviewer">
+                                                                                <div class="btn-group">
+                                                                                    <label ng-class="(historydevplan.ApprovedByEvaluator == 0) ? 'btn btn-default active' : 'btn btn-default'"  uib-btn-radio="0" ng-model="historydevplan.ApprovedByEvaluator" ng-click="updateDevelopmentPlanStatus(historydevplan);" required>No</label>
+                                                                                    <label ng-class="(historydevplan.ApprovedByEvaluator == 1) ? 'btn btn-default active' : 'btn btn-default'"  uib-btn-radio="1" ng-model="historydevplan.ApprovedByEvaluator" ng-click="updateDevelopmentPlanStatus(historydevplan);" required>Yes</label>
+                                                                                </div>
+                                                                                <div ng-if="(state == arcopmState.EvalComplete)">
+                                                                                    <label>{{historydevplan.ApprovedByEvaluator == 1 ? 'Yes' : historydevplan.ApprovedByEvaluator == 0 ? 'No' : ''}}</label>
+                                                                                </div>
+                                                                            </td>
+																			<td class="center" style="display: -moz-inline-box;">
+                                                                                <div ng-if="(historydevplan.State == state && historydevplan.UserID == userid)">
+                                                                                    <span ng-if="((state >= arcopmState.EvalByEmployee && state < arcopmState.EvalComplete) && list != 'mylist') || (list == 'mylist' && state == arcopmState.EvalByEmployee)">
+                                                                                        <button class="sitesBtn" ng-click="showEditDevplanPopup(evaluation,historydevplan,state)" uib-tooltip="Edit Development Plan" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-pencil" aria-hidden="true"  ></span></button>
+                                                                                    </span>
+                                                                                    <span ng-if="((state >= arcopmState.EvalByEmployee && state < arcopmState.EvalComplete) && list != 'mylist') || (list == 'mylist' && state == arcopmState.EvalByEmployee)">
+                                                                                        <button class="sitesBtn" ng-click="showDeleteDevplanPopup(evaluation,historydevplan)" uib-tooltip="Delete Development Plan" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-trash" aria-hidden="true"  ></span></button>
+                                                                                    </span>
+                                                                                </div>
+																			</td>
 																		</tr>
-																		<tr ng-repeat="devplan in devplans" ng-if="userid == devplan.UserID">
+																		<!--<tr ng-repeat="devplan in devplans" ng-if="userid == devplan.UserID">
 																			<td class="center">{{devplan.Objective}}</td>
 																			<td class="center">{{devplan.Action==1 ? ' On-the-job training' : devplan.Action==2 ? 'Classroom training, formal learning or education' : devplan.Action==3 ? 'Other action' : ''}}</td>
 																			<td class="center">{{devplan.AdditionalInfo}}</td>
@@ -612,7 +631,7 @@
 																					<button class="sitesBtn" ng-click="showDeleteDevplanPopup(evaluation,devplan,state)" uib-tooltip="Delete Development Plan" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-trash" aria-hidden="true"  ></span></button>
 																				</span>
 																			</td>
-																		</tr>
+																		</tr>-->
 																	</tbody>
 																</table>
 															</div>

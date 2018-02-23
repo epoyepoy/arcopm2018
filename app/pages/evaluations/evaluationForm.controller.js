@@ -27,6 +27,7 @@
 		$scope.state = dataService.getState();
 		$scope.resume = dataService.getResume();
 		$scope.list = dataService.getFromList();
+        $scope.hasDotted = dataService.getHasDotted();
         $scope.arcopmState = arcopmState;
 
 
@@ -58,8 +59,7 @@
             });
             $scope.getEmpDetails($scope.evaluation);
             $scope.getUserRole($scope.evaluation);
-			$scope.getDevPlans($scope.evaluation,$scope.state);
-			$scope.getDevPlanHistory($scope.evaluation);
+			//$scope.getDevPlans($scope.evaluation,$scope.state);
             $scope.getReportingLine($scope.evaluation);
             $scope.getQuestions($scope.evaluation,$scope.state);
 			$scope.getSections($scope.evaluation,$scope.state);
@@ -183,17 +183,39 @@
 		};
 
 
-		$scope.getDevPlans = function(evalid,state){
+//		$scope.getDevPlans = function(evalid,state){
+//			if (!$scope.checkLogin()) {
+//                return;
+//            }
+//			$scope.showAddNewDevplanButton = true;
+//			EvaluationsFactory.GetDevPlans(evalid,state).then(function (result) {
+//				$scope.checkifLoggedout(result);
+//				$scope.devplans = result.developmentPlan;
+//				var i=0;
+//				angular.forEach(result.developmentPlan, function(value) {
+//					i++;
+//				});
+//				if(i == 2 && $scope.employeeGrade < 10){
+//					$scope.showAddNewDevplanButton = false;
+//				}
+//				if(i == 3 && $scope.employeeGrade >= 10){
+//					$scope.showAddNewDevplanButton = false;
+//				}
+//            });
+//		};
+
+
+		$scope.getDevPlanHistory = function(evalid){
 			if (!$scope.checkLogin()) {
                 return;
             }
 			$scope.showAddNewDevplanButton = true;
-			EvaluationsFactory.GetDevPlans(evalid,state).then(function (result) {
+			EvaluationsFactory.GetDevPlanHistory(evalid).then(function (result) {
 				$scope.checkifLoggedout(result);
-				$scope.devplans = result.developmentPlan;
-				var i=0;
+				$scope.historydevplans = result.developmentPlan;
+                var i=0;
 				angular.forEach(result.developmentPlan, function(value) {
-					i++;
+                    if(value.State == $scope.state && value.UserID == $scope.userid) i++;
 				});
 				if(i == 2 && $scope.employeeGrade < 10){
 					$scope.showAddNewDevplanButton = false;
@@ -205,21 +227,9 @@
 		};
 
 
-		$scope.getDevPlanHistory = function(evalid){
-			if (!$scope.checkLogin()) {
-                return;
-            }
-			//$scope.showAddNewDevplanButton = true;
-			EvaluationsFactory.GetDevPlanHistory(evalid).then(function (result) {
-				$scope.checkifLoggedout(result);
-				$scope.historydevplans = result.developmentPlan;
-            });
-		};
-
-
 		$scope.getRowColor = function(state){
 			if(state == arcopmState.EvalByEmployee){ return 'background-color : #ececec'; }
-			if(state == arcopmState.EvalByDotted){ return 'background-color : #8eaf91'; }
+			if(state == arcopmState.EvalByDotted){ return 'background-color : #ffcc84'; }
 			if(state == arcopmState.EvalByEvaluator){ return 'background-color : #c5e0b6'; }
 		};
 
@@ -232,6 +242,7 @@
 				$scope.checkifLoggedout(result);
 				$scope.empDetails = result.empDetails;
 				$scope.employeeGrade = $scope.empDetails.empGrade;
+                $scope.getDevPlanHistory(evalid);
 
 				$scope.activeSection =1;				//indicates the active section
 				//we set activeSection to 2 when employee has grade less tha 4
@@ -374,7 +385,7 @@
 			EvaluationsFactory.AddNewDevPlan(evalID,tempDevplan,loginData.user.id,tempState).then(function (result) {
 				$scope.checkifLoggedout(result);
 				if (result.success) {
-					$scope.getDevPlans(evalID,tempState);
+					$scope.getDevPlanHistory(evalID);
 					$scope.extraMessage = 'created';
 				} else {
 					$scope.extraMessage = 'error';
@@ -386,7 +397,7 @@
         };
 
 
-		$scope.editDevPlan = function(evalID,editDevplan,tempState){
+		$scope.editDevPlan = function(evalID,editDevplan){
 			if (!$scope.checkLogin()) {
                 return;
             }
@@ -395,7 +406,7 @@
 			EvaluationsFactory.UpdateDevPlan(editDevplan,loginData.user.id).then(function (result) {
 				$scope.checkifLoggedout(result);
 				if (result.success) {
-					$scope.getDevPlans(evalID,tempState);
+					$scope.getDevPlanHistory(evalID);
 					$scope.extraMessage = 'created';
 				} else {
 					$scope.extraMessage = 'error';
@@ -408,7 +419,7 @@
 		};
 
 
-		$scope.deleteDevPlan = function(evalID,devplan,tempState){
+		$scope.deleteDevPlan = function(evalID,devplan){
 			if (!$scope.checkLogin()) {
                 return;
             }
@@ -417,7 +428,7 @@
 			EvaluationsFactory.DeleteDevPlan(devplan.DevelopmentPlanID).then(function (result) {
 				$scope.checkifLoggedout(result);
                 if (result.success) {
-                    $scope.getDevPlans(evalID,tempState);
+                    $scope.getDevPlanHistory(evalID);
                     $scope.extraMessage = 'deleted';
                 } else {
                     $scope.extraMessage = 'error';
@@ -427,6 +438,31 @@
             });
             return;
 		};
+        
+        
+        $scope.updateDevelopmentPlanStatus = function(devplan){
+            if (!$scope.checkLogin()) {
+                return;
+            }
+			EvaluationsFactory.UpdateDevelopmentPlanStatus(devplan,loginData.user.id).then(function (result) {
+				$scope.checkifLoggedout(result);
+                console.log(result);
+				if (result.success) {
+					$scope.extraMessage = 'created';
+					//$scope.managesteam = managesTeam;
+                    //$scope.cycleGoal.EvaluationID = result.evalid;
+					$scope.todoPopup = ngDialog.open({
+						template: 'app/pages/evaluations/popup/evaluations.status.devplan.save.popup',
+						className: 'ngdialog-theme-default',
+						scope: $scope
+					});
+				} else {
+					$scope.extraMessage = 'error';
+					$scope.extraMessageText = 'Something went wrong while saving your selection. Please contact your administrator.';
+
+				}
+			});
+        };
 
 
 		$scope.evaluationFormAlertDialog = function(resultObject){
@@ -475,14 +511,13 @@
         };
 
 		// Shows Delete development plan popup
-        $scope.showDeleteDevplanPopup = function (evalID,devplan,state) {
+        $scope.showDeleteDevplanPopup = function (evalID,devplan) {
             if (!$scope.checkLogin()) {
                 return;
             }
             $scope.extraMessage = 'warning';
 			$scope.tempEvalID = evalID;
 			$scope.tempDevPlan = devplan;
-			$scope.tempState = state;
 
             $scope.todoPopup = ngDialog.open({
                 template: 'app/pages/evaluations/popup/evaluationForm.delete.devplan.popup.html',

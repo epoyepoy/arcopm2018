@@ -77,22 +77,23 @@ class GoalsDAO{
 	public function getMyGoalsPerCycle($empno, $cycleid)
 	{
 		$queryString="
-		Declare @empno as varchar(5) = :empno;
-		Declare @cycleid as int = :cycleid;
+		DECLARE @empno as varchar(5) = :empno, @cycleid as int = :cycleid;
 		SELECT EC.ID as CycleID, EC.CycleDescription, EC.goalsInputStatus, E.ManagesTeam, ISNULL(E.EmployeeID, @empno) AS Empno, HR.job_desc,
 		rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'employeeName', HR.grade, ISNULL(E.State, 0) as EvalState, E.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag
 		FROM EvaluationsCycle EC
+		INNER JOIN ReportingLine RL on RL.empnosource = @empno AND RL.state=5 AND RL.cycleid=EC.ID
+		INNER JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
 		LEFT JOIN Evaluations E ON E.CycleID=EC.ID AND E.EmployeeID=@empno
 		LEFT JOIN Goals G on G.EvaluationID=E.EvaluationID
-		LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=isnull(E.EmployeeID, @empno)
-		LEFT JOIN ReportingLine RL on RL.empnosource = HR.empno AND RL.state=5
-		OUTER APPLY (
+		
+		OUTER APPLY(
 		SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM Evaluations E
 		WHERE State=0 AND UserID<>@empno AND CycleID=@cycleid and E.EmployeeID=@empno
-		) onBehalf
-		WHERE EC.ID=@cycleid AND HR.grade>3 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid
+		)onBehalf
+		
+		WHERE EC.ID=@cycleid AND HR.grade>3 --AND ISNULL(RL.excludeFromCycles,0)<>@cycleid
 		GROUP BY EC.ID, EC.CycleDescription, EC.goalsInputStatus, E.ManagesTeam, E.EmployeeID, E.State, HR.family_name, HR.first_name,HR.job_desc, HR.grade, E.EvaluationID, onBehalf.NoAsnwers
-		ORDER BY HR.grade asc, EC.goalsInputStatus desc
+		ORDER BY HR.grade asc, EC.goalsInputStatus DESC
 		";
         $query = $this->connection->prepare($queryString);
         $query->bindValue(':empno', $empno, PDO::PARAM_STR);
@@ -108,295 +109,390 @@ class GoalsDAO{
 	{
 		$queryString="
 		DECLARE @cycleid as int=:cycleid, @userid as varchar(5)=:userid;
-		DECLARE @hasExc AS INT=(SELECT COUNT(*) FROM dbo.ReportingLineExceptions WHERE empnotarget=@userid AND goalCycle=@cycleid);
-		IF @hasExc>0
-		BEGIN
-			SELECT EvCycle.ID as CycleID, EvCycle.CycleDescription, EvCycle.goalsInputStatus, Ev.ManagesTeam, RL.empnosource AS Empno, HR.job_desc,
-			rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'employeeName', HR.grade,
-			CASE
-				WHEN HR.GRADE<4 AND ISNULL(Ev.State, 0)=0 THEN 2
-				ELSE ISNULL(Ev.State, 0)
-			END as EvalState,
-			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, yourAction.yourAction as yourActionStateDescr, 
-			isnull(RL.wrongManager,0) as wrongManager,EvalAnswers.flagEvalAnswers,
-			CASE 
-				WHEN 
-					(ISNULL(Ev.State,0) in (0,2) 
+		
+		SELECT EvCycle.ID as CycleID, EvCycle.CycleDescription, EvCycle.goalsInputStatus, Ev.ManagesTeam, RL.empnosource AS Empno,  HR.job_desc,
+		rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'employeeName', HR.grade,
+		CASE
+			WHEN HR.GRADE<4 AND ISNULL(Ev.State, 0)=0 
+			THEN 2 --check it was 1
+			ELSE ISNULL(Ev.State, 0)
+		END as EvalState,
+		Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, 
+		ISNULL(yourAction.yourAction, 'No Action') as yourActionStateDescr, isnull(RL.wrongManager,0) as wrongManager, EvalAnswers.flagEvalAnswers,
+		CASE 
+			WHEN (ISNULL(Ev.State,0) in (0,2) 
 					AND yourEvalAction.estate=5 
-					AND CASE WHEN ISNULL(ev.State,0) = 6 THEN 5 ELSE ISNULL(ev.State,0) END <=yourEvalAction.estate
-					AND onBehalf.NoAsnwers=0)
-				THEN 
-					CASE
-						WHEN (ISNULL(Ev.State,0) in (0) 
-							 AND CASE
-									WHEN isnull(Ev.empGrade,-1)=-1 
-									THEN Hr.grade
-									ELSE Ev.empGrade
-								 END >3 )
-						THEN 2
-						ELSE 1
-					END
-				WHEN -- For doted give action
-				yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
-				THEN 1
-			END AS  isForAction, 
-			HasDotted.HasDottedFlag, UserRelationship.RelationshipState
-
-	        FROM dbo.ReportingLine RL
-			LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
-			LEFT JOIN  dbo.Evaluations Ev on Ev.EmployeeID=RL.empnosource AND Ev.CycleID=@cycleid
-
-			OUTER APPLY(
-			SELECT * FROM EvaluationsCycle WHERE ID=@cycleid
-			)EvCycle
-
-			OUTER APPLY (
-			SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM Evaluations E
-			WHERE State=0 AND UserID<>@userid AND CycleID=@cycleid and E.EmployeeID=rl.empnosource
-			)onBehalf
-
-			OUTER APPLY (
-			SELECT case when count(*) >0 then 1 else 0 end as 'flagEvalAnswers' FROM ANSWERS 
-			WHERE EvaluationID=Ev.EvaluationID
-			)EvalAnswers
-
-			OUTER APPLY (
-			SELECT TOP 1
-			CASE
-			WHEN state=4 THEN 'Complete as Dotted Line Manager'
-			WHEN state=5 THEN 'Complete as Evaluator' END
-					as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
-			FROM ReportingLine WHERE
-			State>=isnull(Ev.State,0)
-			and empnotarget=@userid and empnosource=HR.empno
-			ORDER BY state asc
-			)yourAction
-
-			OUTER APPLY (
-			SELECT isnull(state,0) as estate
-			FROM ReportingLine WHERE
-			State=5
-			AND
-			empnotarget=@userid and empnosource=HR.empno
-			)yourEvalAction
-
-			OUTER APPLY (
-			SELECT TOP 1  CASE WHEN state=4 THEN 'Complete as Dotted Line Manager'
-			WHEN state=5 THEN CASE WHEN Ev.State=6 THEN 'Revise / Finalize as Evaluator' ELSE 'Complete as Evaluator' END
-			END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
-			FROM ReportingLine WHERE
-			State>=
-			CASE WHEN ISNULL(Ev.State,0) in (0,2) THEN 5 WHEN ISNULL(Ev.State,0) = 1 THEN 4 END
-			AND
-			empnotarget=@userid and empnosource=HR.empno
-			ORDER BY state asc
-			)yourNextAction
-
-			OUTER APPLY(
-			SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END AS HasDottedFlag 
-			FROM dbo.ReportingLine 
-			WHERE empnosource=rl.empnosource AND state=4
-			)HasDotted
-
-			OUTER APPLY(
-			SELECT TOP 1 state RelationshipState FROM dbo.ReportingLine WHERE empnosource=rl.empnosource AND empnotarget=@userid
-			)UserRelationship
-
-	        WHERE RL.empnotarget=@userid AND ISNULL(RL.excludeFromCycles,0)<>@cycleid --AND RL.state=5
-			AND Rl.empnosource NOT IN (SELECT RLE2.empnosource FROM dbo.ReportingLineExceptions RLE2 --exclude employees that are in the ReportingLineException, keep employee in case user is
-			INNER JOIN dbo.ReportingLine RL2 ON RL2.empnosource=RLE2.empnosource AND  RLE2.state=5 WHERE RL2.empnotarget=@userid AND RLE2.empnotarget<>@userid AND RLE2.goalCycle=@cycleid)
-	   UNION
-			SELECT EvCycle.ID as CycleID, EvCycle.CycleDescription, EvCycle.goalsInputStatus, Ev.ManagesTeam, RL.empnosource AS Empno,  HR.job_desc,
-			rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'employeeName', HR.grade,
-			CASE
-				WHEN HR.GRADE<4 AND ISNULL(Ev.State, 0)=0 THEN 2 --check it was 1
-				ELSE ISNULL(Ev.State, 0)
-			END as EvalState,
-			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, 
-			yourAction.yourAction as yourActionStateDescr, isnull(RL.wrongManager,0) as wrongManager,EvalAnswers.flagEvalAnswers,
-			CASE 
-				WHEN (ISNULL(Ev.State,0) in (0,2) AND yourEvalAction.estate=5 
-					 AND CASE 
-							WHEN ISNULL(ev.State,0) = 6 
-							THEN 5 
-							ELSE ISNULL(ev.State,0) 
+					AND CASE 
+						WHEN ISNULL(ev.State,0) = 6 
+						THEN 5 
+						ELSE ISNULL(ev.State,0) 
 						END <=yourEvalAction.estate
-					 AND onBehalf.NoAsnwers=0)
-				THEN 
-					CASE
-						WHEN (ISNULL(Ev.State,0) in (0) 
-								AND CASE
-									WHEN isnull(Ev.empGrade,-1)=-1 
-									THEN Hr.grade
-									ELSE Ev.empGrade
-									END >3 )
-						THEN 2
-						ELSE 1
-					END
-				WHEN -- For doted give action
-					yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
-				THEN 1
-			END AS  isForAction, 
-			HasDotted.HasDottedFlag, UserRelationship.RelationshipState
+				AND onBehalf.NoAsnwers=0)
+			THEN 
+				CASE
+					WHEN (ISNULL(Ev.State,0) in (0) 
+							AND CASE
+								WHEN isnull(Ev.empGrade,-1)=-1 
+								THEN Hr.grade
+								ELSE Ev.empGrade
+								END >3 )
+					THEN 2
+					ELSE 1
+				END
+			WHEN -- For doted give action
+				yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
+			THEN 1
+		END AS  isForAction, 
+		HasDotted.HasDottedFlag, UserRelationship.RelationshipState
 
-	        FROM dbo.ReportingLineExceptions RL
-			LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
-			LEFT JOIN  dbo.Evaluations Ev on Ev.EmployeeID=RL.empnosource AND Ev.CycleID=@cycleid
+	    FROM dbo.ReportingLine RL
+		LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
+		LEFT JOIN  dbo.Evaluations Ev on Ev.EmployeeID=RL.empnosource AND Ev.CycleID=@cycleid
 
-			OUTER APPLY(
-			SELECT * FROM EvaluationsCycle WHERE ID=@cycleid
-			)EvCycle
+		OUTER APPLY(
+		SELECT * FROM EvaluationsCycle WHERE ID=@cycleid
+		)EvCycle
 
-			OUTER APPLY (
-			SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM Evaluations E
-			WHERE State=0 AND UserID<>@userid AND CycleID=@cycleid and E.EmployeeID=rl.empnosource
-			)onBehalf
+		OUTER APPLY(
+		SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM Evaluations E
+		WHERE State=0 AND UserID<>@userid AND CycleID=@cycleid and E.EmployeeID=rl.empnosource
+		)onBehalf
+
+		OUTER APPLY(
+		SELECT case when count(*) >0 then 1 else 0 end as 'flagEvalAnswers' FROM ANSWERS 
+		WHERE EvaluationID=Ev.EvaluationID
+		)EvalAnswers
 			
-			OUTER APPLY (
-			SELECT case when count(*) >0 then 1 else 0 end as 'flagEvalAnswers' FROM ANSWERS 
-			WHERE EvaluationID=Ev.EvaluationID
-			)EvalAnswers
-			
-			OUTER APPLY(
-			SELECT TOP 1
-			CASE
-				WHEN state=4 THEN 'Complete as Dotted Line Manager'
-				WHEN state=5 THEN 'Complete as Evaluator' END
-					as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
-			FROM ReportingLineExceptions WHERE
-			State>=isnull(Ev.State,0)
-			and empnotarget=@userid and empnosource=HR.empno
-			ORDER BY state asc
-			)yourAction
-
-			OUTER APPLY (
-			SELECT isnull(state,0) as estate
-			FROM ReportingLineExceptions WHERE
-			State=5
-			AND
-			empnotarget=@userid and empnosource=HR.empno
-			)yourEvalAction
-
-			OUTER APPLY (
-			SELECT TOP 1  CASE WHEN state=4 THEN 'Complete as Dotted Line Manager'
-			WHEN state=5 THEN CASE WHEN Ev.State=6 THEN 'Revise / Finalize as Evaluator' ELSE 'Complete as Evaluator' END
+		OUTER APPLY(
+		SELECT TOP 1
+		CASE
+			WHEN state=4 THEN 'Complete as Dotted Line Manager'
+			WHEN state=5 THEN  'Complete as Evaluator'
 			END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
-			FROM ReportingLineExceptions WHERE
-			State>=
-			CASE WHEN ISNULL(Ev.State,0) in (0,2) THEN 5 WHEN ISNULL(Ev.State,0) = 1 THEN 4 END
-			AND
-			empnotarget=@userid and empnosource=HR.empno
-			ORDER BY state asc
-			)yourNextAction
-	        
-			OUTER APPLY(
-			SELECT CASE WHEN COUNT(*) > 1 THEN 1 ELSE 0 END AS HasDottedFlag FROM dbo.ReportingLineExceptions WHERE empnosource=rl.empnosource AND state=4
-			)HasDotted
+		FROM ReportingLine WHERE
+		state>= CASE WHEN ISNULL(Ev.State,0) in (0,1) THEN 4 WHEN ISNULL(Ev.State,0) = 2 THEN 5 END  
+		and empnotarget=@userid and empnosource=HR.empno AND cycleid=@cycleid
+		ORDER BY state asc
+		)yourAction
 
-			OUTER APPLY(
-			SELECT TOP 1 state RelationshipState FROM dbo.ReportingLineExceptions WHERE empnosource=rl.empnosource AND empnotarget=@userid
-			)UserRelationship
+		OUTER APPLY(
+		SELECT isnull(state,0) as estate
+		FROM ReportingLine WHERE
+		State=5 AND empnotarget=@userid and empnosource=HR.empno AND cycleid=@cycleid
+		)yourEvalAction
 
-			WHERE RL.empnotarget=@userid --AND RL.state=5 --AND ISNULL(RL.excludeFromCycles,0)<>@cycleid
-			ORDER BY HR.grade ASC
-		END
-		ELSE
-		BEGIN
-			SELECT EvCycle.ID as CycleID, EvCycle.CycleDescription, EvCycle.goalsInputStatus, Ev.ManagesTeam, RL.empnosource AS Empno,  HR.job_desc,
-			rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'employeeName', HR.grade,
-			CASE
-				WHEN HR.GRADE<4 AND ISNULL(Ev.State, 0)=0 
-				THEN 2 --check it was 1
-				ELSE ISNULL(Ev.State, 0)
-			END as EvalState,
-			Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, 
-			ISNULL(yourAction.yourAction, 'No Action') as yourActionStateDescr, isnull(RL.wrongManager,0) as wrongManager, EvalAnswers.flagEvalAnswers,
-			CASE 
-				WHEN (ISNULL(Ev.State,0) in (0,2) 
-					 AND yourEvalAction.estate=5 
-					 AND CASE 
-							WHEN ISNULL(ev.State,0) = 6 
-							THEN 5 
-							ELSE ISNULL(ev.State,0) 
-						 END <=yourEvalAction.estate
-					AND onBehalf.NoAsnwers=0)
-				THEN 
-					CASE
-						WHEN (ISNULL(Ev.State,0) in (0) 
-							 AND CASE
-									WHEN isnull(Ev.empGrade,-1)=-1 
-									THEN Hr.grade
-									ELSE Ev.empGrade
-								 END >3 )
-						THEN 2
-						ELSE 1
-					END
-				WHEN -- For doted give action
-					yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
-				THEN 1
-			END AS  isForAction, 
-			HasDotted.HasDottedFlag, UserRelationship.RelationshipState
+		OUTER APPLY(
+		SELECT TOP 1  CASE WHEN state=4 THEN 'Complete as Dotted Line Manager'
+		WHEN state=5 THEN CASE WHEN Ev.State=6 THEN 'Revise / Finalize as Evaluator' ELSE 'Complete as Evaluator' END
+		END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+		FROM ReportingLine WHERE
+		State>= CASE WHEN ISNULL(Ev.State,0) in (0,2) THEN 5 WHEN ISNULL(Ev.State,0) = 1 THEN 4 END
+		AND empnotarget=@userid and empnosource=HR.empno AND cycleid=@cycleid
+		ORDER BY state asc
+		)yourNextAction
 
-	        FROM dbo.ReportingLine RL
-			LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
-			LEFT JOIN  dbo.Evaluations Ev on Ev.EmployeeID=RL.empnosource AND Ev.CycleID=@cycleid
+		OUTER APPLY(
+		SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END AS HasDottedFlag 
+		FROM dbo.ReportingLine WHERE empnosource=rl.empnosource AND state=4 AND cycleid=@cycleid 
+		)HasDotted
 
-			OUTER APPLY(
-			SELECT * FROM EvaluationsCycle WHERE ID=@cycleid
-			)EvCycle
+		OUTER APPLY(
+		SELECT TOP 1 state RelationshipState 
+		FROM dbo.ReportingLine WHERE empnosource=rl.empnosource AND empnotarget=@userid AND cycleid=@cycleid
+		)UserRelationship
 
-			OUTER APPLY(
-			SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM Evaluations E
-			WHERE State=0 AND UserID<>@userid AND CycleID=@cycleid and E.EmployeeID=rl.empnosource
-			)onBehalf
-
-			OUTER APPLY(
-			SELECT case when count(*) >0 then 1 else 0 end as 'flagEvalAnswers' FROM ANSWERS 
-			WHERE EvaluationID=Ev.EvaluationID
-			)EvalAnswers
-			
-			OUTER APPLY(
-			SELECT TOP 1
-			CASE
-				WHEN state=4 THEN 'Complete as Dotted Line Manager'
-				WHEN state=5 THEN  'Complete as Evaluator'
-				END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
-			FROM ReportingLine WHERE
-			state>= CASE WHEN ISNULL(Ev.State,0) in (0,1) THEN 4 WHEN ISNULL(Ev.State,0) = 2 THEN 5 END  
-			and empnotarget=@userid and empnosource=HR.empno
-			ORDER BY state asc
-			)yourAction
-
-			OUTER APPLY(
-			SELECT isnull(state,0) as estate
-			FROM ReportingLine WHERE
-			State=5 AND empnotarget=@userid and empnosource=HR.empno
-			)yourEvalAction
-
-			OUTER APPLY(
-			SELECT TOP 1  CASE WHEN state=4 THEN 'Complete as Dotted Line Manager'
-			WHEN state=5 THEN CASE WHEN Ev.State=6 THEN 'Revise / Finalize as Evaluator' ELSE 'Complete as Evaluator' END
-			END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
-			FROM ReportingLine WHERE
-			State>= CASE WHEN ISNULL(Ev.State,0) in (0,2) THEN 5 WHEN ISNULL(Ev.State,0) = 1 THEN 4 END
-			AND empnotarget=@userid and empnosource=HR.empno
-			ORDER BY state asc
-			)yourNextAction
-
-			OUTER APPLY(
-			SELECT CASE WHEN COUNT(*) > 1 THEN 1 ELSE 0 END AS HasDottedFlag FROM dbo.ReportingLine WHERE empnosource=rl.empnosource AND state=4
-			)HasDotted
-
-			OUTER APPLY(
-			SELECT TOP 1 state RelationshipState FROM dbo.ReportingLine WHERE empnosource=rl.empnosource AND empnotarget=@userid
-			)UserRelationship
-
-	        WHERE RL.empnotarget=@userid AND ISNULL(RL.excludeFromCycles,0)<>@cycleid --AND RL.state=5
-			AND RL.empnosource NOT IN (SELECT RLE2.empnosource FROM dbo.ReportingLineExceptions RLE2 --exclude employees that are in the ReportingLineException, keep employee in case user is
-			INNER JOIN dbo.ReportingLine RL2 ON RL2.empnosource=RLE2.empnosource AND  RLE2.state=5 WHERE RL2.empnotarget=@userid AND RLE2.empnotarget<>@userid AND RLE2.goalCycle=@cycleid)
-			ORDER BY HR.grade ASC
-		END
+	    WHERE RL.empnotarget=@userid AND RL.cycleid=@cycleid
+		ORDER BY HR.grade ASC
 		";
+		// 	DECLARE @cycleid as int=:cycleid, @userid as varchar(5)=:userid;
+	// 	DECLARE @hasExc AS INT=(SELECT COUNT(*) FROM dbo.ReportingLineExceptions WHERE empnotarget=@userid AND goalCycle=@cycleid);
+	// 	IF @hasExc>0
+	// 	BEGIN
+	// 		SELECT EvCycle.ID as CycleID, EvCycle.CycleDescription, EvCycle.goalsInputStatus, Ev.ManagesTeam, RL.empnosource AS Empno, HR.job_desc,
+	// 		rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'employeeName', HR.grade,
+	// 		CASE
+	// 			WHEN HR.GRADE<4 AND ISNULL(Ev.State, 0)=0 THEN 2
+	// 			ELSE ISNULL(Ev.State, 0)
+	// 		END as EvalState,
+	// 		Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, yourAction.yourAction as yourActionStateDescr, 
+	// 		isnull(RL.wrongManager,0) as wrongManager,EvalAnswers.flagEvalAnswers,
+	// 		CASE 
+	// 			WHEN 
+	// 				(ISNULL(Ev.State,0) in (0,2) 
+	// 				AND yourEvalAction.estate=5 
+	// 				AND CASE WHEN ISNULL(ev.State,0) = 6 THEN 5 ELSE ISNULL(ev.State,0) END <=yourEvalAction.estate
+	// 				AND onBehalf.NoAsnwers=0)
+	// 			THEN 
+	// 				CASE
+	// 					WHEN (ISNULL(Ev.State,0) in (0) 
+	// 						 AND CASE
+	// 								WHEN isnull(Ev.empGrade,-1)=-1 
+	// 								THEN Hr.grade
+	// 								ELSE Ev.empGrade
+	// 							 END >3 )
+	// 					THEN 2
+	// 					ELSE 1
+	// 				END
+	// 			WHEN -- For doted give action
+	// 			yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
+	// 			THEN 1
+	// 		END AS  isForAction, 
+	// 		HasDotted.HasDottedFlag, UserRelationship.RelationshipState
+
+	//         FROM dbo.ReportingLine RL
+	// 		LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
+	// 		LEFT JOIN  dbo.Evaluations Ev on Ev.EmployeeID=RL.empnosource AND Ev.CycleID=@cycleid
+
+	// 		OUTER APPLY(
+	// 		SELECT * FROM EvaluationsCycle WHERE ID=@cycleid
+	// 		)EvCycle
+
+	// 		OUTER APPLY (
+	// 		SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM Evaluations E
+	// 		WHERE State=0 AND UserID<>@userid AND CycleID=@cycleid and E.EmployeeID=rl.empnosource
+	// 		)onBehalf
+
+	// 		OUTER APPLY (
+	// 		SELECT case when count(*) >0 then 1 else 0 end as 'flagEvalAnswers' FROM ANSWERS 
+	// 		WHERE EvaluationID=Ev.EvaluationID
+	// 		)EvalAnswers
+
+	// 		OUTER APPLY (
+	// 		SELECT TOP 1
+	// 		CASE
+	// 		WHEN state=4 THEN 'Complete as Dotted Line Manager'
+	// 		WHEN state=5 THEN 'Complete as Evaluator' END
+	// 				as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+	// 		FROM ReportingLine WHERE
+	// 		State>=isnull(Ev.State,0)
+	// 		and empnotarget=@userid and empnosource=HR.empno
+	// 		ORDER BY state asc
+	// 		)yourAction
+
+	// 		OUTER APPLY (
+	// 		SELECT isnull(state,0) as estate
+	// 		FROM ReportingLine WHERE
+	// 		State=5
+	// 		AND
+	// 		empnotarget=@userid and empnosource=HR.empno
+	// 		)yourEvalAction
+
+	// 		OUTER APPLY (
+	// 		SELECT TOP 1  CASE WHEN state=4 THEN 'Complete as Dotted Line Manager'
+	// 		WHEN state=5 THEN CASE WHEN Ev.State=6 THEN 'Revise / Finalize as Evaluator' ELSE 'Complete as Evaluator' END
+	// 		END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+	// 		FROM ReportingLine WHERE
+	// 		State>=
+	// 		CASE WHEN ISNULL(Ev.State,0) in (0,2) THEN 5 WHEN ISNULL(Ev.State,0) = 1 THEN 4 END
+	// 		AND
+	// 		empnotarget=@userid and empnosource=HR.empno
+	// 		ORDER BY state asc
+	// 		)yourNextAction
+
+	// 		OUTER APPLY(
+	// 		SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END AS HasDottedFlag 
+	// 		FROM dbo.ReportingLine 
+	// 		WHERE empnosource=rl.empnosource AND state=4
+	// 		)HasDotted
+
+	// 		OUTER APPLY(
+	// 		SELECT TOP 1 state RelationshipState FROM dbo.ReportingLine WHERE empnosource=rl.empnosource AND empnotarget=@userid
+	// 		)UserRelationship
+
+	//         WHERE RL.empnotarget=@userid AND ISNULL(RL.excludeFromCycles,0)<>@cycleid --AND RL.state=5
+	// 		AND Rl.empnosource NOT IN (SELECT RLE2.empnosource FROM dbo.ReportingLineExceptions RLE2 --exclude employees that are in the ReportingLineException, keep employee in case user is
+	// 		INNER JOIN dbo.ReportingLine RL2 ON RL2.empnosource=RLE2.empnosource AND  RLE2.state=5 WHERE RL2.empnotarget=@userid AND RLE2.empnotarget<>@userid AND RLE2.goalCycle=@cycleid)
+	//    UNION
+	// 		SELECT EvCycle.ID as CycleID, EvCycle.CycleDescription, EvCycle.goalsInputStatus, Ev.ManagesTeam, RL.empnosource AS Empno,  HR.job_desc,
+	// 		rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'employeeName', HR.grade,
+	// 		CASE
+	// 			WHEN HR.GRADE<4 AND ISNULL(Ev.State, 0)=0 THEN 2 --check it was 1
+	// 			ELSE ISNULL(Ev.State, 0)
+	// 		END as EvalState,
+	// 		Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, 
+	// 		yourAction.yourAction as yourActionStateDescr, isnull(RL.wrongManager,0) as wrongManager,EvalAnswers.flagEvalAnswers,
+	// 		CASE 
+	// 			WHEN (ISNULL(Ev.State,0) in (0,2) AND yourEvalAction.estate=5 
+	// 				 AND CASE 
+	// 						WHEN ISNULL(ev.State,0) = 6 
+	// 						THEN 5 
+	// 						ELSE ISNULL(ev.State,0) 
+	// 					END <=yourEvalAction.estate
+	// 				 AND onBehalf.NoAsnwers=0)
+	// 			THEN 
+	// 				CASE
+	// 					WHEN (ISNULL(Ev.State,0) in (0) 
+	// 							AND CASE
+	// 								WHEN isnull(Ev.empGrade,-1)=-1 
+	// 								THEN Hr.grade
+	// 								ELSE Ev.empGrade
+	// 								END >3 )
+	// 					THEN 2
+	// 					ELSE 1
+	// 				END
+	// 			WHEN -- For doted give action
+	// 				yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
+	// 			THEN 1
+	// 		END AS  isForAction, 
+	// 		HasDotted.HasDottedFlag, UserRelationship.RelationshipState
+
+	//         FROM dbo.ReportingLineExceptions RL
+	// 		LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
+	// 		LEFT JOIN  dbo.Evaluations Ev on Ev.EmployeeID=RL.empnosource AND Ev.CycleID=@cycleid
+
+	// 		OUTER APPLY(
+	// 		SELECT * FROM EvaluationsCycle WHERE ID=@cycleid
+	// 		)EvCycle
+
+	// 		OUTER APPLY (
+	// 		SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM Evaluations E
+	// 		WHERE State=0 AND UserID<>@userid AND CycleID=@cycleid and E.EmployeeID=rl.empnosource
+	// 		)onBehalf
+			
+	// 		OUTER APPLY (
+	// 		SELECT case when count(*) >0 then 1 else 0 end as 'flagEvalAnswers' FROM ANSWERS 
+	// 		WHERE EvaluationID=Ev.EvaluationID
+	// 		)EvalAnswers
+			
+	// 		OUTER APPLY(
+	// 		SELECT TOP 1
+	// 		CASE
+	// 			WHEN state=4 THEN 'Complete as Dotted Line Manager'
+	// 			WHEN state=5 THEN 'Complete as Evaluator' END
+	// 				as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+	// 		FROM ReportingLineExceptions WHERE
+	// 		State>=isnull(Ev.State,0)
+	// 		and empnotarget=@userid and empnosource=HR.empno
+	// 		ORDER BY state asc
+	// 		)yourAction
+
+	// 		OUTER APPLY (
+	// 		SELECT isnull(state,0) as estate
+	// 		FROM ReportingLineExceptions WHERE
+	// 		State=5
+	// 		AND
+	// 		empnotarget=@userid and empnosource=HR.empno
+	// 		)yourEvalAction
+
+	// 		OUTER APPLY (
+	// 		SELECT TOP 1  CASE WHEN state=4 THEN 'Complete as Dotted Line Manager'
+	// 		WHEN state=5 THEN CASE WHEN Ev.State=6 THEN 'Revise / Finalize as Evaluator' ELSE 'Complete as Evaluator' END
+	// 		END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+	// 		FROM ReportingLineExceptions WHERE
+	// 		State>=
+	// 		CASE WHEN ISNULL(Ev.State,0) in (0,2) THEN 5 WHEN ISNULL(Ev.State,0) = 1 THEN 4 END
+	// 		AND
+	// 		empnotarget=@userid and empnosource=HR.empno
+	// 		ORDER BY state asc
+	// 		)yourNextAction
+	        
+	// 		OUTER APPLY(
+	// 		SELECT CASE WHEN COUNT(*) > 1 THEN 1 ELSE 0 END AS HasDottedFlag FROM dbo.ReportingLineExceptions WHERE empnosource=rl.empnosource AND state=4
+	// 		)HasDotted
+
+	// 		OUTER APPLY(
+	// 		SELECT TOP 1 state RelationshipState FROM dbo.ReportingLineExceptions WHERE empnosource=rl.empnosource AND empnotarget=@userid
+	// 		)UserRelationship
+
+	// 		WHERE RL.empnotarget=@userid --AND RL.state=5 --AND ISNULL(RL.excludeFromCycles,0)<>@cycleid
+	// 		ORDER BY HR.grade ASC
+	// 	END
+	// 	ELSE
+	// 	BEGIN
+	// 		SELECT EvCycle.ID as CycleID, EvCycle.CycleDescription, EvCycle.goalsInputStatus, Ev.ManagesTeam, RL.empnosource AS Empno,  HR.job_desc,
+	// 		rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'employeeName', HR.grade,
+	// 		CASE
+	// 			WHEN HR.GRADE<4 AND ISNULL(Ev.State, 0)=0 
+	// 			THEN 2 --check it was 1
+	// 			ELSE ISNULL(Ev.State, 0)
+	// 		END as EvalState,
+	// 		Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, 
+	// 		ISNULL(yourAction.yourAction, 'No Action') as yourActionStateDescr, isnull(RL.wrongManager,0) as wrongManager, EvalAnswers.flagEvalAnswers,
+	// 		CASE 
+	// 			WHEN (ISNULL(Ev.State,0) in (0,2) 
+	// 				 AND yourEvalAction.estate=5 
+	// 				 AND CASE 
+	// 						WHEN ISNULL(ev.State,0) = 6 
+	// 						THEN 5 
+	// 						ELSE ISNULL(ev.State,0) 
+	// 					 END <=yourEvalAction.estate
+	// 				AND onBehalf.NoAsnwers=0)
+	// 			THEN 
+	// 				CASE
+	// 					WHEN (ISNULL(Ev.State,0) in (0) 
+	// 						 AND CASE
+	// 								WHEN isnull(Ev.empGrade,-1)=-1 
+	// 								THEN Hr.grade
+	// 								ELSE Ev.empGrade
+	// 							 END >3 )
+	// 					THEN 2
+	// 					ELSE 1
+	// 				END
+	// 			WHEN -- For doted give action
+	// 				yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
+	// 			THEN 1
+	// 		END AS  isForAction, 
+	// 		HasDotted.HasDottedFlag, UserRelationship.RelationshipState
+
+	//         FROM dbo.ReportingLine RL
+	// 		LEFT JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
+	// 		LEFT JOIN  dbo.Evaluations Ev on Ev.EmployeeID=RL.empnosource AND Ev.CycleID=@cycleid
+
+	// 		OUTER APPLY(
+	// 		SELECT * FROM EvaluationsCycle WHERE ID=@cycleid
+	// 		)EvCycle
+
+	// 		OUTER APPLY(
+	// 		SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM Evaluations E
+	// 		WHERE State=0 AND UserID<>@userid AND CycleID=@cycleid and E.EmployeeID=rl.empnosource
+	// 		)onBehalf
+
+	// 		OUTER APPLY(
+	// 		SELECT case when count(*) >0 then 1 else 0 end as 'flagEvalAnswers' FROM ANSWERS 
+	// 		WHERE EvaluationID=Ev.EvaluationID
+	// 		)EvalAnswers
+			
+	// 		OUTER APPLY(
+	// 		SELECT TOP 1
+	// 		CASE
+	// 			WHEN state=4 THEN 'Complete as Dotted Line Manager'
+	// 			WHEN state=5 THEN  'Complete as Evaluator'
+	// 			END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+	// 		FROM ReportingLine WHERE
+	// 		state>= CASE WHEN ISNULL(Ev.State,0) in (0,1) THEN 4 WHEN ISNULL(Ev.State,0) = 2 THEN 5 END  
+	// 		and empnotarget=@userid and empnosource=HR.empno
+	// 		ORDER BY state asc
+	// 		)yourAction
+
+	// 		OUTER APPLY(
+	// 		SELECT isnull(state,0) as estate
+	// 		FROM ReportingLine WHERE
+	// 		State=5 AND empnotarget=@userid and empnosource=HR.empno
+	// 		)yourEvalAction
+
+	// 		OUTER APPLY(
+	// 		SELECT TOP 1  CASE WHEN state=4 THEN 'Complete as Dotted Line Manager'
+	// 		WHEN state=5 THEN CASE WHEN Ev.State=6 THEN 'Revise / Finalize as Evaluator' ELSE 'Complete as Evaluator' END
+	// 		END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
+	// 		FROM ReportingLine WHERE
+	// 		State>= CASE WHEN ISNULL(Ev.State,0) in (0,2) THEN 5 WHEN ISNULL(Ev.State,0) = 1 THEN 4 END
+	// 		AND empnotarget=@userid and empnosource=HR.empno
+	// 		ORDER BY state asc
+	// 		)yourNextAction
+
+	// 		OUTER APPLY(
+	// 		SELECT CASE WHEN COUNT(*) > 1 THEN 1 ELSE 0 END AS HasDottedFlag FROM dbo.ReportingLine WHERE empnosource=rl.empnosource AND state=4
+	// 		)HasDotted
+
+	// 		OUTER APPLY(
+	// 		SELECT TOP 1 state RelationshipState FROM dbo.ReportingLine WHERE empnosource=rl.empnosource AND empnotarget=@userid
+	// 		)UserRelationship
+
+	//         WHERE RL.empnotarget=@userid AND ISNULL(RL.excludeFromCycles,0)<>@cycleid --AND RL.state=5
+	// 		AND RL.empnosource NOT IN (SELECT RLE2.empnosource FROM dbo.ReportingLineExceptions RLE2 --exclude employees that are in the ReportingLineException, keep employee in case user is
+	// 		INNER JOIN dbo.ReportingLine RL2 ON RL2.empnosource=RLE2.empnosource AND  RLE2.state=5 WHERE RL2.empnotarget=@userid AND RLE2.empnotarget<>@userid AND RLE2.goalCycle=@cycleid)
+	// 		ORDER BY HR.grade ASC
+	// 	END
 		$query = $this->connection->prepare($queryString);
 		$query->bindValue(':userid', $userid, PDO::PARAM_STR);
 		$query->bindValue(':cycleid', $cycleid, PDO::PARAM_INT);

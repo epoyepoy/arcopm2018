@@ -373,7 +373,29 @@ class EvaluationsDAO{
 		$result["success"] = $query->execute();
 		$result["errorMessage"] = $query->errorInfo();
         $query->setFetchMode(PDO::FETCH_ASSOC);
-        $result["dottedComments"] = $query->fetchAll();
+        $result["dottedAnswers"] = $query->fetchAll();
+		return $result;
+	}
+
+	/*****
+     *	Get Dotted lines all scores to display in form after state 4
+     *
+
+     */
+    public function getDottedScores($evalID)
+	{
+	 $queryString = "
+	 SELECT ES.*, rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'employeeName' 
+	 FROM EvaluationScores ES
+	 INNER JOIN dbo.vw_arco_employee HR ON HR.empno=ES.UserID 
+	 WHERE ES.State=4 AND ES.EvaluationID=:evalid
+        ";
+        $query = $this->connection->prepare($queryString);
+        $query->bindValue(':evalid', $evalID, PDO::PARAM_INT);
+		$result["success"] = $query->execute();
+		$result["errorMessage"] = $query->errorInfo();
+        $query->setFetchMode(PDO::FETCH_ASSOC);
+        $result["dottedScores"] = $query->fetchAll();
 		return $result;
 	}
      /*****
@@ -1129,10 +1151,10 @@ class EvaluationsDAO{
 
 
 				-- check if there is record in the evaluation scores otherwise create it
-				UPDATE dbo.EvaluationScores SET EvaluationID=@evalid WHERE  EvaluationID=@evalid AND state=@state AND UserID=@userid;
+				UPDATE dbo.EvaluationScores SET EvaluationID=@evalid, Date=GETDATE()  WHERE  EvaluationID=@evalid AND state=@state AND UserID=@userid;
 					IF @@ROWCOUNT = 0
 					BEGIN
-						INSERT INTO dbo.EvaluationScores VALUES(@evalid, @userid, @state,0, '', 0, 0,0, '', 0, 0,0, '', 0, 0,0, '',  0, 0,0,'');
+						INSERT INTO dbo.EvaluationScores VALUES(@evalid, @userid, @state,0, '', 0, 0,0, '', 0, 0,0, '', 0, 0,0, '',  0, 0,0,'', GETDATE() );
 					END
 				 -- now go and update the scores
 				 DECLARE sectionWithScores CURSOR LOCAL STATIC FORWARD_ONLY
@@ -1319,10 +1341,10 @@ class EvaluationsDAO{
 		INSERT INTO dbo.EvaluationScores
 		(EvaluationID,UserID,State,PScore,PSDescription,PWeight,PWeightedScore,GScore,GSDescription,GWeight,
 		GWeightedScore,CScore,CSDescription,CWeight,CWeightedScore,LScore,LSDescription,LWeight,LWeightedScore,
-		OverallScore,OSDescription)
+		OverallScore,OSDescription, Date)
 		SELECT EvaluationID, @userid, 6, PScore, PSDescription, PWeight, PWeightedScore,GScore,GSDescription,GWeight,
 		GWeightedScore,CScore,CSDescription,CWeight,CWeightedScore,LScore,LSDescription,LWeight,LWeightedScore,
-		OverallScore,OSDescription FROM dbo.EvaluationScores WHERE EvaluationID=@evalid AND State=5;
+		OverallScore,OSDescription, GETDATE() FROM dbo.EvaluationScores WHERE EvaluationID=@evalid AND State=5;
 		--Update evaluation state
 		UPDATE dbo.Evaluations SET State=7, StateDate=GETDATE() WHERE EvaluationID=@evalid
 		";

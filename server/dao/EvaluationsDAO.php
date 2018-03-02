@@ -833,7 +833,7 @@ class EvaluationsDAO{
 	{
 
 	 $queryString = "
-	 DECLARE @evalid INT =:evalid, @cycleid AS int;
+	 DECLARE @evalid INT =:evalID, @cycleid AS int;
 	 SELECT @cycleid = cycleID FROM dbo.Evaluations WHERE EvaluationID=@evalid;
 	 SELECT RL.state, CASE WHEN RL.state=5 THEN 'EMPLOYEE''S EVALUATOR'
 	 WHEN RL.state=4 THEN 'EMPLOYEE''S DOTTED LINE MANAGER'
@@ -861,7 +861,8 @@ class EvaluationsDAO{
         $query->bindValue(':evalID', $evalID, PDO::PARAM_INT);
 		$result["success"] = $query->execute();
 		$result["errorMessage"] = $query->errorInfo();
-        $query->setFetchMode(PDO::FETCH_ASSOC);
+		$query->setFetchMode(PDO::FETCH_ASSOC);
+		
         $result["reportingLine"] = $query->fetchAll();
 		return $result;
 	}

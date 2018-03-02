@@ -833,27 +833,28 @@ class EvaluationsDAO{
 	{
 
 	 $queryString = "
-	    DECLARE @evalid INT =:evalID;
-		SELECT RL.state, CASE WHEN RL.state=5 THEN 'EMPLOYEE''S EVALUATOR'
-		WHEN RL.state=4 THEN 'EMPLOYEE''S DOTTED LINE MANAGER'
-		END as 'RelationshipDesc', VEM.empno as 'empNo', rtrim(ltrim(VEM.family_name))+' '+rtrim(ltrim(VEM.first_name)) as 'empName', VEM.job_desc as 'empPosition',
-		VEM.family_desc as 'empDepartment', VEM.pay_cs as 'empSite', VEM.site_desc as 'empSiteDesc'
-		FROM ReportingLine RL
-		INNER JOIN Evaluations E on E.EmployeeID=RL.empnosource
-		LEFT JOIN EvaluationsCycle EC on EC.ID=E.CycleID
-		LEFT JOIN vw_arco_employee EMP on EMP.empno=E.EmployeeID
-		LEFT JOIN vw_arco_employee VEM on VEM.empno=RL.empnotarget
-		WHERE E.EvaluationID=@evalid AND RL.cycleid=E.cycleID
-		UNION
-		SELECT 6, 'EMPLOYEE''S REVIEWER' AS 'RelationshipDesc', VEM.empno as 'empNo', rtrim(ltrim(VEM.family_name))+' '+rtrim(ltrim(VEM.first_name)) as 'empName', VEM.job_desc as 'empPosition',
-		VEM.family_desc as 'empDepartment', VEM.pay_cs as 'empSite', VEM.site_desc as 'empSiteDesc'
-		FROM ReportingLine RL
-		LEFT JOIN vw_arco_employee EMP on EMP.empno=RL.empnosource
-		LEFT JOIN vw_arco_employee VEM on VEM.empno=RL.empnotarget
-		WHERE RL.empnosource =(SELECT RL2.empnotarget FROM dbo.ReportingLine RL2
-		INNER JOIN dbo.Evaluations E2 ON E2.EmployeeID=RL2.empnosource AND RL2.state=5 and RL2.cycleid=RL.cycleid
-		WHERE E2.EvaluationID=@evalid) AND RL.state=5 AND RL.cycleid=E.cycleID
-		ORDER BY 1 ASC
+	 DECLARE @evalid INT =:evalid, @cycleid AS int;
+	 SELECT @cycleid = cycleID FROM dbo.Evaluations WHERE EvaluationID=@evalid;
+	 SELECT RL.state, CASE WHEN RL.state=5 THEN 'EMPLOYEE''S EVALUATOR'
+	 WHEN RL.state=4 THEN 'EMPLOYEE''S DOTTED LINE MANAGER'
+	 END as 'RelationshipDesc', VEM.empno as 'empNo', rtrim(ltrim(VEM.family_name))+' '+rtrim(ltrim(VEM.first_name)) as 'empName', VEM.job_desc as 'empPosition',
+	 VEM.family_desc as 'empDepartment', VEM.pay_cs as 'empSite', VEM.site_desc as 'empSiteDesc'
+	 FROM ReportingLine RL
+	 INNER JOIN Evaluations E on E.EmployeeID=RL.empnosource
+	 LEFT JOIN EvaluationsCycle EC on EC.ID=E.CycleID
+	 LEFT JOIN vw_arco_employee EMP on EMP.empno=E.EmployeeID
+	 LEFT JOIN vw_arco_employee VEM on VEM.empno=RL.empnotarget
+	 WHERE E.EvaluationID=@evalid AND RL.cycleid=E.cycleID
+	 UNION
+	 SELECT 6, 'EMPLOYEE''S REVIEWER' AS 'RelationshipDesc', VEM.empno as 'empNo', rtrim(ltrim(VEM.family_name))+' '+rtrim(ltrim(VEM.first_name)) as 'empName', VEM.job_desc as 'empPosition',
+	 VEM.family_desc as 'empDepartment', VEM.pay_cs as 'empSite', VEM.site_desc as 'empSiteDesc'
+	 FROM ReportingLine RL
+	 LEFT JOIN vw_arco_employee EMP on EMP.empno=RL.empnosource
+	 LEFT JOIN vw_arco_employee VEM on VEM.empno=RL.empnotarget
+	 WHERE RL.empnosource =(SELECT RL2.empnotarget FROM dbo.ReportingLine RL2
+	 INNER JOIN dbo.Evaluations E2 ON E2.EmployeeID=RL2.empnosource AND RL2.state=5 and RL2.cycleid=RL.cycleid
+	 WHERE E2.EvaluationID=@evalid) AND RL.state=5 AND RL.cycleid=@cycleid
+	 ORDER BY 1 ASC
         ";
         $query = $this->connection->prepare($queryString);
         //$query->bindValue(':empno', $grade, PDO::PARAM_INT);E.EmployeeID=:empno AND

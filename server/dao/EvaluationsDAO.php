@@ -72,7 +72,7 @@ class EvaluationsDAO{
 		LEFT JOIN   dbo.StateRef SR on SR.State = Ev.State
 		
 		OUTER APPLY(
-		SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END AS HasDottedFlag 
+		SELECT COUNT(*) AS HasDottedFlag 
 		FROM dbo.ReportingLine 
 		WHERE empnosource=rl.empnosource AND state=4 AND cycleid=RL.cycleid
 		)HasDotted
@@ -354,11 +354,11 @@ class EvaluationsDAO{
 	}
 
 	/*****
-     *	Get Dotted lines all comments to display in form after state 4
+     *	Get Dotted lines all answers to display in form after state 4
      *
 
      */
-    public function getDottedComments($evalID)
+    public function getDottedAnswers($evalID)
 	{
 	 $queryString = "
 		SELECT A.QuestionID, Q.SectionID, A.Answer,  rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'DotteLineName', HR.empno as UserID

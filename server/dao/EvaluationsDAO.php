@@ -581,7 +581,7 @@ class EvaluationsDAO{
 
 			UNION
 
-			SELECT E.EvaluationID, 10 AS SectionID, 'Overall', 100 ScoreWeight, dot1.*, dot2.*, dot3.*
+			SELECT E.EvaluationID, 10 AS SectionID, 'Overall', 1 ScoreWeight, dot1.*, dot2.*, dot3.*
 
 			FROM  dbo.Evaluations E
 			OUTER APPLY(

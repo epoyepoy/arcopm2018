@@ -385,10 +385,199 @@ class EvaluationsDAO{
     public function getDottedScores($evalID)
 	{
 	 $queryString = "
-	 SELECT ES.*, rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'employeeName' 
-	 FROM EvaluationScores ES
-	 INNER JOIN dbo.vw_arco_employee HR ON HR.empno=ES.UserID 
-	 WHERE ES.State=4 AND ES.EvaluationID=:evalid
+			DECLARE @evalid as int=:evalid, @hasgGoals as INT, @empEval AS VARCHAR(5),  @state AS INT; 
+			SELECT @state=E.State, @hasgGoals = CASE WHEN count (G.GoalID)>0 THEN 1 ELSE 0 END,  @empEval=RL.empnotarget
+			FROM Goals G 
+			INNER JOIN dbo.Evaluations E ON E.EvaluationID=G.EvaluationID
+			INNER JOIN dbo.ReportingLine RL ON RL.empnosource=E.EmployeeID AND RL.state=5 AND RL.cycleid=E.CycleID
+			WHERE G.EvaluationID=@evalid
+			GROUP BY RL.empnotarget, e.State;
+
+	 		SELECT E.EvaluationID, 2 AS SectionID, QS.SectionDescription, QSW.weight AS ScoreWeight,dot1.*, dot2.*, dot3.*
+
+			FROM  dbo.Evaluations E
+			INNER JOIN QuestionSectionWeights QSW on QSW.sectionid=2 AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasgGoals
+			INNER JOIN dbo.QuestionSections QS ON QS.ID=QSW.sectionid
+			
+			OUTER APPLY(
+			SELECT  TOP 1 empnotarget AS Dot1Empno, RTRIM(LTRIM(emp1.family_name))+' '+RTRIM(LTRIM(emp1.first_name)) As Dot1Name, ESD1.PScore AS Dot1Score, ESD1.PSDescription AS Dot1Description,
+			ESD1.PWeight AS Dot1Weight, ESD1.PWeightedScore AS Dot1WeightedScore, 
+			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
+			FROM ReportingLine dot1rl
+			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=dot1rl.empnotarget AND dot1rl.state=4
+			LEFT JOIN	dbo.EvaluationScores ESD1 ON ESD1.UserID=dot1rl.empnotarget AND ESD1.State=4 AND ESD1.EvaluationID=E.EvaluationID
+			where dot1rl.state=4 and dot1rl.empnosource=E.EmployeeID AND dot1rl.cycleid=E.CycleID
+			ORDER BY Rownumber
+			)Dot1
+			
+			OUTER APPLY (
+			SELECT  empnotarget AS Dot2Empno,RTRIM(LTRIM(emp2.family_name))+' '+RTRIM(LTRIM(emp2.first_name)) As Dot2Name, ESD2.PScore AS Dot2Score, ESD2.PSDescription AS Dot2Description,
+			ESD2.PWeight AS Dot2Weight, ESD2.PWeightedScore AS Dot2WeightedScore, 
+				ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
+				FROM ReportingLine dot2rl
+				inner JOIN [dbo].[vw_arco_employee] emp2 on emp2.empno=dot2rl.empnotarget AND dot2rl.state=4
+				LEFT JOIN	dbo.EvaluationScores ESD2 ON ESD2.UserID=dot2rl.empnotarget AND ESD2.State=4 AND ESD2.EvaluationID=E.EvaluationID
+				where dot2rl.state=4 and dot2rl.empnosource=E.EmployeeID AND dot2rl.cycleid=E.CycleID
+				ORDER BY Rownumber
+				OFFSET 1 ROW
+				FETCH NEXT 1 ROW ONLY
+			)Dot2
+			
+			OUTER APPLY (
+			SELECT  empnotarget AS Dot3Empno,RTRIM(LTRIM(emp3.family_name))+' '+RTRIM(LTRIM(emp3.first_name)) As Dot3Name, ESD3.PScore AS Dot3Score, ESD3.PSDescription AS Dot3Description,
+			ESD3.PWeight AS Dot3Weight, ESD3.PWeightedScore AS Dot3WeightedScore, 
+			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
+			FROM ReportingLine dot3rl
+			inner JOIN [dbo].[vw_arco_employee] emp3 on emp3.empno=dot3rl.empnotarget AND dot3rl.state=4
+			LEFT JOIN	dbo.EvaluationScores ESD3 ON ESD3.UserID=dot3rl.empnotarget AND ESD3.State=4 AND ESD3.EvaluationID=E.EvaluationID
+			where dot3rl.state=4 and dot3rl.empnosource=E.EmployeeID AND dot3rl.cycleid=E.CycleID
+			ORDER BY Rownumber
+			OFFSET 2 ROW
+			FETCH NEXT 1 ROW ONLY
+			)Dot3
+
+			WHERE E.EvaluationID=@evalid 
+			
+			UNION
+
+			SELECT E.EvaluationID, 3 AS SectionID, QS.SectionDescription, QSW.weight AS ScoreWeight,dot1.*, dot2.*, dot3.*
+
+			FROM  dbo.Evaluations E
+			INNER JOIN QuestionSectionWeights QSW on QSW.sectionid=3 AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasgGoals
+			INNER JOIN dbo.QuestionSections QS ON QS.ID=QSW.sectionid
+			
+			OUTER APPLY(
+			SELECT  TOP 1 empnotarget AS Dot1Empno, RTRIM(LTRIM(emp1.family_name))+' '+RTRIM(LTRIM(emp1.first_name)) As Dot1Name, ESD1.GScore AS Dot1Score, ESD1.GSDescription AS Dot1Description,
+			ESD1.GWeight AS Dot1Weight, ESD1.GWeightedScore AS Dot1WeightedScore, 
+			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
+			FROM ReportingLine dot1rl
+			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=dot1rl.empnotarget AND dot1rl.state=4
+			LEFT JOIN	dbo.EvaluationScores ESD1 ON ESD1.UserID=dot1rl.empnotarget AND ESD1.State=4 AND ESD1.EvaluationID=E.EvaluationID
+			where dot1rl.state=4 and dot1rl.empnosource=E.EmployeeID AND dot1rl.cycleid=E.CycleID
+			ORDER BY Rownumber
+			)Dot1
+			
+			OUTER APPLY (
+			SELECT  empnotarget AS Dot2Empno,RTRIM(LTRIM(emp2.family_name))+' '+RTRIM(LTRIM(emp2.first_name)) As Dot2Name, ESD2.GScore AS Dot2Score, ESD2.GSDescription AS Dot2Description,
+			ESD2.GWeight AS Dot2Weight, ESD2.GWeightedScore AS Dot2WeightedScore, 
+				ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
+				FROM ReportingLine dot2rl
+				inner JOIN [dbo].[vw_arco_employee] emp2 on emp2.empno=dot2rl.empnotarget AND dot2rl.state=4
+				LEFT JOIN	dbo.EvaluationScores ESD2 ON ESD2.UserID=dot2rl.empnotarget AND ESD2.State=4 AND ESD2.EvaluationID=E.EvaluationID
+				where dot2rl.state=4 and dot2rl.empnosource=E.EmployeeID AND dot2rl.cycleid=E.CycleID
+				ORDER BY Rownumber
+				OFFSET 1 ROW
+				FETCH NEXT 1 ROW ONLY
+			)Dot2
+			
+			OUTER APPLY (
+			SELECT  empnotarget AS Dot3Empno,RTRIM(LTRIM(emp3.family_name))+' '+RTRIM(LTRIM(emp3.first_name)) As Dot3Name, ESD3.GScore AS Dot3Score, ESD3.GSDescription AS Dot3Description,
+			ESD3.GWeight AS Dot3Weight, ESD3.GWeightedScore AS Dot3WeightedScore, 
+			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
+			FROM ReportingLine dot3rl
+			inner JOIN [dbo].[vw_arco_employee] emp3 on emp3.empno=dot3rl.empnotarget AND dot3rl.state=4
+			LEFT JOIN	dbo.EvaluationScores ESD3 ON ESD3.UserID=dot3rl.empnotarget AND ESD3.State=4 AND ESD3.EvaluationID=E.EvaluationID
+			where dot3rl.state=4 and dot3rl.empnosource=E.EmployeeID AND dot3rl.cycleid=E.CycleID
+			ORDER BY Rownumber
+			OFFSET 2 ROW
+			FETCH NEXT 1 ROW ONLY
+			)Dot3
+
+			WHERE E.EvaluationID=@evalid 
+
+			UNION
+
+			SELECT E.EvaluationID, 4 AS SectionID, QS.SectionDescription, QSW.weight AS ScoreWeight,dot1.*, dot2.*, dot3.*
+
+			FROM  dbo.Evaluations E
+			INNER JOIN QuestionSectionWeights QSW on QSW.sectionid=4 AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasgGoals
+			INNER JOIN dbo.QuestionSections QS ON QS.ID=QSW.sectionid
+			
+			OUTER APPLY(
+			SELECT  TOP 1 empnotarget AS Dot1Empno, RTRIM(LTRIM(emp1.family_name))+' '+RTRIM(LTRIM(emp1.first_name)) As Dot1Name, ESD1.CScore AS Dot1Score, ESD1.CSDescription AS Dot1Description,
+			ESD1.CWeight AS Dot1Weight, ESD1.CWeightedScore AS Dot1WeightedScore, 
+			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
+			FROM ReportingLine dot1rl
+			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=dot1rl.empnotarget AND dot1rl.state=4
+			LEFT JOIN	dbo.EvaluationScores ESD1 ON ESD1.UserID=dot1rl.empnotarget AND ESD1.State=4 AND ESD1.EvaluationID=E.EvaluationID
+			where dot1rl.state=4 and dot1rl.empnosource=E.EmployeeID AND dot1rl.cycleid=E.CycleID
+			ORDER BY Rownumber
+			)Dot1
+			
+			OUTER APPLY (
+			SELECT  empnotarget AS Dot2Empno,RTRIM(LTRIM(emp2.family_name))+' '+RTRIM(LTRIM(emp2.first_name)) As Dot2Name, ESD2.CScore AS Dot2Score, ESD2.CSDescription AS Dot2Description,
+			ESD2.CWeight AS Dot2Weight, ESD2.CWeightedScore AS Dot2WeightedScore, 
+				ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
+				FROM ReportingLine dot2rl
+				inner JOIN [dbo].[vw_arco_employee] emp2 on emp2.empno=dot2rl.empnotarget AND dot2rl.state=4
+				LEFT JOIN	dbo.EvaluationScores ESD2 ON ESD2.UserID=dot2rl.empnotarget AND ESD2.State=4 AND ESD2.EvaluationID=E.EvaluationID
+				where dot2rl.state=4 and dot2rl.empnosource=E.EmployeeID AND dot2rl.cycleid=E.CycleID
+				ORDER BY Rownumber
+				OFFSET 1 ROW
+				FETCH NEXT 1 ROW ONLY
+			)Dot2
+			
+			OUTER APPLY (
+			SELECT  empnotarget AS Dot3Empno,RTRIM(LTRIM(emp3.family_name))+' '+RTRIM(LTRIM(emp3.first_name)) As Dot3Name, ESD3.CScore AS Dot3Score, ESD3.CSDescription AS Dot3Description,
+			ESD3.CWeight AS Dot3Weight, ESD3.CWeightedScore AS Dot3WeightedScore, 
+			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
+			FROM ReportingLine dot3rl
+			inner JOIN [dbo].[vw_arco_employee] emp3 on emp3.empno=dot3rl.empnotarget AND dot3rl.state=4
+			LEFT JOIN	dbo.EvaluationScores ESD3 ON ESD3.UserID=dot3rl.empnotarget AND ESD3.State=4 AND ESD3.EvaluationID=E.EvaluationID
+			where dot3rl.state=4 and dot3rl.empnosource=E.EmployeeID AND dot3rl.cycleid=E.CycleID
+			ORDER BY Rownumber
+			OFFSET 2 ROW
+			FETCH NEXT 1 ROW ONLY
+			)Dot3
+
+			WHERE E.EvaluationID=@evalid 
+
+			UNION
+
+			SELECT E.EvaluationID, 5 AS SectionID, QS.SectionDescription, QSW.weight AS ScoreWeight,dot1.*, dot2.*, dot3.*
+
+			FROM  dbo.Evaluations E
+			INNER JOIN QuestionSectionWeights QSW on QSW.sectionid=5 AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasgGoals
+			INNER JOIN dbo.QuestionSections QS ON QS.ID=QSW.sectionid
+			
+			OUTER APPLY(
+			SELECT  TOP 1 empnotarget AS Dot1Empno, RTRIM(LTRIM(emp1.family_name))+' '+RTRIM(LTRIM(emp1.first_name)) As Dot1Name, ESD1.LScore AS Dot1Score, ESD1.LSDescription AS Dot1Description,
+			ESD1.LWeight AS Dot1Weight, ESD1.LWeightedScore AS Dot1WeightedScore, 
+			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
+			FROM ReportingLine dot1rl
+			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=dot1rl.empnotarget AND dot1rl.state=4
+			LEFT JOIN	dbo.EvaluationScores ESD1 ON ESD1.UserID=dot1rl.empnotarget AND ESD1.State=4 AND ESD1.EvaluationID=E.EvaluationID
+			where dot1rl.state=4 and dot1rl.empnosource=E.EmployeeID AND dot1rl.cycleid=E.CycleID
+			ORDER BY Rownumber
+			)Dot1
+			
+			OUTER APPLY (
+			SELECT  empnotarget AS Dot2Empno,RTRIM(LTRIM(emp2.family_name))+' '+RTRIM(LTRIM(emp2.first_name)) As Dot2Name, ESD2.LScore AS Dot2Score, ESD2.LSDescription AS Dot2Description,
+			ESD2.LWeight AS Dot2Weight, ESD2.LWeightedScore AS Dot2WeightedScore, 
+				ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
+				FROM ReportingLine dot2rl
+				inner JOIN [dbo].[vw_arco_employee] emp2 on emp2.empno=dot2rl.empnotarget AND dot2rl.state=4
+				LEFT JOIN	dbo.EvaluationScores ESD2 ON ESD2.UserID=dot2rl.empnotarget AND ESD2.State=4 AND ESD2.EvaluationID=E.EvaluationID
+				where dot2rl.state=4 and dot2rl.empnosource=E.EmployeeID AND dot2rl.cycleid=E.CycleID
+				ORDER BY Rownumber
+				OFFSET 1 ROW
+				FETCH NEXT 1 ROW ONLY
+			)Dot2
+			
+			OUTER APPLY (
+			SELECT  empnotarget AS Dot3Empno,RTRIM(LTRIM(emp3.family_name))+' '+RTRIM(LTRIM(emp3.first_name)) As Dot3Name, ESD3.LScore AS Dot3Score, ESD3.LSDescription AS Dot3Description,
+			ESD3.LWeight AS Dot3Weight, ESD3.LWeightedScore AS Dot3WeightedScore, 
+			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
+			FROM ReportingLine dot3rl
+			inner JOIN [dbo].[vw_arco_employee] emp3 on emp3.empno=dot3rl.empnotarget AND dot3rl.state=4
+			LEFT JOIN	dbo.EvaluationScores ESD3 ON ESD3.UserID=dot3rl.empnotarget AND ESD3.State=4 AND ESD3.EvaluationID=E.EvaluationID
+			where dot3rl.state=4 and dot3rl.empnosource=E.EmployeeID AND dot3rl.cycleid=E.CycleID
+			ORDER BY Rownumber
+			OFFSET 2 ROW
+			FETCH NEXT 1 ROW ONLY
+			)Dot3
+
+			WHERE E.EvaluationID=@evalid 
         ";
         $query = $this->connection->prepare($queryString);
         $query->bindValue(':evalid', $evalID, PDO::PARAM_INT);

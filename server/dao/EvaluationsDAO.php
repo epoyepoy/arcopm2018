@@ -578,6 +578,50 @@ class EvaluationsDAO{
 			)Dot3
 
 			WHERE E.EvaluationID=@evalid 
+
+			UNION
+
+			SELECT E.EvaluationID, 10 AS SectionID, 'Overall', 100 ScoreWeight, dot1.*, dot2.*, dot3.*
+
+			FROM  dbo.Evaluations E
+			OUTER APPLY(
+			SELECT  TOP 1 empnotarget AS Dot1Empno, RTRIM(LTRIM(emp1.family_name))+' '+RTRIM(LTRIM(emp1.first_name)) As Dot1Name, ESD1.OverallScore AS Dot1Score, ESD1.OSDescription AS Dot1Description,
+			100 AS Dot1Weight, ESD1.OverallScore AS Dot1WeightedScore, 
+			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
+			FROM ReportingLine dot1rl
+			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=dot1rl.empnotarget AND dot1rl.state=4
+			LEFT JOIN	dbo.EvaluationScores ESD1 ON ESD1.UserID=dot1rl.empnotarget AND ESD1.State=4 AND ESD1.EvaluationID=E.EvaluationID
+			where dot1rl.state=4 and dot1rl.empnosource=E.EmployeeID AND dot1rl.cycleid=E.CycleID
+			ORDER BY Rownumber
+			)Dot1
+			
+			OUTER APPLY (
+			SELECT  empnotarget AS Dot2Empno,RTRIM(LTRIM(emp2.family_name))+' '+RTRIM(LTRIM(emp2.first_name)) As Dot2Name, ESD2.OverallScore AS Dot2Score, ESD2.OSDescription AS Dot2Description,
+			100 AS Dot2Weight, ESD2.OverallScore AS Dot2WeightedScore, 
+				ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
+				FROM ReportingLine dot2rl
+				inner JOIN [dbo].[vw_arco_employee] emp2 on emp2.empno=dot2rl.empnotarget AND dot2rl.state=4
+				LEFT JOIN	dbo.EvaluationScores ESD2 ON ESD2.UserID=dot2rl.empnotarget AND ESD2.State=4 AND ESD2.EvaluationID=E.EvaluationID
+				where dot2rl.state=4 and dot2rl.empnosource=E.EmployeeID AND dot2rl.cycleid=E.CycleID
+				ORDER BY Rownumber
+				OFFSET 1 ROW
+				FETCH NEXT 1 ROW ONLY
+			)Dot2
+			
+			OUTER APPLY (
+			SELECT  empnotarget AS Dot3Empno,RTRIM(LTRIM(emp3.family_name))+' '+RTRIM(LTRIM(emp3.first_name)) As Dot3Name, ESD3.OverallScore AS Dot3Score, ESD3.OSDescription AS Dot3Description,
+			100 AS Dot3Weight, ESD3.OverallScore AS Dot3WeightedScore, 
+			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
+			FROM ReportingLine dot3rl
+			inner JOIN [dbo].[vw_arco_employee] emp3 on emp3.empno=dot3rl.empnotarget AND dot3rl.state=4
+			LEFT JOIN	dbo.EvaluationScores ESD3 ON ESD3.UserID=dot3rl.empnotarget AND ESD3.State=4 AND ESD3.EvaluationID=E.EvaluationID
+			where dot3rl.state=4 and dot3rl.empnosource=E.EmployeeID AND dot3rl.cycleid=E.CycleID
+			ORDER BY Rownumber
+			OFFSET 2 ROW
+			FETCH NEXT 1 ROW ONLY
+			)Dot3
+
+			WHERE E.EvaluationID=@evalid 
         ";
         $query = $this->connection->prepare($queryString);
         $query->bindValue(':evalid', $evalID, PDO::PARAM_INT);

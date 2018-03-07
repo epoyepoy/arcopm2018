@@ -1717,7 +1717,7 @@ class EvaluationsDAO{
 							INSERT INTO dbo.GoalsHistory
 							(GoalID,EvaluationID,GoalDescription,Weight,UserID,AttributeCode,State,Date)
 							OUTPUT Inserted.EvaluationID
-							SELECT '', @evalid, 'No Goals Set', '', @userid, '', @state, GETDATE()
+							SELECT 0, @evalid, 'No Goals Set', '', @userid, '', @state, GETDATE()
 						END
 					END
 				IF @onBehalf = 1
@@ -1725,7 +1725,7 @@ class EvaluationsDAO{
 					INSERT INTO dbo.GoalsHistory
 					(GoalID,EvaluationID,GoalDescription,Weight,UserID,AttributeCode,State,Date)
 					OUTPUT Inserted.EvaluationID
-					SELECT '', @evalid, 'Moved Forward', '', @userid, '', @state, GETDATE()
+					SELECT 1, @evalid, 'Moved Forward', '', @userid, '', @state, GETDATE()
 					END
 
 

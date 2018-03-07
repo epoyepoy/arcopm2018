@@ -139,9 +139,11 @@ class GoalsDAO{
 					THEN 2
 					ELSE 1
 				END
-			WHEN -- For doted give action
-				yourNextAction.nstate=CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
+				WHEN -- For doted give action
+				yourNextAction.nstate= CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
+				AND 1=CASE WHEN Ev.State=1 THEN CASE WHEN goalHistory.NoAsnwers=0 THEN 1 ELSE 0 END  ELSE 1 END
 			THEN 1
+
 		END AS  isForAction, 
 		HasDotted.HasDottedFlag, UserRelationship.RelationshipState
 
@@ -157,6 +159,11 @@ class GoalsDAO{
 		SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM Evaluations E
 		WHERE State=0 AND UserID<>@userid AND CycleID=@cycleid and E.EmployeeID=rl.empnosource
 		)onBehalf
+
+		OUTER APPLY(
+		SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM dbo.GoalsHistory GH
+		WHERE State=1 AND UserID=@userid AND GH.EvaluationID=Ev.EvaluationID
+		)goalHistory
 
 		OUTER APPLY(
 		SELECT case when count(*) >0 then 1 else 0 end as 'flagEvalAnswers' FROM ANSWERS 
@@ -751,7 +758,7 @@ class GoalsDAO{
     *	Send Back Goals to user: Send back goals to user for review
     *
     */
-    public function sendBackGoals($evalid)
+    public function sendBackGoals($evalid, $userid, $state)
 	{
 			$queryString = "
 			UPDATE E
@@ -763,9 +770,18 @@ class GoalsDAO{
 			  group by EvaluationID) as A
 			on E.EvaluationID = A.EvaluationID 
 			WHERE E.EvaluationID=:evalid AND ISNULL(A.answerCNT,0)=0 AND E.State in (1,2,3)
+			IF @@ROWCONT>0
+			BEGIN 
+				INSERT INTO dbo.GoalsHistory
+				(GoalID,EvaluationID,GoalDescription,Weight,UserID,AttributeCode,State,Date)
+				OUTPUT Inserted.EvaluationID
+				SELECT 2, @evalid, 'Sent Back', '', :userid, '', :state, GETDATE()
+			END
 			";
 			$query = $this->connection->prepare($queryString);
 			$query->bindValue(':evalid', $evalid, PDO::PARAM_INT);
+			$query->bindValue(':userid', $userID, PDO::PARAM_STR);
+			$query->bindValue(':state', $state, PDO::PARAM_INT);
 			$result["success"] = $query->execute();
 			$result["errorMessage"] = $query->errorInfo();
 			return $result;

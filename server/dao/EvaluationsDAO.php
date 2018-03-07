@@ -1711,7 +1711,7 @@ class EvaluationsDAO{
 					INSERT INTO dbo.GoalsHistory
 					(GoalID,EvaluationID,GoalDescription,Weight,UserID,AttributeCode,State,Date)
 					OUTPUT Inserted.EvaluationID
-					SELECT GoalID, EvaluationID, GoalDescription, Weight, UserID, AttributeCode, State, GETDATE() FROM dbo.Goals WHERE State=@state AND UserID=@userid
+					SELECT GoalID, EvaluationID, GoalDescription, Weight, UserID, AttributeCode, State, GETDATE() FROM dbo.Goals WHERE State=@state AND UserID=@userid AND EvaluationID=@evalid
 					IF @@ROWCOUNT = 0
 						BEGIN
 							INSERT INTO dbo.GoalsHistory
@@ -1730,7 +1730,7 @@ class EvaluationsDAO{
 
 
 			--get how many dotted have placed goals
-			SELECT @actualCount = (SELECT count (distinct UserID) FROM GoalsHistory WHERE State =@state AND EvaluationID=@evalid); --we add plus one becauset the submitted in history do not include the current one.
+			SELECT @actualCount = (SELECT count (distinct UserID) FROM GoalsHistory WHERE State =@state AND EvaluationID=@evalid);
 			END
 
 			UPDATE dbo.Evaluations SET State=

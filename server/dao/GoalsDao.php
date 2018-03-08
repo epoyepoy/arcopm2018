@@ -762,6 +762,7 @@ class GoalsDAO{
     public function sendBackGoals($evalid, $userid, $state)
 	{
 			$queryString = "
+			Declare @evalid as int=:evalid;
 			UPDATE E
 			SET E.STATE = 0, E.StateDate= GETDATE()
 			--OUTPUT Inserted.EvaluationID 
@@ -770,7 +771,7 @@ class GoalsDAO{
 			   from dbo.Answers
 			  group by EvaluationID) as A
 			on E.EvaluationID = A.EvaluationID 
-			WHERE E.EvaluationID=:evalid AND ISNULL(A.answerCNT,0)=0 AND E.State in (1,2,3)
+			WHERE E.EvaluationID=@evalid AND ISNULL(A.answerCNT,0)=0 AND E.State in (1,2,3)
 			IF @@ROWCOUNT>0
 			BEGIN 
 				INSERT INTO dbo.GoalsHistory

@@ -1743,7 +1743,7 @@ class EvaluationsDAO{
 				WHEN @state in (3,4,5,6) AND @answerCount>0 THEN @state+1
 				--ELSE @state
 			END,
-			StateDate=getdate()
+			StateDate= CASE WHEN (@state=1 AND (@hasDotted = @actualCount or @onBehalf=1)) OR @state<>1  THEN  getdate()  ELSE StateDate END
 			OUTPUT Inserted.EvaluationID
 			WHERE EvaluationID=@evalid;
 		    ";

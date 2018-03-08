@@ -771,7 +771,7 @@ class GoalsDAO{
 			  group by EvaluationID) as A
 			on E.EvaluationID = A.EvaluationID 
 			WHERE E.EvaluationID=:evalid AND ISNULL(A.answerCNT,0)=0 AND E.State in (1,2,3)
-			IF @@ROWCONT>0
+			IF @@ROWCOUNT>0
 			BEGIN 
 				INSERT INTO dbo.GoalsHistory
 				(GoalID,EvaluationID,GoalDescription,Weight,UserID,AttributeCode,State,Date)

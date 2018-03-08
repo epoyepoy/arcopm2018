@@ -141,7 +141,7 @@ class GoalsDAO{
 				END
 				WHEN -- For doted give action
 				yourNextAction.nstate= CASE WHEN ISNULL(Ev.State,0)=1 THEN 4 ELSE ISNULL(Ev.State,0) END  AND onBehalf.NoAsnwers=0
-				AND 1=CASE WHEN Ev.State=1 THEN CASE WHEN goalHistory.NoAsnwers=0 THEN 1 ELSE 0 END  ELSE 1 END
+				AND 1=CASE WHEN Ev.State=1 THEN CASE WHEN goalHistory.flag=1 THEN 1 ELSE 0 END  ELSE 1 END
 			THEN 1
 
 		END, 0) AS  isForAction, 
@@ -161,7 +161,7 @@ class GoalsDAO{
 		)onBehalf
 
 		OUTER APPLY(
-		SELECT case when count(*) =0 then 1 else 0 end as 'NoAsnwers' FROM dbo.GoalsHistory GH
+		SELECT case when count(*) >0 then 1 else 0 end as 'flag' FROM dbo.GoalsHistory GH
 		WHERE State=1 AND UserID=@userid AND GH.EvaluationID=Ev.EvaluationID 
 		AND GH.Date >= Ev.StateDate
 		)goalHistory

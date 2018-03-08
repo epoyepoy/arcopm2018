@@ -202,9 +202,14 @@ $app->get('/scorescales/{evalID}', function ($request, $response, $args) {
     require 'actions/scorescales.get.php';
 });
 
-//Get dotted comments
-$app->get('/evaluations/dottedcomments/{evalID}', function ($request, $response, $args) {
-    require 'actions/evaluations.dottedcomments.get.php';
+//Get dotted answers
+$app->get('/evaluations/dottedanswers/{evalID}', function ($request, $response, $args) {
+    require 'actions/evaluations.dottedanswers.get.php';
+});
+
+//Get dotted scores
+$app->get('/evaluations/dottedscores/{evalID}', function ($request, $response, $args) {
+    require 'actions/evaluations.dottedscores.get.php';
 });
 
 // Get development plans
@@ -344,7 +349,7 @@ $app->post('/evaluations/revertmanager/{empid}/{youraction}', function ($request
 });
 
 //Send back goals to employee
-$app->post('/evaluations/sendbackgoals/{evalid}', function ($request, $response, $args) {
+$app->post('/evaluations/sendbackgoals/{evalid}/{userid}/{state}', function ($request, $response, $args) {
     require 'actions/evaluations.sendbackgoals.php';
 });
 

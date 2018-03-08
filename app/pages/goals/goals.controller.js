@@ -617,7 +617,8 @@
 
             $scope.extraMessage = 'loading';
 			var evalid = cycleGoal.EvaluationID;
-			EvaluationsFactory.SendGoalsBack(evalid).then(function (result) {
+            var state = cycleGoal.EvalState;
+			EvaluationsFactory.SendGoalsBack(evalid,loginData.user.id,state).then(function (result) {
 				$scope.checkifLoggedout(result);
 				if (result.success) {
 					$scope.extraMessage = 'updated';

@@ -29,6 +29,7 @@
 		$scope.list = dataService.getFromList();
         $scope.hasDotted = dataService.getHasDotted();
         $scope.arcopmState = arcopmState;
+        $scope.parseFloat = parseFloat;
 
 
         // Initialize the evaluations
@@ -64,8 +65,9 @@
             $scope.getQuestions($scope.evaluation,$scope.state);
 			$scope.getSections($scope.evaluation,$scope.state);
 			$scope.getScores($scope.evaluation,$scope.state);
+            $scope.getDottedScores($scope.evaluation);
 			$scope.getScoreScales($scope.evaluation,$scope.state);
-			if($scope.list != 'mylist') $scope.getDottedComments($scope.evaluation);
+			if($scope.list != 'mylist') $scope.getDottedAnswers($scope.evaluation);
 			($scope.empid == $scope.userid) ? $scope.myevaluation = true : $scope.myevaluation = false;
 		};
 
@@ -156,6 +158,17 @@
 				$scope.totalRevWeightScore = totalRevWeightScore;
             });
 		};
+        
+        
+        $scope.getDottedScores = function(evalid){
+            if (!$scope.checkLogin()) {
+                return;
+            }
+			EvaluationsFactory.GetDottedScores(evalid).then(function (result) {
+				$scope.dottedScores = result.dottedScores;
+            });
+        };
+
 
 		$scope.roundUp = function(score){
 		return (Math.round(score * 100) / 100).toFixed(2);
@@ -446,7 +459,7 @@
             }
 			EvaluationsFactory.UpdateDevelopmentPlanStatus(devplan,loginData.user.id).then(function (result) {
 				$scope.checkifLoggedout(result);
-                console.log(result);
+                //console.log(result);
 				if (result.success) {
 					$scope.extraMessage = 'created';
 					//$scope.managesteam = managesTeam;
@@ -540,13 +553,13 @@
 		};
 
 
-		$scope.getDottedComments = function(evalid){
+		$scope.getDottedAnswers = function(evalid){
 			if (!$scope.checkLogin()) {
                 return;
             }
-			EvaluationsFactory.GetDottedComments(evalid).then(function (result) {
+			EvaluationsFactory.GetDottedAnswers(evalid).then(function (result) {
 				if (result.success) {
-					$scope.dottedComments = result.dottedComments;
+					$scope.dottedAnswers = result.dottedAnswers;
 				}else{
 					$scope.extraMessage = 'error';
                     $scope.extraMessageText = 'Something went wrong while deleting Goal. Please contact your administrator.';
@@ -644,8 +657,30 @@
 				kendo.drawing.pdf.saveAs(group, "evaluation.pdf");
 			});
 		};
-
-
+        
+        $scope.showDottedAnswers = function(questionid){
+            var notificationClass = 'question'+questionid;
+            if ($(".notifications").children("."+notificationClass).children().length > 0) {
+                $(".notifications").children("."+notificationClass).fadeToggle(300);
+            }
+        };
+        
+        $scope.showDottedScores = function(scoresClass){
+            if ($(".notifications").children("."+scoresClass).children().length > 0) {
+                $(".notifications").children("."+scoresClass).fadeToggle(300);
+            }
+        };
+        
+        $scope.checkDottedAnswersExistance = function(questionid){
+            var dotAnswersExist = false;
+            angular.forEach($scope.dottedAnswers, function(dotAnswer) {
+                if(dotAnswer.QuestionID == questionid){
+                    dotAnswersExist = true;
+                }
+            });
+            return dotAnswersExist;
+        };
+        
     }
 
 

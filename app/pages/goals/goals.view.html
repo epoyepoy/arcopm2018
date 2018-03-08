@@ -171,7 +171,7 @@
                                     <!-- green arrow -->
 									<span ng-if="cycleGoal.isForAction==1" class="fa fa-arrow-circle-right" aria-hidden="true" style="color: #90EE90; margin-right:10px; margin-top:10px;"></span>
 									
-									<span ng-if="((cycleGoal.EvalState == arcopmState.GoalsByDotted && cycleGoal.yourActionState == 4) || (cycleGoal.EvalState == arcopmState.GoalsByEvaluator && cycleGoal.yourActionState == 5)) && cycleGoal.onBehalfFlag==0">
+									<span ng-if="((cycleGoal.EvalState == arcopmState.GoalsByDotted && cycleGoal.yourActionState == 4) || (cycleGoal.EvalState == arcopmState.GoalsByEvaluator && cycleGoal.yourActionState == 5)) && cycleGoal.onBehalfFlag==0 && cycleGoal.isForAction==1">
 										<button class="sitesBtn" ng-click="showEvalConfiguration(cycleGoal,'emplist',0,'config')" uib-tooltip="Configuration" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-wrench" aria-hidden="true"  ></span></button>
 									</span>
 									<span ng-if="((cycleGoal.EvalState == arcopmState.GoalsByDotted && cycleGoal.yourActionState == 4) || (cycleGoal.EvalState == arcopmState.GoalsByEvaluator && cycleGoal.yourActionState == 5) || (cycleGoal.EvalState == arcopmState.EvalByEmployee && cycleGoal.RelationshipState == 5)) && cycleGoal.grade > 3 && cycleGoal.flagEvalAnswers == 0">

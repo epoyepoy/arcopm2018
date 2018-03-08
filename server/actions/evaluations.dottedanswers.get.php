@@ -8,7 +8,7 @@
 
 	# Get Questions
     $evalID = $args["evalID"];
-	$result = $evaluationsDao->getDottedComments($evalID);
+	$result = $evaluationsDao->getDottedAnswers($evalID);
 
 	$json = json_encode($result);
     $response->write($json);

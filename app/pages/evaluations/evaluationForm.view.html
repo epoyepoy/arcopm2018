@@ -69,16 +69,55 @@
 				<table class="table table-bordered formNotes table-bordered-custom" ng-show="showScoresMessage('none')">
 					<col width="25%" />
 					<col width="25%" />
-                    <col ng-if="state >= arcopmState.EvalByDotted && hasDotted == 1" width="25%" />
+                    <col ng-if="state >= arcopmState.EvalByDotted && hasDotted >= 1" width="25%" />
 					<col width="25%" />
 					<thead>
 						<tr>
 							<th rowspan="2" style="text-align: center;"><b>Performance Elements</b></th>
-                            <th colspan="{{state >= arcopmState.EvalByDotted && hasDotted ? '3' : '2'}}" style="text-align: center;"><b>Actual Scores</b></th>
+                            <th colspan="{{state >= arcopmState.EvalByDotted && hasDotted>=1 ? '3' : '2'}}" style="text-align: center;"><b>Actual Scores</b></th>
 						</tr>
 						<tr>
 							<th style="text-align: center;"><b>Employee Score</b></th>
-                            <th ng-if="state >= arcopmState.EvalByDotted && hasDotted == 1" style="text-align: center;"><b>Dotted Score</b></th>
+                            <th ng-if="state >= arcopmState.EvalByDotted && hasDotted >= 1" style="text-align: center;"><b>Dotted Score</b>
+                                <div class="notifications" ng-if="hasDotted > 1 && state > arcopmState.EvalByDotted" ng-click="showDottedScores('dottedSectionScores')">
+                                    <div class="toggle">D</div>
+                                    <div class="messages dottedSectionScores">
+                                        <table class="table table-bordered formNotes table-bordered-custom dottedscores">
+                                            <col width="25%" />
+                                            <col width="25%" />
+                                            <col width="25%" />
+                                            <col width="25%" ng-if="hasDotted > 2"/>
+                                            <thead>
+                                                <tr>
+                                                    <th rowspan="2" style="text-align: center;"><b>Performance Elements</b></th>
+                                                    <th colspan="{{state >= arcopmState.EvalByDotted && hasDotted>2 ? '3' : '2'}}" style="text-align: center;"><b>Dotted Scores</b></th>
+                                                </tr>
+                                                <tr>
+                                                    <th ng-if="dottedScores[0].Dot1Name != null" style="text-align: center;"><b>{{dottedScores[0].Dot1Name}}</b></th>
+                                                    <th ng-if="dottedScores[0].Dot2Name != null" style="text-align: center;"><b>{{dottedScores[0].Dot2Name}}</b></th>
+                                                    <th ng-if="dottedScores[0].Dot3Name != null" style="text-align: center;"><b>{{dottedScores[0].Dot3Name}}</b></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody ng-repeat="dottedScore in dottedScores track by $index" ng-if="dottedScore.SectionID != 10">
+                                                <tr class="{{scoreClasses[$index]}}">
+                                                    <td rowspan="3"><br/><b>{{dottedScore.SectionDescription}} Score Average</b></td>
+                                                </tr>
+                                                <tr class="{{scoreClasses[$index]}}">
+                                                    <td style="text-align: center;"><b>{{dottedScore.Dot1Score}}</b></td>
+                                                    <td style="text-align: center;"><b>{{dottedScore.Dot2Score}}</b></td>
+                                                    <td style="text-align: center;"  ng-if="hasDotted > 2"><b>{{dottedScore.Dot3Score}}</b></td>
+                                                </tr>
+                                                <tr class="{{scoreClasses[$index]}}">
+                                                    <td style="text-align: center;"><b>{{dottedScore.Dot1Description}}</b></td>
+                                                    <td style="text-align: center;"><b>{{dottedScore.Dot2Description}}</b></td>
+                                                    <td style="text-align: center;"  ng-if="hasDotted > 2"><b>{{dottedScore.Dot3Description}}</b></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        
+                                    </div>
+                                </div>
+                            </th>
 							<th ng-if="userRole != 'emp'" style="text-align: center;"><b>Evaluator Score</b></th>
 							<th ng-if="userRole == 'emp'" style="text-align: center;"><b>Evaluation Final Score</b></th>
 						</tr>
@@ -87,24 +126,24 @@
 						<tr class="{{scoreClasses[$index]}}" >
 							<td rowspan="2"><br/><b>{{score.SectionDescription}}' Score Average</b></td>
 							<td style="text-align: center; font-size: 12px;">{{score.EmpScore == null ? '-' : score.EmpScore}}</td>
-                            <td ng-if="state >= arcopmState.EvalByDotted && hasDotted == 1" style="text-align: center; font-size: 12px;">{{score.DotScore == null ? '-' : score.DotScore}}</td>
+                            <td ng-if="state >= arcopmState.EvalByDotted && hasDotted >= 1" style="text-align: center; font-size: 12px;">{{score.DotScore == null ? '-' : score.DotScore}}</td>
 							<td ng-if="userRole != 'emp'" style="text-align: center; font-size: 12px;">{{score.EvalScore == null ? '-' : score.EvalScore}} / <label style="color: green;">{{score.RevScore == null ? '-' : score.RevScore}}</label></td>
 							<td ng-if="userRole == 'emp'" style="text-align: center; font-size: 12px;">{{score.RevScore == null ? '-' : score.RevScore}}</td>
 						</tr>
 						<tr class="{{scoreClasses[$index]}}">
 							<td ng-if='score.SectionID!=3' style="text-align: center;"><b>{{score.EmpScore == null ? '-' : score.EmpScore < 1.50 ? scoreDefinition[0] : score.EmpScore < 3 ? scoreDefinition[1] : score.EmpScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
-                            <td ng-if='score.SectionID!=3 && state >= arcopmState.EvalByDotted && hasDotted == 1' style="text-align: center;"><b>{{score.DotScore == null ? '-' : score.DotScore < 1.50 ? scoreDefinition[0] : score.DotScore < 3 ? scoreDefinition[1] : score.DotScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
+                            <td ng-if='score.SectionID!=3 && state >= arcopmState.EvalByDotted && hasDotted >= 1' style="text-align: center;"><b>{{score.DotScore == null ? '-' : score.DotScore < 1.50 ? scoreDefinition[0] : score.DotScore < 3 ? scoreDefinition[1] : score.DotScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
 							<td ng-if='score.SectionID!=3 && userRole != "emp"' style="text-align: center;">
 								<b>{{score.EvalScore == null ? '-' : score.EvalScore < 1.50 ? scoreDefinition[0] : score.EvalScore < 3 ? scoreDefinition[1] : score.EvalScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b>
-								/ <label ng-if="score.RevScore" style="color: green;">{{score.RevScore == null ? '-' : score.RevScore < 1.50 ? scoreDefinition[0] : score.RevScore < 3 ? scoreDefinition[1] : score.RevScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</label>
+								/ <label style="color: green;">{{score.RevScore == null ? '-' : score.RevScore < 1.50 ? scoreDefinition[0] : score.RevScore < 3 ? scoreDefinition[1] : score.RevScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</label>
 							</td>
 							<td ng-if='score.SectionID!=3 && userRole == "emp"' style="text-align: center;"><b>{{score.RevScore == null ? '-' : score.RevScore < 1.50 ? scoreDefinition[0] : score.RevScore < 3 ? scoreDefinition[1] : score.RevScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
 
 							<td ng-if='score.SectionID==3' style="text-align: center;"><b>{{score.EmpScore == null ? '-' : score.EmpScore < 2.5 ? scoreDefinition[0] : score.EmpScore < 3 ? scoreDefinition[1] : score.EmpScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
-                            <td ng-if='score.SectionID==3 && state >= arcopmState.EvalByDotted && hasDotted == 1' style="text-align: center;"><b>{{score.DotScore == null ? '-' : score.DotScore < 2.5 ? scoreDefinition[0] : score.DotScore < 3 ? scoreDefinition[1] : score.DotScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
+                            <td ng-if='score.SectionID==3 && state >= arcopmState.EvalByDotted && hasDotted >= 1' style="text-align: center;"><b>{{score.DotScore == null ? '-' : score.DotScore < 2.5 ? scoreDefinition[0] : score.DotScore < 3 ? scoreDefinition[1] : score.DotScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
 							<td ng-if='score.SectionID==3 && userRole != "emp"' style="text-align: center;">
 								<b>{{score.EvalScore == null ? '-' : score.EvalScore < 2.5 ? scoreDefinition[0] : score.EvalScore < 3 ? scoreDefinition[1] : score.EvalScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</b>
-								/ <label ng-if="score.RevScore" style="color: green;">{{score.RevScore == null ? '-' : score.RevScore < 2.5 ? scoreDefinition[0] : score.RevScore < 3 ? scoreDefinition[1] : score.RevScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</label>
+								/ <label style="color: green;">{{score.RevScore == null ? '-' : score.RevScore < 2.5 ? scoreDefinition[0] : score.RevScore < 3 ? scoreDefinition[1] : score.RevScore < 3.5 ? scoreDefinition[2] : scoreDefinition[3] }}</label>
 							</td>
 							<td ng-if='score.SectionID==3 && userRole == "emp"' style="text-align: center;"><b>{{score.RevScore == null ? '-' : score.RevScore < 2.49 ? scoreDefinition[0] : score.RevScore < 2.99 ? scoreDefinition[1] : score.RevScore < 3.49 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
 						</tr>
@@ -129,12 +168,53 @@
 						<tr>
 							<th rowspan="2" style="vertical-align: middle;"><b>Performance Elements</b></th>
 							<th rowspan="2" style="vertical-align: middle; text-align: center;"><b>Weight %</b></th>
-                            <th colspan="{{state >= arcopmState.EvalByDotted && hasDotted == 1 ? '3' : '2'}}" style="text-align: center;"><b>Weighted Scores</b></th>  <!-- colspan="6" if we open the 3 columns we commented out below-->
+                            <th colspan="{{state >= arcopmState.EvalByDotted && hasDotted >= 1 ? '3' : '2'}}" style="text-align: center;"><b>Weighted Scores</b></th>  <!-- colspan="6" if we open the 3 columns we commented out below-->
 						</tr>
 						<tr>
 							<!--<th style="text-align: center; border-left-width: 2px;"><b>Actual Employee Score</th>-->
 							<th style="text-align: center; border-right-width: 2px;"><b>Employee Score</b></th>
-                            <th ng-if="state >= arcopmState.EvalByDotted && hasDotted == 1" style="text-align: center; border-right-width: 2px;"><b>Dotted Score</b></th>
+                            <th ng-if="state >= arcopmState.EvalByDotted && hasDotted >= 1" style="text-align: center; border-right-width: 2px;"><b>Dotted Score</b>
+                                <div class="notifications" ng-if="hasDotted > 1 && state > arcopmState.EvalByDotted" ng-click="showDottedScores('dottedSummaryTable')">
+                                    <div class="toggle">D</div>
+                                    <div class="messages dottedSummaryTable">
+                                        <table class="table table-bordered formNotes dottedscores">
+                                            <col width="20%" />
+                                            <col width="20%" />
+                                            <col width="20%" />
+                                            <col width="20%" />
+                                            <col width="20%" ng-if="hasDotted > 2"/>
+                                            <thead>
+                                                <tr>
+                                                    <th rowspan="2" style="text-align: center;"><b>Performance Elements</b></th>
+                                                    <th rowspan="2" style="text-align: center;"><b>Weight %</b></th>
+                                                    <th colspan="{{state >= arcopmState.EvalByDotted && hasDotted>2 ? '3' : '2'}}" style="text-align: center;"><b>Dotted Scores</b></th>
+                                                </tr>
+                                                <tr>
+                                                    <th ng-if="dottedScores[0].Dot1Name != null" style="text-align: center;"><b>{{dottedScores[0].Dot1Name}}</b></th>
+                                                    <th ng-if="dottedScores[0].Dot2Name != null" style="text-align: center;"><b>{{dottedScores[0].Dot2Name}}</b></th>
+                                                    <th ng-if="dottedScores[0].Dot3Name != null" style="text-align: center;"><b>{{dottedScores[0].Dot3Name}}</b></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody ng-repeat="dottedScore in dottedScores track by $index">
+                                                <tr class="{{dottedScore.SectionID!=10 ? scoreClasses[$index] : 'overall'}}">
+                                                    <!-- rowspan==2 is for overall row -->
+                                                    <td rowspan="{{dottedScore.SectionID==10 ? '2' : '1'}}"><b>{{dottedScore.SectionDescription}}</b></td>
+                                                    <td rowspan="{{dottedScore.SectionID==10 ? '2' : '1'}}" style="text-align: center;"><b>{{parseFloat(dottedScore.ScoreWeight) * 100}}</b></td>
+                                                    <td style="text-align: center;"><b>{{parseFloat(dottedScore.Dot1WeightedScore).toFixed(2)}}</b></td>
+                                                    <td style="text-align: center;"><b>{{parseFloat(dottedScore.Dot2WeightedScore).toFixed(2)}}</b></td>
+                                                    <td style="text-align: center;" ng-if="hasDotted > 2"><b>{{parseFloat(dottedScore.Dot3WeightedScore).toFixed(2)}}</b></td>
+                                                </tr>
+                                                <!-- rows with performance description in overall section -->
+                                                <tr ng-if="dottedScore.SectionID==10" class="overall">
+                                                    <td ng-if="dottedScore.SectionID==10" style="text-align: center;"><b>{{dottedScore.Dot1Description}}</b></td>
+                                                    <td ng-if="dottedScore.SectionID==10" style="text-align: center;"><b>{{dottedScore.Dot2Description}}</b></td>
+                                                    <td ng-if="dottedScore.SectionID==10 && hasDotted > 2" style="text-align: center;"><b>{{dottedScore.Dot3Description}}</b></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </th>
 							<!--<th style="text-align: center;"><b>Actual Evaluator Score</b></th>-->
 							<th ng-if="userRole != 'emp'" style="text-align: center; border-right-width: 2px;"><b>Evaluator Score</b></th>
 							<!--<th style="text-align: center;"><b>Actual Revision Score</b></th>-->
@@ -147,7 +227,7 @@
 							<td style="text-align: center; font-size: 12px; border-right-width: 2px;">{{score.ScoreWeight * 100}}</td>
 							<!--<td style="text-align: center; font-size: 12px;">{{score.EmpScore}}</td>-->
 							<td style="text-align: center; font-size: 12px; border-right-width: 2px;">{{score.EmpScore ? roundUp(score.ScoreWeight * score.EmpScore) : '-'}} </td>
-                            <td ng-if="state >= arcopmState.EvalByDotted && hasDotted == 1" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{score.DotScore ? roundUp(score.ScoreWeight * score.DotScore) : '-'}} </td>
+                            <td ng-if="state >= arcopmState.EvalByDotted && hasDotted >= 1" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{score.DotScore ? roundUp(score.ScoreWeight * score.DotScore) : '-'}} </td>
 							<!--<td style="text-align: center; font-size: 12px;">{{score.EvalScore}}</td>-->
 							<td ng-if="userRole != 'emp'" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{score.EvalScore ? roundUp(score.ScoreWeight * score.EvalScore) : '-'}} / <label style="color: green;">{{score.RevScore ? roundUp(score.ScoreWeight * score.RevScore) : '-'}}</label></td>
 							<!--<td style="text-align: center; font-size: 12px;">{{score.RevScore}}</td>-->
@@ -158,7 +238,7 @@
 							<td rowspan="2" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{totalWeight * 100}}</td>
 							<!--<td style="text-align: center; font-size: 12px;">{{averageEmpScore ? averageEmpScore.toFixed(2): ''}}</td>-->
 							<td style="text-align: center; font-size: 12px; border-right-width: 2px;">{{totalEmpWeightScore ? roundUp(totalEmpWeightScore) : '-'}}</td>
-                            <td ng-if="state >= arcopmState.EvalByDotted && hasDotted == 1" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{totalDotWeightScore ? roundUp(totalDotWeightScore) : '-'}}</td>
+                            <td ng-if="state >= arcopmState.EvalByDotted && hasDotted >= 1" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{totalDotWeightScore ? roundUp(totalDotWeightScore) : '-'}}</td>
 							<!--<td style="text-align: center; font-size: 12px;">{{averageEvalScore ? averageEvalScore.toFixed(2) : ''}}</td>-->
 							<td ng-if="userRole != 'emp'" style="text-align: center; font-size: 12px; border-right-width: 2px;">{{totalEvalWeightScore ? roundUp(totalEvalWeightScore) : '-'}} / <label style="color: green;">{{totalRevWeightScore ? roundUp(totalRevWeightScore) : '-'}}</label></td>
 							<!--<td style="text-align: center; font-size: 12px;">{{averageRevScore ? averageRevScore.toFixed(2) : ''}}</td>-->
@@ -168,7 +248,7 @@
 							<!-- colspan="2" bellow if we open the 3 columns we commented out above -->
 
 							<td style="text-align: center; border-right-width: 2px;"><b>{{totalEmpWeightScore == 0 ? '-' : totalEmpWeightScore < scoreScales.ScaleTo1 ? scoreDefinition[0] : totalEmpWeightScore < scoreScales.ScaleTo2 ? scoreDefinition[1] : totalEmpWeightScore < scoreScales.ScaleTo3 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
-                            <td ng-if="state >= arcopmState.EvalByDotted && hasDotted == 1" style="text-align: center; border-right-width: 2px;"><b>{{totalDotWeightScore == 0 ? '-' : totalDotWeightScore < scoreScales.ScaleTo1 ? scoreDefinition[0] : totalDotWeightScore < scoreScales.ScaleTo2 ? scoreDefinition[1] : totalDotWeightScore < scoreScales.ScaleTo3 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
+                            <td ng-if="state >= arcopmState.EvalByDotted && hasDotted >= 1" style="text-align: center; border-right-width: 2px;"><b>{{totalDotWeightScore == 0 ? '-' : totalDotWeightScore < scoreScales.ScaleTo1 ? scoreDefinition[0] : totalDotWeightScore < scoreScales.ScaleTo2 ? scoreDefinition[1] : totalDotWeightScore < scoreScales.ScaleTo3 ? scoreDefinition[2] : scoreDefinition[3] }}</b></td>
 							<td ng-if="userRole != 'emp'" style="text-align: center; border-right-width: 2px;">
 								<b>{{totalEvalWeightScore == 0 ? '-' : totalEvalWeightScore < scoreScales.ScaleTo1 ? scoreDefinition[0] : totalEvalWeightScore < scoreScales.ScaleTo2 ? scoreDefinition[1] : totalEvalWeightScore < scoreScales.ScaleTo3 ? scoreDefinition[2] : scoreDefinition[3] }}</b>
 								/ <label style="color: green;">{{totalRevWeightScore == 0 ? '-' : totalRevWeightScore < scoreScales.ScaleTo1 ? scoreDefinition[0] : totalRevWeightScore < scoreScales.ScaleTo2 ? scoreDefinition[1] : totalRevWeightScore < scoreScales.ScaleTo3 ? scoreDefinition[2] : scoreDefinition[3] }}</label>
@@ -455,6 +535,11 @@
 									<div class="alert alert-warning" ng-if="empDetails.empNo !== empDetails.SelfEvalUser && state > arcopmState.EvalByEmployee" style="border-radius: 0px; font-weight: bold; font-size: 17px; color: #c25d5d;">
 										Self Evaluation was completed on behalf of the employee by their Evaluator.
 									</div>
+                                    <div class="bg-warning" ng-if="dottedAnswers && dottedAnswers.length!=0 && state > arcopmState.EvalByDotted && hasDotted > 1">
+                                        <div class="notifications">
+                                            <div class="toggle">D</div>
+                                        </div>
+                                        This evaluation contains answers from more than one Dotted. The answers and scores are displayed as average, if you want to see the answers per dotted click on this icon next to each question or at the scores.</div><br/>
 									<div class="panel-body">
 										<form name="form">
 											<div class="row" ng-init="getUserGoals(empid,evaluation)" ng-if="section.SectionID == 3">
@@ -569,7 +654,15 @@
 												<div class="form-group col-xs-12 col-md-12"  style="margin-top: -15px; margin-bottom: 0px;" ng-init="(state == arcopmState.EvalByReviewer && !question.answer) ? question.answer = question.EvalAnswer : exit;">	
 													<label>{{question.Title}}</label><br/>
 													<label ng-hide="question.NumberingOff==1" style="display: initial;">{{question.QuestionOrder}}. </label><label style="font-weight: initial; display: initial; margin-bottom: 0px;">{{question.QuestionDescripton}}</label>&nbsp;<label ng-if="question.isRequired=='1' && state != arcopmState.EvalByDotted" style="color:red">*</label>
-													<div class="clearfix" style="height: 30px;"></div>
+                                                    <div class="notifications" ng-if="hasDotted > 1 && state > arcopmState.EvalByDotted && question.QuestionTypeID == 1" ng-click="showDottedAnswers(question.QuestionID)" ng-show="checkDottedAnswersExistance(question.QuestionID)">
+                                                        <div class="toggle">D</div>
+                                                        <div class="messages question{{question.QuestionID}}">
+                                                            <div class="notify-messages-all">
+                                                                <a ng-repeat="dottedAnswer in dottedAnswers" ng-if="dottedAnswer.QuestionID == question.QuestionID" href="#" class="notify-message">{{dottedAnswer.DotteLineName+': '+dottedAnswer.Answer}}</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="clearfix" style="height: 30px;"></div>
 													<div class="radioButtondemoBasicUsage" style="position: relative;" ng-if="question.QuestionTypeID == 5">		<!-- change after Internet Explorer problem(display:inline-flex) -->
 														<div class="row" ng-if="section.SectionID == 6">
 															<div class="dataTable devplan-table" style="margin-bottom: 25px;">
@@ -581,8 +674,8 @@
 																			<th class="center">Additional Information / Clarifications</th>
 																			<th class="center">By When?</th>
 																			<th class="center" title="Refers to the person who is responsible for the implementation of the developmental action. For example, who is responsible to conduct the on-the-job training to the employee?">By Whom?<br/><span style="font-style: italic; font-weight: initial;">(where applicable)</span></th>
-																			<th class="center" style="width:11%" ng-if="state == arcopmState.EvalByEvaluator || state == arcopmState.EvalByReviewer">Evaluator's<br/>Approval</th>
-                                                                            <th style="width:5%"><br/>
+                                                                            <th class="center" style="width:11%" ng-if="state >= arcopmState.EvalByEvaluator">Evaluator's<br/>Approval</th>
+                                                                            <th style="width:5%" ng-if="state != arcopmState.EvalComplete"><br/>
 																				<div ng-if="showAddNewDevplanButton && (((state >= arcopmState.EvalByEmployee && state < arcopmState.EvalComplete) && list != 'mylist') || (list == 'mylist' && state == arcopmState.EvalByEmployee))" class="add-new-devplan" ng-click="showAddNewDevplanPopup(evaluation,state)" style="text-align: center;"
 																					uib-tooltip="Add New Development Plan" tooltip-placement="left" tooltip-trigger="'mouseenter'">
 																					<i class="fa fa-plus-circle fa-2x" aria-hidden="true" style="color: #0BC512;"></i>
@@ -597,16 +690,16 @@
 																			<td class="center">{{historydevplan.AdditionalInfo}}</td>
 																			<td class="center">{{historydevplan.ByWhen}}</td>
 																			<td class="center">{{historydevplan.ByWhom}}</td>
-                                                                            <td ng-if="state == arcopmState.EvalByEvaluator || state == arcopmState.EvalByReviewer">
-                                                                                <div class="btn-group">
+                                                                            <td ng-if="state >= arcopmState.EvalByEvaluator">
+                                                                                <div ng-if="state == arcopmState.EvalByEvaluator || state == arcopmState.EvalByReviewer" class="btn-group">
                                                                                     <label ng-class="(historydevplan.ApprovedByEvaluator == 0) ? 'btn btn-default active' : 'btn btn-default'"  uib-btn-radio="0" ng-model="historydevplan.ApprovedByEvaluator" ng-click="updateDevelopmentPlanStatus(historydevplan);" required>No</label>
                                                                                     <label ng-class="(historydevplan.ApprovedByEvaluator == 1) ? 'btn btn-default active' : 'btn btn-default'"  uib-btn-radio="1" ng-model="historydevplan.ApprovedByEvaluator" ng-click="updateDevelopmentPlanStatus(historydevplan);" required>Yes</label>
                                                                                 </div>
-                                                                                <div ng-if="(state == arcopmState.EvalComplete)">
+                                                                                <div ng-if="(state == arcopmState.EvalComplete)" style="text-align:center;">
                                                                                     <label>{{historydevplan.ApprovedByEvaluator == 1 ? 'Yes' : historydevplan.ApprovedByEvaluator == 0 ? 'No' : ''}}</label>
                                                                                 </div>
                                                                             </td>
-																			<td class="center" style="display: -moz-inline-box;">
+																			<td class="center" style="display: -moz-inline-box;" ng-if="state != arcopmState.EvalComplete">
                                                                                 <div ng-if="(historydevplan.State == state && historydevplan.UserID == userid)">
                                                                                     <span ng-if="((state >= arcopmState.EvalByEmployee && state < arcopmState.EvalComplete) && list != 'mylist') || (list == 'mylist' && state == arcopmState.EvalByEmployee)">
                                                                                         <button class="sitesBtn" ng-click="showEditDevplanPopup(evaluation,historydevplan,state)" uib-tooltip="Edit Development Plan" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-pencil" aria-hidden="true"  ></span></button>
@@ -617,21 +710,6 @@
                                                                                 </div>
 																			</td>
 																		</tr>
-																		<!--<tr ng-repeat="devplan in devplans" ng-if="userid == devplan.UserID">
-																			<td class="center">{{devplan.Objective}}</td>
-																			<td class="center">{{devplan.Action==1 ? ' On-the-job training' : devplan.Action==2 ? 'Classroom training, formal learning or education' : devplan.Action==3 ? 'Other action' : ''}}</td>
-																			<td class="center">{{devplan.AdditionalInfo}}</td>
-																			<td class="center">{{devplan.ByWhen}}</td>
-																			<td class="center">{{devplan.ByWhom}}</td>
-																			<td class="center" style="display: -moz-inline-box;">
-																				<span ng-if="((state >= arcopmState.EvalByEmployee && state < arcopmState.EvalComplete) && list != 'mylist') || (list == 'mylist' && state == arcopmState.EvalByEmployee)">
-																					<button class="sitesBtn" ng-click="showEditDevplanPopup(evaluation,devplan,state)" uib-tooltip="Edit Development Plan" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-pencil" aria-hidden="true"  ></span></button>
-																				</span>
-																				<span ng-if="((state >= arcopmState.EvalByEmployee && state < arcopmState.EvalComplete) && list != 'mylist') || (list == 'mylist' && state == arcopmState.EvalByEmployee)">
-																					<button class="sitesBtn" ng-click="showDeleteDevplanPopup(evaluation,devplan,state)" uib-tooltip="Delete Development Plan" tooltip-placement="top" tooltip-trigger="'mouseenter'"><span class="glyphicon glyphicon-trash" aria-hidden="true"  ></span></button>
-																				</span>
-																			</td>
-																		</tr>-->
 																	</tbody>
 																</table>
 															</div>
@@ -654,7 +732,7 @@
 																	<label style="margin-bottom: 0px;" ng-if="((answer == question.EvalAnswer && !question.EvalRevision) || answer == question.EvalRevision ) && state > arcopmState.EvalByEvaluator">&nbsp&nbsp&nbsp Evaluator &nbsp&nbsp</label>
 																</span>
                                                                 <span class="previous-answer" style="background-color: #ffcc84;">
-																	<label style="margin-bottom: 0px;" ng-if="answer == question.DottedAvgAnswer && state > arcopmState.EvalByEmployee">&nbsp&nbsp&nbsp Dotted &nbsp&nbsp</label>
+                                                                    <label style="margin-bottom: 0px;" ng-if="answer == question.DottedAvgAnswer && state > arcopmState.EvalByEmployee">&nbsp&nbsp&nbsp Dotted &nbsp&nbsp </label>
 																</span>
 																<span class="previous-answer">
 																	<label style="margin-bottom: 0px;" ng-if="answer == question.EmpAnswer && state > arcopmState.EvalByEmployee">&nbsp&nbsp&nbsp Employee &nbsp&nbsp</label>
@@ -676,9 +754,9 @@
 																		<td style="text-align: center;"><b>Employee</b></td>
 																		<td style="text-align: center;">{{question.EmpAnswer}}</td>
 																	</tr>
-                                                                    <tr ng-repeat="dottedComment in dottedComments" ng-if="dottedComment.Answer && state >= arcopmState.EvalByDotted && dottedComment.UserID!=userid && question.QuestionID == dottedComment.QuestionID && question.SectionID == dottedComment.SectionID && userRole != 'emp'"  style="background-color: #ffcc84 ;">
-																		<td style="text-align: center;"><b>Dotted Line Manager - {{dottedComment.DotteLineName}}</b></td>
-																		<td style="text-align: center;">{{dottedComment.Answer}}</td>
+                                                                    <tr ng-repeat="dottedAnswer in dottedAnswers" ng-if="dottedAnswer.Answer && state >= arcopmState.EvalByDotted && dottedAnswer.UserID!=userid && question.QuestionID == dottedAnswer.QuestionID && question.SectionID == dottedAnswer.SectionID && userRole != 'emp'"  style="background-color: #ffcc84 ;">
+																		<td style="text-align: center;"><b>Dotted Line Manager - {{dottedAnswer.DotteLineName}}</b></td>
+																		<td style="text-align: center;">{{dottedAnswer.Answer}}</td>
 																	</tr>
 																	<tr ng-if="(question.EvalAnswer || question.EvalRevision) && state > arcopmState.EvalByEvaluator" style="background-color: #c5e0b6;">
 																		<td style="text-align: center;"><b>Evaluator</b></td>
@@ -779,4 +857,9 @@
 		</div>
 	</div>
 </div>
+<script>
+$(document).ready(function(){
+  $(".notifications .messages").hide();
+});
+</script>
 <!-- end of evaluations -->

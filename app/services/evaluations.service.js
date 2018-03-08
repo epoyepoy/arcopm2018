@@ -16,7 +16,8 @@
         factory.GetQuestions = GetQuestions;
 		factory.GetScores = GetScores;
 		factory.GetScoreScales = GetScoreScales;
-		factory.GetDottedComments = GetDottedComments;
+		factory.GetDottedAnswers = GetDottedAnswers;
+        factory.GetDottedScores = GetDottedScores;
 		factory.GetSections = GetSections;
         factory.GetEmpDetails = GetEmpDetails;
 		factory.GetReportingLine = GetReportingLine;
@@ -102,10 +103,16 @@
 			return $http.get(api + '/scorescales/' + evalID).then(handleSuccess, handleError);
 		}
 		
-		// Get gotted comments
-		function GetDottedComments(evalID)
+		// Get gotted answers
+		function GetDottedAnswers(evalID)
 		{
-			return $http.get(api + '/evaluations/dottedcomments/' + evalID).then(handleSuccess, handleError);
+			return $http.get(api + '/evaluations/dottedanswers/' + evalID).then(handleSuccess, handleError);
+		}
+        
+        // Get gotted scores
+		function GetDottedScores(evalID)
+		{
+			return $http.get(api + '/evaluations/dottedscores/' + evalID).then(handleSuccess, handleError);
 		}
 
 		function GetDevPlans(evalID,state)
@@ -252,8 +259,8 @@
             return $http.post(api + '/evaluations/revertmanager/'+empid+'/'+youraction).then(handleSuccess, handleError);
         }
 
-		function SendGoalsBack(evalid) {
-            return $http.post(api + '/evaluations/sendbackgoals/'+evalid).then(handleSuccess, handleError);
+		function SendGoalsBack(evalid,userid,state) {
+            return $http.post(api + '/evaluations/sendbackgoals/'+evalid+'/'+userid+'/'+state).then(handleSuccess, handleError);
 		}
 		
 		function ReviseEvaluations(evals,empid) {

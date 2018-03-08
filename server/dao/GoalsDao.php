@@ -119,7 +119,7 @@ class GoalsDAO{
 		END as EvalState,
 		Ev.EvaluationID, onBehalf.NoAsnwers as onBehalfFlag, yourAction.nstate as yourActionState, 
 		ISNULL(yourAction.yourAction, 'No Action') as yourActionStateDescr, isnull(RL.wrongManager,0) as wrongManager, EvalAnswers.flagEvalAnswers,
-		CASE 
+		ISNULL(CASE 
 			WHEN (ISNULL(Ev.State,0) in (0,2) 
 					AND yourEvalAction.estate=5 
 					AND CASE 
@@ -144,7 +144,7 @@ class GoalsDAO{
 				AND 1=CASE WHEN Ev.State=1 THEN CASE WHEN goalHistory.NoAsnwers=0 THEN 1 ELSE 0 END  ELSE 1 END
 			THEN 1
 
-		END AS  isForAction, 
+		END, 0) AS  isForAction, 
 		HasDotted.HasDottedFlag, UserRelationship.RelationshipState
 
 	    FROM dbo.ReportingLine RL

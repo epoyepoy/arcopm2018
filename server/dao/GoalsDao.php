@@ -161,7 +161,7 @@ class GoalsDAO{
 		)onBehalf
 
 		OUTER APPLY(
-		SELECT case when count(*) >0 then 1 else 0 end as 'flag' FROM dbo.GoalsHistory GH
+		SELECT case when count(*) = 0 then 1 else 0 end as 'flag' FROM dbo.GoalsHistory GH
 		WHERE State=1 AND UserID=@userid AND GH.EvaluationID=Ev.EvaluationID 
 		AND GH.Date >= Ev.StateDate
 		)goalHistory

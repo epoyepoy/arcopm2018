@@ -162,7 +162,8 @@ class GoalsDAO{
 
 		OUTER APPLY(
 		SELECT case when count(*) >0 then 1 else 0 end as 'NoAsnwers' FROM dbo.GoalsHistory GH
-		WHERE State=1 AND UserID=@userid AND GH.EvaluationID=Ev.EvaluationID
+		WHERE State=1 AND UserID=@userid AND GH.EvaluationID=Ev.EvaluationID 
+		AND GH.Date >= Ev.StateDate
 		)goalHistory
 
 		OUTER APPLY(
@@ -762,7 +763,7 @@ class GoalsDAO{
 	{
 			$queryString = "
 			UPDATE E
-			SET E.STATE = 0
+			SET E.STATE = 0, E.StateDate= GETDATE()
 			--OUTPUT Inserted.EvaluationID 
 			FROM dbo.Evaluations E
 			LEFT JOIN (select EvaluationID, COUNT(*) as answerCNT

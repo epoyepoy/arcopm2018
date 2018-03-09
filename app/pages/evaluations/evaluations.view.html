@@ -157,6 +157,7 @@
 							<th class="center" style="width:15%">Employee Name</th>
 							<th class="center" style="width:15%">Position</th>
 							<th class="center" style="width:5%">Grade</th>
+                            <th class="center" style="width:5%">Manages Team</th>
 							<th class="center" style="width:10%">Pending Action Set Date</th>
 							<th class="center" style="width:15%">Pending Action</th>
 							<th class="center" style="width:10%">Your Action</th>
@@ -175,6 +176,7 @@
 							<td class="center">{{evaluation.employeeName}}</td>
 							<td class="center">{{evaluation.job_desc}}</td>
 							<td class="center">{{evaluation.grade}}</td>
+                            <td class="center">{{evaluation.ManagesTeam==1 ? 'Yes' : evaluation.ManagesTeam==0 ? 'No' : ''}}</td>
 							<td class="center">{{evaluation.StateDate}}</td>
 							<td class="center">{{evaluation.StateDescription}}</td>
 							<td class="center">{{evaluation.yourAction}}</td>
@@ -290,6 +292,7 @@
 							<th class="center" style="width:15%">Employee Name</th>
 							<th class="center" style="width:15%">Position</th>
 							<th class="center" style="width:5%">Grade</th>
+                            <th class="center" style="width:5%">Manages Team</th>
 							<th class="center" style="width:10%">Pending Action Set Date</th>
 							<th class="center" style="width:15%">Pending Action</th>
 							<th class="center" style="width:10%">Your Action</th>
@@ -308,6 +311,7 @@
 							<td class="center">{{evaluation.employeeName}} </td>
 							<td class="center">{{evaluation.job_desc}}</td>
 							<td class="center">{{evaluation.grade}}</td>
+                            <td class="center">{{evaluation.ManagesTeam==1 ? 'Yes' : evaluation.ManagesTeam==0 ? 'No' : ''}}</td>
 							<td class="center">{{evaluation.StateDate}}</td>
 							<td class="center">{{evaluation.StateDescription}}</td>
 							<td class="center">{{evaluation.yourAction}}</td>
@@ -422,6 +426,7 @@
 							<th class="center" style="width:15%">Employee Name</th>
 							<th class="center" style="width:15%">Position</th>
 							<th class="center" style="width:5%">Grade</th>
+                            <th class="center" style="width:5%">Manages Team</th>
 							<th class="center" style="width:10%">Pending Action Set Date</th>
 							<th class="center" style="width:15%">Pending Action</th>
 							<th class="center" style="width:10%">Your Action</th>
@@ -440,6 +445,7 @@
 							<td class="center">{{evaluation.employeeName}}</td>
 							<td class="center">{{evaluation.job_desc}}</td>
 							<td class="center">{{evaluation.grade}}</td>
+                            <td class="center">{{evaluation.ManagesTeam==1 ? 'Yes' : evaluation.ManagesTeam==0 ? 'No' : ''}}</td>
 							<td class="center">{{evaluation.StateDate}}</td>
 							<td class="center">{{evaluation.StateDescription}}</td>
 							<td class="center">{{evaluation.yourAction}}</td>

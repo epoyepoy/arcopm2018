@@ -276,7 +276,9 @@
 					<div class="panel panel-default">
 						<div class="panel-heading">
 							<h4 class="panel-title">
-								<a data-toggle="collapse" data-parent="#accordion" data-target="#collapse1" href>Performance Standards & Competencies</a>
+                                <i ng-hide="show1" class="fa fa-plus" aria-hidden="true"></i>
+                                <i ng-show="show1" class="fa fa-minus" aria-hidden="true"></i>
+								<a data-toggle="collapse" data-parent="#accordion" data-target="#collapse1" ng-click="showFilters('collapse1')" href>Performance Standards & Competencies</a>
 							</h4>
 						</div>
 						<div id="collapse1" class="panel-collapse collapse in">
@@ -319,7 +321,9 @@
 					<div class="panel panel-default">
 						<div class="panel-heading">
 							<h4 class="panel-title">
-								<a data-toggle="collapse" data-parent="#accordion" data-target="#collapse2" href>Goals</a>
+                                <i ng-hide="show2" class="fa fa-plus" aria-hidden="true"></i>
+                                <i ng-show="show2" class="fa fa-minus" aria-hidden="true"></i>
+								<a data-toggle="collapse" data-parent="#accordion" data-target="#collapse2" ng-click="showFilters('collapse2')" href>Goals</a>
 							</h4>
 						</div>
 						<div id="collapse2" class="panel-collapse collapse">
@@ -377,7 +381,9 @@
 					<div class="panel panel-default">
 						<div class="panel-heading">
 							<h4 class="panel-title">
-								<a data-toggle="collapse" data-parent="#accordion" data-target="#collapse3" href>Overall Performance Score ({{scoreScales.GroupDesc}})</a>
+                                <i ng-hide="show3" class="fa fa-plus" aria-hidden="true"></i>
+                                <i ng-show="show3" class="fa fa-minus" aria-hidden="true"></i>
+								<a data-toggle="collapse" data-parent="#accordion" data-target="#collapse3" ng-click="showFilters('collapse3')" href>Overall Performance Score ({{scoreScales.GroupDesc}})</a>
 							</h4>
 						</div>
 						<div id="collapse3" class="panel-collapse collapse">
@@ -536,6 +542,7 @@
 										Self Evaluation was completed on behalf of the employee by their Evaluator.
 									</div>
                                     <div class="bg-warning" ng-if="dottedAnswers && dottedAnswers.length!=0 && state > arcopmState.EvalByDotted && hasDotted > 1">
+                                        &nbsp;
                                         <div class="notifications">
                                             <div class="toggle">D</div>
                                         </div>
@@ -551,9 +558,9 @@
 																<th style="width:15%; vertical-align: middle;">ATTRIBUTE</th>
 																<th style="width:20%; vertical-align: middle;">GOAL</th>
 																<th class="center" style="width:5%">WEIGHT %</th>
-                                                                <th class="center" ng-attr-style="{{state == arcopmState.EvalByEmployee ? 'width:50%' : 'width:5%'}}">EMPLOYEE ACHIEVEMENT<br/>% ( >0 )&nbsp;<label ng-if="state == arcopmState.EvalByEmployee" style="color:#a20a0a">*</label></th>
-                                                                <th class="center" ng-attr-style="{{state == arcopmState.EvalByDotted ? 'width:50%' : 'width:5%'}}">DOTTED ACHIEVEMENT<br/>% ( >0 )</th>
-                                                                <th ng-if="(userRole != 'emp' && userRole != 'dotted') || (userRole == 'emp' && state==arcopmState.EvalComplete) " class="center" ng-attr-style="{{(state == arcopmState.EvalByEvaluator || state == arcopmState.EvalByReviewer) ? 'width:50%' : 'width:5%'}}">EVALUATOR ACHIEVEMENT<br/>% ( >0 )&nbsp;<label ng-if="state == arcopmState.EvalByEvaluator || state == arcopmState.EvalByReviewer" style="color:#a20a0a">*</label></th>
+                                                                <th class="center" ng-attr-style="{{state == arcopmState.EvalByEmployee ? 'width:50%;background-color:#c3c3c3 !important;' : 'width:5%;background-color:#c3c3c3 !important;'}}">EMPLOYEE ACHIEVEMENT<br/>% ( >0 )&nbsp;<label ng-if="state == arcopmState.EvalByEmployee" style="color:#a20a0a">*</label></th>
+                                                                <th class="center" ng-attr-style="{{state == arcopmState.EvalByDotted ? 'width:50%;background-color:#f2ac49 !important;' : 'width:5%;background-color:#f2ac49 !important;'}}">DOTTED ACHIEVEMENT<br/>% ( >0 )</th>
+                                                                <th ng-if="(userRole != 'emp' && userRole != 'dotted') || (userRole == 'emp' && state==arcopmState.EvalComplete)" class="center" ng-attr-style="{{(state == arcopmState.EvalByEvaluator || state == arcopmState.EvalByReviewer) ? 'width:50%;background-color:#a9cb97 !important;' : 'width:5%;background-color:#a9cb97 !important;'}}">EVALUATOR ACHIEVEMENT<br/>% ( >0 )&nbsp;<label ng-if="state == arcopmState.EvalByEvaluator || state == arcopmState.EvalByReviewer" style="color:#a20a0a">*</label></th>
 															</tr>
 														</thead>
 														<tbody>
@@ -690,10 +697,11 @@
 																			<td class="center">{{historydevplan.AdditionalInfo}}</td>
 																			<td class="center">{{historydevplan.ByWhen}}</td>
 																			<td class="center">{{historydevplan.ByWhom}}</td>
-                                                                            <td ng-if="state >= arcopmState.EvalByEvaluator">
+                                                                            <td class="center" ng-if="state >= arcopmState.EvalByEvaluator">
                                                                                 <div ng-if="state == arcopmState.EvalByEvaluator || state == arcopmState.EvalByReviewer" class="btn-group">
-                                                                                    <label ng-class="(historydevplan.ApprovedByEvaluator == 0) ? 'btn btn-default active' : 'btn btn-default'"  uib-btn-radio="0" ng-model="historydevplan.ApprovedByEvaluator" ng-click="updateDevelopmentPlanStatus(historydevplan);" required>No</label>
-                                                                                    <label ng-class="(historydevplan.ApprovedByEvaluator == 1) ? 'btn btn-default active' : 'btn btn-default'"  uib-btn-radio="1" ng-model="historydevplan.ApprovedByEvaluator" ng-click="updateDevelopmentPlanStatus(historydevplan);" required>Yes</label>
+                                                                                    <label ng-if="historydevplan.State<5" ng-class="(historydevplan.ApprovedByEvaluator == 0) ? 'btn btn-default active' : 'btn btn-default'"  uib-btn-radio="0" ng-model="historydevplan.ApprovedByEvaluator" ng-click="updateDevelopmentPlanStatus(historydevplan);" required>No</label>
+                                                                                    <label ng-if="historydevplan.State<5" ng-class="(historydevplan.ApprovedByEvaluator == 1) ? 'btn btn-default active' : 'btn btn-default'"  uib-btn-radio="1" ng-model="historydevplan.ApprovedByEvaluator" ng-click="updateDevelopmentPlanStatus(historydevplan);" required>Yes</label>
+                                                                                    <label ng-if="historydevplan.State>=5">{{historydevplan.ApprovedByEvaluator==1 ? 'Yes' : 'No'}}</label>
                                                                                 </div>
                                                                                 <div ng-if="(state == arcopmState.EvalComplete)" style="text-align:center;">
                                                                                     <label>{{historydevplan.ApprovedByEvaluator == 1 ? 'Yes' : historydevplan.ApprovedByEvaluator == 0 ? 'No' : ''}}</label>

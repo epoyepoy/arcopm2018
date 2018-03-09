@@ -2658,7 +2658,7 @@ html.ngdialog-open, body.ngdialog-open {
     background-color: #ffcc84;
     border-radius: 10px;
     width: 457px !important;
-    max-height: 380px !important;
+    max-height: initial !important;
 }
 
 .notifications .dottedSectionScores:before, 

@@ -13,7 +13,9 @@
     function evaluationFormController($scope,$compile, Auth, loginData, global, EvaluationsFactory, ngDialog, dataService, $state, arcopmState) {
 		$scope.message = "loading";
 		$scope.parseInt = parseInt;
-
+        $scope.show1 = true;
+        $scope.show2 = false;
+        $scope.show3 = false;
         $scope.userRole ='';
 		$scope.goal = {};
 		$scope.scoreClasses = ['info','active','warning','danger'];
@@ -244,8 +246,9 @@
 			if(state == arcopmState.EvalByEmployee){ return 'background-color : #ececec'; }
 			if(state == arcopmState.EvalByDotted){ return 'background-color : #ffcc84'; }
 			if(state == arcopmState.EvalByEvaluator){ return 'background-color : #c5e0b6'; }
+            if(state == arcopmState.EvalByReviewer){ return 'background-color : #c5e0b6'; }
 		};
-
+        
 
         $scope.getEmpDetails = function(evalid){
 			if (!$scope.checkLogin()) {
@@ -681,6 +684,27 @@
             return dotAnswersExist;
         };
         
+        $scope.showFilters = function(id){
+            if(id=='collapse1'){
+                if(!$scope.show1){
+                    $scope.show1 = true; $scope.show2 = false; $scope.show3 = false;
+                }else{
+                    $scope.show1 = false;
+                }
+            }else if(id=='collapse2'){
+                if(!$scope.show2){
+                    $scope.show1 = false; $scope.show2 = true; $scope.show3 = false;
+                }else{
+                    $scope.show2 = false;
+                }
+            }else if(id=='collapse3'){
+                if(!$scope.show3){
+                    $scope.show1 = false; $scope.show2 = false; $scope.show3 = true;
+                }else{
+                    $scope.show3 = false;
+                }
+            };
+        };
     }
 
 

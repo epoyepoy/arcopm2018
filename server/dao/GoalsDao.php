@@ -17,7 +17,8 @@ class GoalsDAO{
      */
     public function getQuestionaireGoals($empno, $userid, $evalid)
 	{
-		$queryString="Declare @evalid int = :evalid, @userid varchar(5)=:userid ;
+		$queryString="
+		DECLARE @evalid int = :evalid, @userid varchar(5)=:userid ;
 		SELECT G.GoalID, G.EvaluationID, G.GoalDescription, cast(G.Weight as int) as Weight, G.AttributeCode, GA.CodeDescription, GA.AttDescription as AttributeFullDescription,
 		G.State, G.userID as CreatedByID, rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as CreatedByName, CASE 
 		WHEN G.State=0 THEN 'By Employee' 
@@ -45,6 +46,17 @@ class GoalsDAO{
 		ISNULL(AD.GoalID,0)=G.GoalID AND
 		AD.State=4 AND AD.EvaluationID=@evalid
 		AND ED.EmployeeID<>@userid --this is in order not to retrieve the dotted's answer if you are the employee
+		AND
+		(--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
+			1= CASE WHEN ED.State>4 AND @userid=(SELECT empnotarget FROM reportingLine where cycleid=ED.CycleID AND empnosource=ED.EmployeeID)  THEN 1 END 
+			OR 
+			-- When Complete to see Average of all Scores
+			1= CASE WHEN ED.State=7 THEN 1 END 
+			OR 
+			--For dotted to see only their score before its compelte
+			AD.UserID=@userid AND ED.State<7
+			)
+
 		GROUP BY AD.GoalID, AD.State
 		)PADot
 

@@ -1405,6 +1405,8 @@ class EvaluationsDAO{
 
 					 WHILE (@@FETCH_STATUS = 0)
 					 BEGIN
+					 --reset scores so that if dotted didnt answer to not save the last one
+					 SELECT @score=0, @weight=0, @wscore=0, @scoreDesc='';
 							 IF @SectionID=3 --goals scoring
 							 BEGIN
 								 SELECT

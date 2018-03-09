@@ -570,7 +570,7 @@ class GoalsDAO{
 		END as AddedByRole, G.Date, E.EvaluationID
 		FROM dbo.GoalsHistory G
 		INNER JOIN Evaluations E ON E.EvaluationID=G.EvaluationID
-		INNER JOIN GoalAttributes GA on GA.AttributeCode=G.AttributeCode
+		LEFT JOIN GoalAttributes GA on GA.AttributeCode=G.AttributeCode
 		LEFT JOIN dbo.vw_arco_employee createdby on createdby.empno=G.UserID
 		OUTER APPLY (
 		SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END AS GoalExists  FROM dbo.Goals G2 

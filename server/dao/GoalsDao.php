@@ -776,7 +776,7 @@ class GoalsDAO{
 			$queryString = "
 			Declare @evalid as int=:evalid;
 			UPDATE E
-			SET E.STATE = 0, E.StateDate= GETDATE()
+			SET E.STATE = CASE WHEN E.STATE = 3 THEN 2 ELSE 0 END, E.StateDate= GETDATE()
 			--OUTPUT Inserted.EvaluationID 
 			FROM dbo.Evaluations E
 			LEFT JOIN (select EvaluationID, COUNT(*) as answerCNT

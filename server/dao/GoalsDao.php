@@ -48,7 +48,7 @@ class GoalsDAO{
 		AND ED.EmployeeID<>@userid --this is in order not to retrieve the dotted's answer if you are the employee
 		AND
 		(--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
-			1= CASE WHEN ED.State>4 AND @userid=(SELECT empnotarget FROM reportingLine where cycleid=ED.CycleID AND empnosource=ED.EmployeeID)  THEN 1 END 
+			1= CASE WHEN ED.State>4 AND @userid = (SELECT empnotarget FROM reportingLine where cycleid=ED.CycleID AND empnosource=ED.EmployeeID AND state=5)  THEN 1 END 
 			OR 
 			-- When Complete to see Average of all Scores
 			1= CASE WHEN ED.State=7 THEN 1 END 

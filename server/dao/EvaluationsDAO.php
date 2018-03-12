@@ -721,6 +721,29 @@ class EvaluationsDAO{
 	}
 
 	/*****
+	*	Get Evaluation History
+	*
+	*/
+	public function getEmployeeHistory($evalID)
+   {
+	$queryString = "
+		DECLARE @emp as varchar(5), @evalid as int=:evalid, @cycleid as INT;
+		SELECT @evalid=cycleid, @emp=EmployeeID FROM dbo.Evaluations WHERE EvaluationID=@evalid 
+		SELECT EC.CycleDescription, ES.* FROM dbo.EvaluationScores ES 
+		INNER JOIN dbo.Evaluations E ON ES.EvaluationID=E.EvaluationID
+		INNER JOIN dbo.EvaluationsCycle EC ON EC.ID=E.CycleID
+		WHERE ES.State=7 AND E.CycleID<@evalid AND E.EmployeeID=@emp
+	   ";
+	   $query = $this->connection->prepare($queryString);
+	   $query->bindValue(':evalid', $evalID, PDO::PARAM_INT);
+	   $result["success"] = $query->execute();
+	   $result["errorMessage"] = $query->errorInfo();
+	   $query->setFetchMode(PDO::FETCH_ASSOC);
+	   $result["empHistory"] = $query->fetchAll();
+	   return $result;
+   }
+
+	/*****
 	*	Get Evaluation Scores
 	*
 	*/
@@ -947,7 +970,7 @@ class EvaluationsDAO{
    }
 
    /*****
-   *	Get Evaluation Scores
+   *	Get Evaluation Scores Scales
    *
    */
    public function getScoreScales($evalID)

@@ -361,10 +361,10 @@ class EvaluationsDAO{
     public function getDottedAnswers($evalID)
 	{
 	 $queryString = "
-		SELECT A.QuestionID, Q.SectionID, A.Answer,  rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'DotteLineName', HR.empno as UserID
+		SELECT A.QuestionID, Q.SectionID, A.Answer, A.GoalID, rtrim(ltrim(HR.family_name))+' '+rtrim(ltrim(HR.first_name)) as 'DotteLineName', HR.empno as UserID
 		FROM Answers A
-		INNER JOIN Questions Q on A.QuestionID=Q.ID
-		INNER JOIN QuestionSections QS on QS.ID=Q.SectionID
+		LEFT JOIN Questions Q on A.QuestionID=Q.ID
+		LEFT JOIN QuestionSections QS on QS.ID=Q.SectionID
 		INNER JOIN vw_arco_employee HR on HR.empno=A.UserID
 		WHERE A.State=4 and A.EvaluationID=:evalid
         ";

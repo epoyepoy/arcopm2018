@@ -701,7 +701,7 @@ class EvaluationsDAO{
 
 			SELECT DISTINCT	E.EvaluationID, 3 AS SectionID, QS.SectionDescription, QSW.weight as ScoreWeight,
 	 		EmpAnswers.WeightedScore AS EmpScore,
-			DotAnswers.WeightedScore AS DotScore,
+			CASE WHEN E.State>4 THEN DotAnswersGScore.GScore ELSE DotAnswers.WeightedScore END AS DotScore,
 			EvalAnswers.WeightedScore AS EvalScore,
 			RevAnswers.WeightedScore AS RevScore
 			FROM dbo.Answers A
@@ -733,6 +733,23 @@ class EvaluationsDAO{
 			)DotAnswers
 
 			OUTER APPLY(
+			SELECT CAST(AVG ( ES2.GScore) AS DECIMAL(5,2)) AS GScore 
+			FROM dbo.EvaluationScores ES2
+			WHERE 
+			ES2.EvaluationID=E.EvaluationID AND ES2.State=4 AND ISNULL(ES2.GScore,0.00) <> 0.00 AND
+				(
+				--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
+				1= CASE WHEN E.State>4 AND @userid = @empEval THEN 1 END
+				OR 
+				-- When Complete to see Average of all Scores
+				1= CASE WHEN E.State=7 THEN 1 END 
+				OR 
+				--For dotted to see only their score before its compelte
+				ES2.UserID =@userid AND E.State<7 
+				)
+			)DotAnswersGScore
+
+			OUTER APPLY(
 			SELECT 
 			CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(g2.Weight AS DECIMAL(5,2)) / 100)* cast(A2.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) AS WeightedScore
 			FROM dbo.Answers A2
@@ -753,7 +770,18 @@ class EvaluationsDAO{
 		
 			UNION
 		
-			SELECT DISTINCT	E.EvaluationID, Q.SectionID, QS.SectionDescription,QSW.weight as ScoreWeight, EmpAnswers.Score AS EmpScore, DotAnswers.Score AS DotScore, EvalAnswers.Score AS EvalScore,
+			SELECT DISTINCT	E.EvaluationID, Q.SectionID, QS.SectionDescription,QSW.weight as ScoreWeight, 
+			EmpAnswers.Score AS EmpScore, 
+			CASE WHEN E.State>4 THEN 
+									CASE WHEN Q.SectionID=2 
+											THEN DotAnswersPScore.PScore
+										WHEN Q.SectionID=4 
+											THEN DotAnswersCScore.CScore
+										WHEN Q.SectionID=5
+											THEN DotAnswersLScore.LScore
+									END	
+								 ELSE DotAnswers.Score END AS DotScore, 
+			EvalAnswers.Score AS EvalScore,
 			RevAnswers.Score AS RevScore
 			FROM dbo.Answers A
 			INNER JOIN dbo.Questions Q ON Q.ID=A.QuestionID
@@ -783,7 +811,59 @@ class EvaluationsDAO{
 				a2.UserID=@userid AND E.State<7
 				)
 			)DotAnswers
-		
+			
+			OUTER APPLY(
+			SELECT CAST(AVG (ES2.PScore ) AS DECIMAL(5,2)) AS PScore
+			FROM dbo.EvaluationScores ES2
+			WHERE 
+			ES2.EvaluationID=E.EvaluationID AND ES2.State=4 AND ISNULL(ES2.PScore,0.00)<>0.00 AND
+				(
+				--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
+				1= CASE WHEN E.State>4 AND @userid = @empEval THEN 1 END
+				OR 
+				-- When Complete to see Average of all Scores
+				1= CASE WHEN E.State=7 THEN 1 END 
+				OR 
+				--For dotted to see only their score before its compelte
+				ES2.UserID =@userid AND E.State<7 
+				)
+			)DotAnswersPScore
+
+			OUTER APPLY(
+			SELECT CAST(AVG (ES2.CScore) AS DECIMAL(5,2)) AS CScore
+			FROM dbo.EvaluationScores ES2
+			WHERE 
+			ES2.EvaluationID=E.EvaluationID AND ES2.State=4 AND ISNULL(ES2.CScore,0.00)<>0.00 AND
+				(
+				--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
+				1= CASE WHEN E.State>4 AND @userid = @empEval THEN 1 END
+				OR 
+				-- When Complete to see Average of all Scores
+				1= CASE WHEN E.State=7 THEN 1 END 
+				OR 
+				--For dotted to see only their score before its compelte
+				ES2.UserID =@userid AND E.State<7 
+				)
+			)DotAnswersCScore
+
+			OUTER APPLY(
+			SELECT 
+			CAST(AVG (ES2.LScore) AS DECIMAL(5,2)) AS LScore  
+			FROM dbo.EvaluationScores ES2
+			WHERE 
+			ES2.EvaluationID=E.EvaluationID AND ES2.State=4 AND ISNULL(ES2.LScore,0.00)<>0.00 AND
+				(
+				--For evaluator to see all scores before the evaluation is complete but also forbit the employee to see before completion
+				1= CASE WHEN E.State>4 AND @userid = @empEval THEN 1 END
+				OR 
+				-- When Complete to see Average of all Scores
+				1= CASE WHEN E.State=7 THEN 1 END 
+				OR 
+				--For dotted to see only their score before its compelte
+				ES2.UserID =@userid AND E.State<7 
+				)
+			)DotAnswersLScore
+
 			OUTER APPLY (
 			SELECT CAST(SUM(CAST(A2.Answer AS decimal(5,2)))/COUNT(A2.Answer) as decimal(5,2)) AS Score FROM Answers A2
 			INNER JOIN Questions Q2 on (Q2.ID=A2.QuestionID AND Q2.QuestionTypeID=1 AND isnull(A2.GoalID,0)=0)

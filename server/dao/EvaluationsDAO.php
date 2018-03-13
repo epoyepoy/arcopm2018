@@ -140,75 +140,6 @@ class EvaluationsDAO{
 		return $result;
 	}
 
-	/*****
-     *	Get actions based on reporting line * check if required.
-     *
-     */
-    // public function getCurrentActions($user)
-	// {
-    //     $queryString="
-	// 	Declare @cycleid as int;
-	// 	Declare @userid as varchar(5);
-	// 	SELECT @userid=:userid;
-	// 	SELECT @cycleid = ID FROM EvaluationsCycle WHERE status=1 and questionaireInputStatus=1
-	// 	SELECT
-	// 	count(distinct hr.empno) as currentPending,
-	// 	CASE WHEN isnull(Ev.State,0)=0 THEN 0 ELSE Ev.State END
-	// 	as 'StatePending',
-	//     CASE
-	// 		WHEN  isnull(Ev.State,0)=0 THEN 'Optional - Goal Setting on Behalf of Employee'
-	// 		WHEN  isnull(Ev.State,0)=3 THEN 'Optional - Complete Evaluation on Behalf of Employee'
-	// 	ELSE SR.StateDescription END
-	//    as 'StateDescription',
-	//    yourAction.yourActionState,
-	//    ISNULL(yourAction.yourAction, 'No Action') yourAction,
-	//    onBehalf.flag, onBehalfGoals.goalsflag
-	//    FROM dbo.ReportingLine RL
-	//    INNER JOIN  dbo.vw_arco_employee HR on HR.empno=RL.empnosource
-	//    LEFT JOIN   dbo.Evaluations Ev on Ev.EmployeeID=RL.empnosource AND Ev.CycleID=@cycleid
-	//    LEFT JOIN   dbo.EvaluationsCycle EC on EC.ID=Ev.CycleID AND EC.ID=@cycleid AND EC.questionaireInputStatus=1
-	//    LEFT JOIN   dbo.Answers A on A.EvaluationID=Ev.EvaluationID AND  a.State=ev.State
-	//    LEFT JOIN   dbo.StateRef SR on SR.State = Ev.State
-	//    OUTER APPLY
-	//    (
-	// 		SELECT case when count(distinct(A.userid)) >0 then 1 else 0 end as 'flag' FROM Answers A
-	// 		INNER JOIN Evaluations E on E.EvaluationID=A.EvaluationID and E.EvaluationID=Ev.EvaluationID
-	// 		WHERE A.State=3 AND E.State=3 AND A.UserID=E.EmployeeID AND E.CycleID=@cycleid
-	// 	) onBehalf -- on behalf to be set to off if at least one answer from employee
-	// 	OUTER APPLY (
-	// 	SELECT case when count(*) >0 then 1 else 0 end as 'goalsflag' FROM Evaluations E
-	// 		WHERE State=0 AND UserID<>@userid AND CycleID=@cycleid and E.EmployeeID=rl.empnosource
-	// 	) onBehalfGoals
-	// 	OUTER APPLY
-	// 	(
-	// 		SELECT empnotarget as editBy FROM ReportingLine WHERE empnotarget=@userid AND empnosource=ev.EmployeeID AND ( State=isnull(Ev.State,0) or (isnull(Ev.State,0)=3 and state=5) or (isnull(Ev.State,0)=6 and state=5))
-	// 	) editBy
-	// 	OUTER APPLY
-	// 	(
-	// 		SELECT TOP 1
-	// 		CASE
-	// 			WHEN state=4 THEN 'Complete as Dotted Line Manager'
-	// 			WHEN state=5 THEN CASE WHEN Ev.State=6 THEN 'Revise / Finalize as Evaluator' ELSE 'Complete as Evaluator' END
-	// 			END as yourAction, isnull(wrongManager,0) as wrongManager, isnull(state,0) as nstate
-	// 		FROM ReportingLine WHERE
-	// 		State>=isnull(Ev.State,0)
-	// 		and empnotarget=@userid and empnosource=HR.empno
-	// 		ORDER BY state asc
-	// 	) yourAction
-	//    WHERE RL.empnotarget=@userid AND isnull(RL.excludeFromCycles,0)<>1
-	// 	AND yourAction.yourActionState= CASE
-	// 										WHEN isnull(Ev.State,0) in (0,2,3,6) THEN 5 ELSE EV.state
-	// 									END
-	// 	AND onBehalf.flag=0 AND onBehalfGoals.goalsflag=0
-	//    GROUP BY hr.empno, Ev.State, SR.StateDescription, yourAction.yourActionState, yourAction.yourAction, onBehalf.flag, onBehalfGoals.goalsflag
-    //     ";
-    //     $query = $this->connection->prepare($queryString);
-    //     $query->bindValue(':userid', $user, PDO::PARAM_STR);
-	// 	$result["success"] = $query->execute();
-	// 	$result["errorMessage"] = $query->errorInfo();
-	// 	$result["evaluations"] = $query->fetchAll(PDO::FETCH_ASSOC);
-	// 	return $result;
-	// }
     /*****
      *	Get logged in user's evaluation pending and completed.
      *
@@ -256,11 +187,6 @@ class EvaluationsDAO{
     /*****
      *	Get Questions in Evaluation based on user grade, saved answers etc.
      *
-     OUTER APPLY (SELECT AVG(CAST(AA.Answer AS DECIMAL(10, 2))) as AvgAnswer FROM Answers AA
-		 INNER JOIN Questions AQ on AQ.ID=AA.QuestionID
-		 INNER JOIN QuestionTypes AQT on AQT.ID=AQ.QuestionTypeID AND AQT.isnumeric=1
-		WHERE AA.EvaluationID=@evalid AND AA.State=2 AND QuestionID=Q.ID
-		 ) avgAnswer
      */
     public function getQuestions($evalID, $userid, $state)
 	{
@@ -728,11 +654,13 @@ class EvaluationsDAO{
    {
 	$queryString = "
 		DECLARE @emp as varchar(5), @evalid as int=:evalid, @cycleid as INT;
-		SELECT @evalid=cycleid, @emp=EmployeeID FROM dbo.Evaluations WHERE EvaluationID=@evalid 
-		SELECT EC.CycleDescription, ES.* FROM dbo.EvaluationScores ES 
+		SELECT @cycleid=cycleid, @emp=EmployeeID FROM dbo.Evaluations WHERE EvaluationID=@evalid 
+
+		SELECT TOP 3 EC.ID, EC.CycleDescription, ES.* FROM dbo.EvaluationScores ES 
 		INNER JOIN dbo.Evaluations E ON ES.EvaluationID=E.EvaluationID
 		INNER JOIN dbo.EvaluationsCycle EC ON EC.ID=E.CycleID
-		WHERE ES.State=7 AND E.CycleID<@evalid AND E.EmployeeID=@emp
+		WHERE ES.State=6 AND e.State=7 AND E.CycleID<>@cycleid AND E.EmployeeID=@emp
+		ORDER BY 1 DESC
 	   ";
 	   $query = $this->connection->prepare($queryString);
 	   $query->bindValue(':evalid', $evalID, PDO::PARAM_INT);
@@ -1386,7 +1314,7 @@ class EvaluationsDAO{
 			Declare @nextState int=:nextState;
 			Declare @evalid int =:evalid;
 			Declare @userid varchar(5) =:userid;
-			Declare @hasGoals int = (SELECT CASE WHEN count (*)>0 THEN 1 ELSE 0 END FROM Goals WHERE EvaluationID=@evalid);
+			Declare @hasGoals int = (SELECT CASE WHEN count (*)>0 THEN 1 ELSE 0 END FROM Goals WHERE EvaluationID=@evalid and state=2);
 			DECLARE @SectionID AS INT, @score AS DECIMAL(5,2), @weight AS	DECIMAL(5,2), @wscore AS DECIMAL(5,2),@scoreDesc AS VARCHAR(200);
             UPDATE dbo.Answers SET Finished=1 WHERE EvaluationID=@evalid AND State=@state AND UserID=@userid;
 
@@ -1414,6 +1342,33 @@ class EvaluationsDAO{
 					BEGIN
 						INSERT INTO dbo.EvaluationScores VALUES(@evalid, @userid, @state,0, '', 0, 0,0, '', 0, 0,0, '', 0, 0,0, '',  0, 0,0,'', GETDATE() );
 					END
+				
+				
+				 --check for any case if we less sections asnwered so that to recalculate the section weights
+				 DECLARE @SectionsRemainingWeight AS DECIMAL(5,2);
+				 WITH CTE_SectionWeights
+					 AS
+					 (
+					 SELECT DISTINCT Q.SectionID, QSW.weight
+					 FROM dbo.Evaluations E
+					 INNER JOIN dbo.Answers A ON A.EvaluationID=E.EvaluationID
+					 INNER JOIN Questions Q on Q.ID=A.QuestionID
+					 INNER JOIN dbo.QuestionSections QS ON QS.ID=Q.SectionID
+					 INNER JOIN QuestionSectionWeights QSW on QS.ID=QSW.sectionid AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasGoals
+					 WHERE E.EvaluationID=@evalid AND A.State=4 AND QS.HasScore=1 AND Q.QuestionTypeID=1 AND isnull(A.GoalID,0)=0 AND A.userID=@userid
+					 UNION
+					 SELECT  DISTINCT QS.ID, QSW.weight
+					 FROM dbo.Evaluations E
+					 INNER JOIN dbo.Answers A ON A.EvaluationID=E.EvaluationID
+					 INNER JOIN dbo.Goals G on G.GoalID=A.GoalID
+					 INNER JOIN dbo.QuestionSections QS ON QS.ID=3
+					 INNER JOIN QuestionSectionWeights QSW on QS.ID=QSW.sectionid AND QSW.gradeLessThan4=CASE WHEN E.empGrade<4 THEN 1 ELSE 0 END AND QSW.forManager=E.ManagesTeam AND QSW.withGoals=@hasGoals
+					 WHERE E.EvaluationID=@evalid AND A.State=4 AND A.userID=@userid AND ISNULL(A.Answer,'')<>''
+					 )
+				 
+				 SELECT @SectionsRemainingWeight= 1-SUM(CTE_SectionWeights.weight)
+				 FROM CTE_SectionWeights
+				 
 				 -- now go and update the scores
 				 DECLARE sectionWithScores CURSOR LOCAL STATIC FORWARD_ONLY
 					 FOR
@@ -1432,13 +1387,53 @@ class EvaluationsDAO{
 					 SELECT @score=0, @weight=0, @wscore=0, @scoreDesc='';
 							 IF @SectionID=3 --goals scoring
 							 BEGIN
-								 SELECT
-								 --@score=CAST([dbo].[ConvertGoalScore](G.Weight, A.Answer) AS DECIMAL(5,2))
-								   @score=CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(G.Weight AS DECIMAL(5,2)) / 100)* cast(A.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2))
-								 , @weight=QSW.weight,
-								 @wscore=CAST(CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(G.Weight AS DECIMAL(5,2)) / 100)* cast(A.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)) * QSW.weight AS DECIMAL(5,2)),
-								 @scoreDesc=[dbo].[ConvertScoreToTextGoals](CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(G.Weight AS DECIMAL(5,2)) / 100)* cast(A.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)))
-								 FROM dbo.Evaluations E
+							 
+							 -- GET First requirements for goals
+							 DECLARE @GoalsSet AS INT =(SELECT COUNT(*) FROM dbo.Goals WHERE EvaluationID=@evalid AND State=2)
+							 DECLARE @GoalsAnswered AS INT, @GoalsAnsweredWeight AS DECIMAL(5,2), @GoalRemainingWeight AS DECIMAL(5,2)
+							 SELECT @GoalsAnswered=COUNT(*), @GoalsAnsweredWeight=SUM(G2.Weight), @GoalRemainingWeight=100-SUM(G2.Weight)
+							 FROM dbo.Answers A2 
+							 INNER JOIN dbo.Goals G2 ON G2.GoalID=A2.GoalID
+							 WHERE A2.EvaluationID=@evalid AND A2.State=4 AND ISNULL(A2.GoalID,'')<>'' AND ISNULL(A2.Answer,'') <> '' AND A2.UserID=@userid
+							
+							 --Now update goals
+							 	SELECT
+								 	@score=CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(
+									CASE 
+										WHEN @GoalsSet-@GoalsAnswered = 0 
+											THEN G.Weight 
+											ELSE G.Weight + (G.Weight * @GoalRemainingWeight / @GoalsAnsweredWeight) 
+									END 
+									AS DECIMAL(5,2)) / 100)* CAST(A.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2))
+									, 
+									@weight=CAST(CASE 
+										WHEN @SectionsRemainingWeight=0 
+											THEN QSW.weight 
+										ELSE QSW.weight + (QSW.weight * @SectionsRemainingWeight / (1-@SectionsRemainingWeight))
+									END AS DECIMAL(5,2))
+									,
+									@wscore=CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(
+									CASE 
+										WHEN @GoalsSet-@GoalsAnswered = 0 
+											THEN G.Weight 
+											ELSE G.Weight + (G.Weight * @GoalRemainingWeight / @GoalsAnsweredWeight) 
+									END 
+									AS DECIMAL(5,2)) / 100)* CAST(A.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) 
+									*
+									CAST(CASE 
+										WHEN @SectionsRemainingWeight=0 
+											THEN QSW.weight 
+										ELSE QSW.weight + (QSW.weight * @SectionsRemainingWeight / (1-@SectionsRemainingWeight))
+									END AS DECIMAL(5,2)) AS DECIMAL(5,2)) 
+									,
+									@scoreDesc=[dbo].[ConvertScoreToTextGoals](CAST([dbo].[ConvertGoalScore](CAST(SUM((CAST(
+									CASE 
+										WHEN @GoalsSet-@GoalsAnswered = 0 
+											THEN G.Weight 
+											ELSE G.Weight + (G.Weight * @GoalRemainingWeight / @GoalsAnsweredWeight) 
+									END 
+									AS DECIMAL(5,2)) / 100)* CAST(A.Answer as DECIMAL(5,2))) AS DECIMAL(5,2))) AS DECIMAL(5,2)))
+									FROM dbo.Evaluations E
 								 INNER JOIN dbo.Answers A ON A.EvaluationID=E.EvaluationID
 								 INNER JOIN dbo.Goals G on G.GoalID=A.GoalID
 								 INNER JOIN dbo.QuestionSections QS ON QS.ID=@SectionID
@@ -1452,8 +1447,21 @@ class EvaluationsDAO{
 							 ELSE IF @SectionID=2
 							 BEGIN --PerformanceScore
 								 SELECT
-								 @score=CAST(SUM(CAST (A.Answer AS DECIMAL(5,2)))/COUNT(A.Answer) AS DECIMAL(5,2)), @weight=QSW.weight,
-								 @wscore=CAST(SUM(CAST (A.Answer AS DECIMAL(5,2)))/COUNT(A.Answer) *QSW.weight AS DECIMAL(5,2)),
+								 @score=CAST(SUM(CAST (A.Answer AS DECIMAL(5,2)))/COUNT(A.Answer) AS DECIMAL(5,2)), 
+								 
+								 @weight=CAST(CASE 
+										WHEN @SectionsRemainingWeight=0 
+											THEN QSW.weight 
+										ELSE QSW.weight + (QSW.weight * @SectionsRemainingWeight / (1-@SectionsRemainingWeight))
+									END AS DECIMAL(5,2)),
+								 @wscore=
+								 CAST(SUM(CAST (A.Answer AS DECIMAL(5,2)))/COUNT(A.Answer) * 
+								 CAST(CASE 
+										WHEN @SectionsRemainingWeight=0 
+											THEN QSW.weight 
+										ELSE QSW.weight + (QSW.weight * @SectionsRemainingWeight / (1-@SectionsRemainingWeight))
+									END AS DECIMAL(5,2))
+								 AS DECIMAL(5,2)),
 								 @scoreDesc=[dbo].[ConvertScoreToTextPCStandards](CAST(SUM(CAST (A.Answer AS DECIMAL(5,2)))/COUNT(A.Answer) AS DECIMAL(5,2)))
 								 FROM dbo.Evaluations E
 								 INNER JOIN dbo.Answers A ON A.EvaluationID=E.EvaluationID
@@ -1470,8 +1478,19 @@ class EvaluationsDAO{
 							 ELSE IF @SectionID=4
 							 BEGIN --CoreCompetencies Score
 								 SELECT
-								 @score=CAST(SUM(CAST (A.Answer AS DECIMAL(5,2)))/COUNT(A.Answer) AS DECIMAL(5,2)), @weight=QSW.weight,
-								 @wscore=CAST(SUM(CAST (A.Answer AS DECIMAL(5,2)))/COUNT(A.Answer) *QSW.weight AS DECIMAL(5,2)),
+								 @score=CAST(SUM(CAST (A.Answer AS DECIMAL(5,2)))/COUNT(A.Answer) AS DECIMAL(5,2)), 
+								 @weight=CAST(CASE 
+								 WHEN @SectionsRemainingWeight=0 
+									 THEN QSW.weight 
+								 ELSE QSW.weight + (QSW.weight * @SectionsRemainingWeight / (1-@SectionsRemainingWeight))
+								 END AS DECIMAL(5,2)),
+								 @wscore=CAST(SUM(CAST (A.Answer AS DECIMAL(5,2)))/COUNT(A.Answer) * 
+								 CAST(CASE 
+										WHEN @SectionsRemainingWeight=0 
+											THEN QSW.weight 
+										ELSE QSW.weight + (QSW.weight * @SectionsRemainingWeight / (1-@SectionsRemainingWeight))
+									END AS DECIMAL(5,2)) 
+								 AS DECIMAL(5,2)),
 								 @scoreDesc=[dbo].[ConvertScoreToTextPCStandards](CAST(SUM(CAST (A.Answer AS DECIMAL(5,2)))/COUNT(A.Answer) AS DECIMAL(5,2)))
 								 FROM dbo.Evaluations E
 								 INNER JOIN dbo.Answers A ON A.EvaluationID=E.EvaluationID
@@ -1488,8 +1507,19 @@ class EvaluationsDAO{
 							 ELSE IF @SectionID=5
 							 BEGIN --Leadership Score
 								 SELECT
-								 @score=CAST(SUM(CAST (A.Answer AS DECIMAL(5,2)))/COUNT(A.Answer) AS DECIMAL(5,2)), @weight=QSW.weight,
-								 @wscore=CAST(SUM(CAST (A.Answer AS DECIMAL(5,2)))/COUNT(A.Answer) *QSW.weight AS DECIMAL(5,2)),
+								 @score=CAST(SUM(CAST (A.Answer AS DECIMAL(5,2)))/COUNT(A.Answer) AS DECIMAL(5,2)), 
+								 @weight=CAST(CASE 
+										WHEN @SectionsRemainingWeight=0 
+											THEN QSW.weight 
+										ELSE QSW.weight + (QSW.weight * @SectionsRemainingWeight / (1-@SectionsRemainingWeight))
+									END AS DECIMAL(5,2)),
+								 @wscore=CAST(SUM(CAST (A.Answer AS DECIMAL(5,2)))/COUNT(A.Answer) *
+								 CAST(CASE 
+										WHEN @SectionsRemainingWeight=0 
+											THEN QSW.weight 
+										ELSE QSW.weight + (QSW.weight * @SectionsRemainingWeight / (1-@SectionsRemainingWeight))
+									END AS DECIMAL(5,2)) 
+								 AS DECIMAL(5,2)),
 								 @scoreDesc=[dbo].[ConvertScoreToTextPCStandards](CAST(SUM(CAST (A.Answer AS DECIMAL(5,2)))/COUNT(A.Answer) AS DECIMAL(5,2)))
 								 FROM dbo.Evaluations E
 								 INNER JOIN dbo.Answers A ON A.EvaluationID=E.EvaluationID

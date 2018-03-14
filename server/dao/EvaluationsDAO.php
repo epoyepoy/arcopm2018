@@ -512,7 +512,7 @@ class EvaluationsDAO{
 			FROM  dbo.Evaluations E
 			OUTER APPLY(
 			SELECT  TOP 1 empnotarget AS Dot1Empno, RTRIM(LTRIM(emp1.family_name))+' '+RTRIM(LTRIM(emp1.first_name)) As Dot1Name, ESD1.OverallScore AS Dot1Score, ESD1.OSDescription AS Dot1Description,
-			100 AS Dot1Weight, ESD1.OverallScore AS Dot1WeightedScore, 
+			1 AS Dot1Weight, ESD1.OverallScore AS Dot1WeightedScore, 
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot1rl
 			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=dot1rl.empnotarget AND dot1rl.state=4
@@ -523,7 +523,7 @@ class EvaluationsDAO{
 			
 			OUTER APPLY (
 			SELECT  empnotarget AS Dot2Empno,RTRIM(LTRIM(emp2.family_name))+' '+RTRIM(LTRIM(emp2.first_name)) As Dot2Name, ESD2.OverallScore AS Dot2Score, ESD2.OSDescription AS Dot2Description,
-			100 AS Dot2Weight, ESD2.OverallScore AS Dot2WeightedScore, 
+			1 AS Dot2Weight, ESD2.OverallScore AS Dot2WeightedScore, 
 				ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 				FROM ReportingLine dot2rl
 				inner JOIN [dbo].[vw_arco_employee] emp2 on emp2.empno=dot2rl.empnotarget AND dot2rl.state=4
@@ -536,7 +536,7 @@ class EvaluationsDAO{
 			
 			OUTER APPLY (
 			SELECT  empnotarget AS Dot3Empno,RTRIM(LTRIM(emp3.family_name))+' '+RTRIM(LTRIM(emp3.first_name)) As Dot3Name, ESD3.OverallScore AS Dot3Score, ESD3.OSDescription AS Dot3Description,
-			100 AS Dot3Weight, ESD3.OverallScore AS Dot3WeightedScore, 
+			1 AS Dot3Weight, ESD3.OverallScore AS Dot3WeightedScore, 
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot3rl
 			inner JOIN [dbo].[vw_arco_employee] emp3 on emp3.empno=dot3rl.empnotarget AND dot3rl.state=4

@@ -2584,7 +2584,7 @@ html.ngdialog-open, body.ngdialog-open {
 }
 
 .overall{
-    background-color: #bababa;
+    background-color: #9fc995;
 }
 
 .notifications {
@@ -2654,19 +2654,38 @@ html.ngdialog-open, body.ngdialog-open {
 }
 
 .dottedSectionScores, .dottedSummaryTable{
-    left: -312px !important;
+    left: -400px !important;
     background-color: #ffcc84;
     border-radius: 10px;
-    width: 457px !important;
+    width: 546px !important;
+    max-height: initial !important;
+}
+
+.empHistorySectionScores, .empHistorySummaryTable{
+    left: -312px !important;
+    background-color: #d1d1d1;
+    border-radius: 10px;
+    width: 595px !important;
     max-height: initial !important;
 }
 
 .notifications .dottedSectionScores:before, 
 .notifications .dottedSummaryTable:before{
-    left: 70% !important;
+    left: 75% !important;
 }
 
-table.dottedscores{
+.notifications .empHistorySectionScores:before,
+.notifications .empHistorySummaryTable:before{
+    left: 54% !important;
+}
+
+.notifications .empHistorySectionScores:before,
+.notifications .empHistorySummaryTable:before{
+    color:#d1d1d1;
+    border-color:transparent transparent #d1d1d1;
+}
+
+table.emphistoryscores,table.dottedscores{
     margin: 25px;
-    width: 89%;
+    width: 91%;
 }

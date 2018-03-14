@@ -449,6 +449,11 @@ $app->get('/activecycles/', function ($request, $response, $args) {
     require 'actions/adminactivecycles.get.php';
 });
 
+//Get Employee's History
+$app->get('/evaluations/employeehistory/{evalid}', function ($request, $response, $args) {
+    require 'actions/employeehistory.get.php';
+});
+
 //Get Administration Employee Evaluations
 $app->get('/employeeevaluations/{empid}', function ($request, $response, $args) {
     require 'actions/adminemployeeevaluations.get.php';

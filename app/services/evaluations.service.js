@@ -29,6 +29,7 @@
 		factory.SetAnswers = SetAnswers;
 		factory.UpdateEvaluation = UpdateEvaluation;
 		factory.AddNewGoal = AddNewGoal;
+        factory.GetEmployeeHistory = GetEmployeeHistory;
 		factory.GetGoals = GetGoals;
 		factory.GetGoalsHistory = GetGoalsHistory;
 		factory.GetMyGoalsPerCycle = GetMyGoalsPerCycle;
@@ -113,6 +114,12 @@
 		function GetDottedScores(evalID)
 		{
 			return $http.get(api + '/evaluations/dottedscores/' + evalID).then(handleSuccess, handleError);
+		}
+        
+        // Get employee history
+		function GetEmployeeHistory(evalID)
+		{
+			return $http.get(api + '/evaluations/employeehistory/' + evalID).then(handleSuccess, handleError);
 		}
 
 		function GetDevPlans(evalID,state)

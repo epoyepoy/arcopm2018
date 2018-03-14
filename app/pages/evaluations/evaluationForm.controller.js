@@ -69,6 +69,8 @@
 			$scope.getScores($scope.evaluation,$scope.state);
             $scope.getDottedScores($scope.evaluation);
 			$scope.getScoreScales($scope.evaluation,$scope.state);
+            $scope.getActiveGoalCycles();
+            $scope.getEmployeeHistory($scope.evaluation);
 			if($scope.list != 'mylist') $scope.getDottedAnswers($scope.evaluation);
 			($scope.empid == $scope.userid) ? $scope.myevaluation = true : $scope.myevaluation = false;
 		};
@@ -198,26 +200,15 @@
 		};
 
 
-//		$scope.getDevPlans = function(evalid,state){
-//			if (!$scope.checkLogin()) {
-//                return;
-//            }
-//			$scope.showAddNewDevplanButton = true;
-//			EvaluationsFactory.GetDevPlans(evalid,state).then(function (result) {
-//				$scope.checkifLoggedout(result);
-//				$scope.devplans = result.developmentPlan;
-//				var i=0;
-//				angular.forEach(result.developmentPlan, function(value) {
-//					i++;
-//				});
-//				if(i == 2 && $scope.employeeGrade < 10){
-//					$scope.showAddNewDevplanButton = false;
-//				}
-//				if(i == 3 && $scope.employeeGrade >= 10){
-//					$scope.showAddNewDevplanButton = false;
-//				}
-//            });
-//		};
+        $scope.getActiveGoalCycles = function(){
+			if (!$scope.checkLogin()) {
+                return;
+            }
+			EvaluationsFactory.GetActiveGoalCycles().then(function (result) {
+				$scope.checkifLoggedout(result);
+				$scope.cycles = result.activeGoalCycles;
+            });
+		};
 
 
 		$scope.getDevPlanHistory = function(evalid){
@@ -293,6 +284,36 @@
 			EvaluationsFactory.GetReportingLine(evalid).then(function (result) {
 				$scope.checkifLoggedout(result);
 				$scope.reportingLine  = result.reportingLine;
+            });
+		};
+        
+        
+        $scope.getDottedAnswers = function(evalid){
+			if (!$scope.checkLogin()) {
+                return;
+            }
+			EvaluationsFactory.GetDottedAnswers(evalid).then(function (result) {
+				if (result.success) {
+					$scope.dottedAnswers = result.dottedAnswers;
+				}else{
+					$scope.extraMessage = 'error';
+                    $scope.extraMessageText = 'Something went wrong while deleting Goal. Please contact your administrator.';
+				}
+            });
+		};
+        
+        
+        $scope.getEmployeeHistory = function(evalid){
+			if (!$scope.checkLogin()) {
+                return;
+            }
+			EvaluationsFactory.GetEmployeeHistory(evalid).then(function (result) {
+				if (result.success) {
+					$scope.empHistory = result.empHistory;
+				}else{
+					$scope.extraMessage = 'error';
+                    $scope.extraMessageText = 'Something went wrong while deleting Goal. Please contact your administrator.';
+				}
             });
 		};
 
@@ -556,20 +577,6 @@
 		};
 
 
-		$scope.getDottedAnswers = function(evalid){
-			if (!$scope.checkLogin()) {
-                return;
-            }
-			EvaluationsFactory.GetDottedAnswers(evalid).then(function (result) {
-				if (result.success) {
-					$scope.dottedAnswers = result.dottedAnswers;
-				}else{
-					$scope.extraMessage = 'error';
-                    $scope.extraMessageText = 'Something went wrong while deleting Goal. Please contact your administrator.';
-				}
-            });
-		};
-
 
 		$scope.noNullEmpAchievement = function(goal){
 			if(angular.isUndefined(goal.EmpAchievement)){
@@ -668,12 +675,19 @@
             }
         };
         
-        $scope.showDottedScores = function(scoresClass){
+        $scope.showDottedGoalAnswers = function(goalid){
+            var notificationClass = 'goal'+goalid;
+            if ($(".notifications").children("."+notificationClass).children().length > 0) {
+                $(".notifications").children("."+notificationClass).fadeToggle(300);
+            }
+        };
+        
+        $scope.showScoresNotifications = function(scoresClass){
             if ($(".notifications").children("."+scoresClass).children().length > 0) {
                 $(".notifications").children("."+scoresClass).fadeToggle(300);
             }
         };
-        
+            
         $scope.checkDottedAnswersExistance = function(questionid){
             var dotAnswersExist = false;
             angular.forEach($scope.dottedAnswers, function(dotAnswer) {
@@ -682,6 +696,16 @@
                 }
             });
             return dotAnswersExist;
+        };
+        
+        $scope.checkDottedGoalAnswersExistance = function(goalid){
+            var dotGoalAnswersExist = false;
+            angular.forEach($scope.dottedAnswers, function(dotAnswer) {
+                if(dotAnswer.GoalID == goalid && dotAnswer.Answer){
+                    dotGoalAnswersExist = true;
+                }
+            });
+            return dotGoalAnswersExist;
         };
         
         $scope.showFilters = function(id){

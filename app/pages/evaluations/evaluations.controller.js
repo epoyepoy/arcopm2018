@@ -29,9 +29,6 @@
 		$scope.selected1_3 = [];
 		$scope.selected4_9 = [];
 		$scope.selected10 = [];
-		$scope.status5Evals1_3 = [];
-		$scope.status5Evals4_9 = [];
-		$scope.status5Evals10 = [];
 		$scope.selectAllCheckBox1_3 = false;
 		$scope.selectAllCheckBox4_9 = false;
 		$scope.selectAllCheckBox10 = false;
@@ -77,6 +74,9 @@
                 return;
             }
 			$scope.message = "loading";
+            $scope.status5Evals1_3 = [];
+            $scope.status5Evals4_9 = [];
+            $scope.status5Evals10 = [];
 			EvaluationsFactory.GetEvaluations(loginData.user.id).then(function (result) {
 				$scope.checkifLoggedout(result);
 				$scope.evaluations = result.evaluations;
@@ -191,6 +191,7 @@
             }
 			$scope.extraMessage = "warning";
 			$scope.tempGroup = group;
+            $scope.tempSelected = [];
 			if(group == '1_3'){
 				$scope.tempSelected = $scope.selected1_3;
 			}else if(group == '4_9'){

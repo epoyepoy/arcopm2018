@@ -43,7 +43,7 @@
                                     <label ng-attr-style="{{from == 'mylist' ? 'margin-left: 165px; margin-top: 5px;' : ''}}">Goals Assignment By Employee:</label>
                                     <div style="float: right; margin-left: 30px;" ng-if="from == 'mylist'">
                                         <span style="color: #1c8de1;">
-                                            <button ng-attr-data-notifications="{{commentsCount!=0 ? commentsCount : undefined}}" class="sitesBtn goalsAssignment" ng-click="showCommentsPopup(cycleGoal,'show')" uib-tooltip="Show Comments" tooltip-placement="top" tooltip-trigger="'mouseenter'">
+                                            <button  ng-if="cycleGoal.EvaluationID" ng-attr-data-notifications="{{commentsCount!=0 ? commentsCount : undefined}}" class="sitesBtn goalsAssignment" ng-click="showCommentsPopup(cycleGoal,'show')" uib-tooltip="Show Comments" tooltip-placement="top" tooltip-trigger="'mouseenter'">
                                                 <i class="fa fa-comments" aria-hidden="true" style="font-size: 17px"></i>
                                             </button>
                                         </span>

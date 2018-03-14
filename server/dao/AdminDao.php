@@ -716,12 +716,12 @@ class AdminDAO{
 		Declare @empid varchar(5) = :empid;
 		Declare @currenteval varchar(5) = :currenteval;
 		Declare @nexteval varchar(5) = :nexteval;
-		Declare @dot1 varchar(5) = ISNULL(:dot1,'');
-		Declare @dot2 varchar(5) = ISNULL(:dot2,'');
-		Declare @dot3 varchar(5) = ISNULL(:dot3,'');
-		Declare @ndot1 varchar(5) = ISNULL(:ndot1,'');
-		Declare @ndot2 varchar(5) = ISNULL(:ndot2,'');
-		Declare @ndot3 varchar(5) = ISNULL(:ndot3,'');
+		Declare @dot1 varchar(5) = :dot1;
+		Declare @dot2 varchar(5) = :dot2;
+		Declare @dot3 varchar(5) = :dot3;
+		Declare @ndot1 varchar(5) = :ndot1;
+		Declare @ndot2 varchar(5) = :ndot2;
+		Declare @ndot3 varchar(5) = :ndot3;
 		Declare @excludecycle int = :cycleexclude;
 		Declare @userid varchar(5) = :userid;
 		Declare @currentcycleid int, @nextcycleid int;
@@ -769,15 +769,15 @@ class AdminDAO{
 			--2nd Create Dotted. First delete all dotted and then create one by one.
 			--Make sure you delete dotted and reset.
 			DELETE FROM ReportingLine WHERE empnosource=@empid and State=4 and cycleid=@nextcycleid
-			IF isnull(@dot1,'')<>''
+			IF isnull(@ndot1,'')<>''
 				BEGIN
 					INSERT INTO dbo.ReportingLine VALUES(@empid, @ndot1,4, @nextcycleid, 0, 0, @userid, getdate());
 				END
-			IF isnull(@dot2,'')<>''
+			IF isnull(@ndot2,'')<>''
 				BEGIN
 					INSERT INTO dbo.ReportingLine VALUES(@empid, @ndot2,4, @nextcycleid, 0, 0, @userid, getdate());
 				END
-			IF isnull(@dot3,'')<>''
+			IF isnull(@ndot3,'')<>''
 				BEGIN
 					INSERT INTO dbo.ReportingLine VALUES(@empid, @ndot3,4, @nextcycleid, 0, 0, @userid, getdate());
 				END
@@ -805,19 +805,19 @@ class AdminDAO{
 			//return udpated reporting line 
 		$queryString="
 		-- Retrieve Updated record in order to provide it back to the client after the update.
-		Declare @currentcycleid int, @nextcycleid int;
+		DECLARE @currentcycleid int, @nextcycleid int, @nextcycleDesc varchar(50);
 		SELECT @currentcycleid = ID FROM EvaluationsCycle WHERE status=1 and questionaireInputStatus=1;
-		SELECT @nextcycleid = ID FROM EvaluationsCycle WHERE status=0 and questionaireInputStatus=0 and goalsInputStatus=1;
-		SELECT emp.empno as EmpNo, RTRIM(LTRIM(emp.family_name))+'' ''+RTRIM(LTRIM(emp.first_name)) As EmpName,
+		SELECT @nextcycleid = ID, @nextcycleDesc=CycleDescription FROM EvaluationsCycle WHERE status=0 and questionaireInputStatus=0 and goalsInputStatus=1;
+		SELECT emp.empno as EmpNo, RTRIM(LTRIM(emp.family_name))+' '+RTRIM(LTRIM(emp.first_name)) As EmpName,
 		emp.empCategory as Category, emp.empstatus as EmployeeAhrisStatus,  emp.family_code as FamilyCode, emp.family_desc as FamilyDesc,
 		emp.section_code as SectionCode,emp.section_desc as SectionDesc,
 		emp.post_title_code as PositionCode, emp.job_desc as PositionDesc , emp.region, emp.pay_cs as ProjectCode, emp.site_desc as ProjectDesc, emp.grade, emp.groupYears,
 
-		CASE WHEN nextevalperiod.empno = '' '' THEN @nextcycleid ELSE '' '' END AS CycleExclude, 
-		CASE WHEN nextevalperiod.empno = '' '' THEN @nextcycleDesc ELSE '' '' END AS CycleDescription,
+		CASE WHEN nextevalperiod.empno = ' ' THEN @nextcycleid ELSE ' ' END AS CycleExclude, 
+		CASE WHEN nextevalperiod.empno = ' ' THEN @nextcycleDesc ELSE ' ' END AS CycleDescription,
 		
 		eval.empno AS EvaluatorNumber,
-		RTRIM(LTRIM(eval.family_name))+'' ''+RTRIM(LTRIM(eval.first_name)) AS EvaluatorName,
+		RTRIM(LTRIM(eval.family_name))+' '+RTRIM(LTRIM(eval.first_name)) AS EvaluatorName,
 		eval.empstatus AS EvaluatorAhrisStatus,
 		RL.wrongManager AS ReportedWrongEvaluator,
 
@@ -859,7 +859,7 @@ class AdminDAO{
 		INNER JOIN [dbo].[vw_arco_employee] eval on eval.empno=RL.empnotarget
 
 		OUTER APPLY (
-		SELECT  TOP 1 empnotarget, empnotarget AS empno, RTRIM(LTRIM(emp1.family_name))+'' ''+RTRIM(LTRIM(emp1.first_name)) As Name, emp1.empstatus, RLE.wrongManager
+		SELECT  TOP 1 empnotarget, empnotarget AS empno, RTRIM(LTRIM(emp1.family_name))+' '+RTRIM(LTRIM(emp1.first_name)) As Name, emp1.empstatus, RLE.wrongManager
 			FROM dbo.ReportingLine RLE
 			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=RLE.empnotarget AND RLE.state=5
 			where RLE.state=5 and RLE.empnosource=RL.empnosource AND RLE.cycleid=@nextcycleid
@@ -867,7 +867,7 @@ class AdminDAO{
 		nextevalperiod
 
 		OUTER APPLY (
-		SELECT  TOP 1 empnotarget, empnotarget AS empno, RTRIM(LTRIM(emp1.family_name))+'' ''+RTRIM(LTRIM(emp1.first_name)) As Dotted1Name, emp1.empstatus, dot1.wrongmanager,
+		SELECT  TOP 1 empnotarget, empnotarget AS empno, RTRIM(LTRIM(emp1.family_name))+' '+RTRIM(LTRIM(emp1.first_name)) As Dotted1Name, emp1.empstatus, dot1.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot1
 			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=dot1.empnotarget AND dot1.state=4
@@ -877,7 +877,7 @@ class AdminDAO{
 		Dot1
 
 		OUTER APPLY (
-		SELECT  empnotarget AS empno,RTRIM(LTRIM(emp2.family_name))+'' ''+RTRIM(LTRIM(emp2.first_name)) As Dotted2Name, emp2.empstatus, dot2.wrongmanager,
+		SELECT  empnotarget AS empno,RTRIM(LTRIM(emp2.family_name))+' '+RTRIM(LTRIM(emp2.first_name)) As Dotted2Name, emp2.empstatus, dot2.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot2
 			inner JOIN [dbo].[vw_arco_employee] emp2 on emp2.empno=dot2.empnotarget AND dot2.state=4
@@ -888,7 +888,7 @@ class AdminDAO{
 		)
 		Dot2
 		OUTER APPLY (
-		SELECT  empnotarget AS empno,RTRIM(LTRIM(emp3.family_name))+'' ''+RTRIM(LTRIM(emp3.first_name)) As Dotted3Name, emp3.empstatus, dot3.wrongmanager,
+		SELECT  empnotarget AS empno,RTRIM(LTRIM(emp3.family_name))+' '+RTRIM(LTRIM(emp3.first_name)) As Dotted3Name, emp3.empstatus, dot3.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot3
 			inner JOIN [dbo].[vw_arco_employee] emp3 on emp3.empno=dot3.empnotarget AND dot3.state=3
@@ -899,7 +899,7 @@ class AdminDAO{
 		)
 		Dot3
 		OUTER APPLY (
-		SELECT  TOP 1 ndot1.empnotarget, ndot1.empnotarget AS empno, RTRIM(LTRIM(dotemp1.family_name))+'' ''+RTRIM(LTRIM(dotemp1.first_name)) As DottedName, dotemp1.empstatus, ndot1.wrongmanager,
+		SELECT  TOP 1 ndot1.empnotarget, ndot1.empnotarget AS empno, RTRIM(LTRIM(dotemp1.family_name))+' '+RTRIM(LTRIM(dotemp1.first_name)) As DottedName, dotemp1.empstatus, ndot1.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY ndot1.empnotarget) AS Rownumber
 			FROM ReportingLine ndot1
 			inner JOIN [dbo].[vw_arco_employee] dotemp1 on dotemp1.empno=ndot1.empnotarget AND ndot1.state=4
@@ -908,7 +908,7 @@ class AdminDAO{
 		)
 		nextDot1
 		OUTER APPLY (
-		SELECT ndot2.empnotarget, ndot2.empnotarget AS empno, RTRIM(LTRIM(dotemp2.family_name))+'' ''+RTRIM(LTRIM(dotemp2.first_name)) As DottedName, dotemp2.empstatus, ndot2.wrongmanager,
+		SELECT ndot2.empnotarget, ndot2.empnotarget AS empno, RTRIM(LTRIM(dotemp2.family_name))+' '+RTRIM(LTRIM(dotemp2.first_name)) As DottedName, dotemp2.empstatus, ndot2.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY ndot2.empnotarget) AS Rownumber
 			FROM ReportingLine ndot2
 			inner JOIN [dbo].[vw_arco_employee] dotemp2 on dotemp2.empno=ndot2.empnotarget AND ndot2.state=4
@@ -919,7 +919,7 @@ class AdminDAO{
 		)
 		nextDot2
 		OUTER APPLY (
-		SELECT ndot3.empnotarget, ndot3.empnotarget AS empno, RTRIM(LTRIM(dotemp3.family_name))+'' ''+RTRIM(LTRIM(dotemp3.first_name)) As DottedName, dotemp3.empstatus, ndot3.wrongmanager,
+		SELECT ndot3.empnotarget, ndot3.empnotarget AS empno, RTRIM(LTRIM(dotemp3.family_name))+' '+RTRIM(LTRIM(dotemp3.first_name)) As DottedName, dotemp3.empstatus, ndot3.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY ndot3.empnotarget) AS Rownumber
 			FROM ReportingLine ndot3
 			inner JOIN [dbo].[vw_arco_employee] dotemp3 on dotemp3.empno=ndot3.empnotarget AND ndot3.state=4

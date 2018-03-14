@@ -26,10 +26,8 @@ class StatisticsDAO{
 			@empcoreDesc NVARCHAR(100)=:empcoreDesc, @empgoalsDesc NVARCHAR(100)=:empgoalsDesc, @empleadershipDesc NVARCHAR(100)=:empleadershipDesc, @empperformanceDesc NVARCHAR(100)=:empperformanceDesc,
 			@empoverallDesc NVARCHAR(100)=:empoverallDesc, @myStatistics INT =:myStatistics, @cycleID INT=:cycleid, @typeOfStats INT=:typeOfStats, @calibrated INT=:calibrated;
 			SELECT @sql=N'
-			--Declare @cycleid as int;
-			--SELECT @cycleid = ID FROM EvaluationsCycle WHERE status=1 and questionaireInputStatus=1;
 			SELECT eval.empno as ''Evaluator'', eval.family_name+'' ''+eval.first_name AS EvalName, emp.empno, emp.family_name+'' ''+emp.first_name AS Name, CASE WHEN e.empGrade<4 THEN ''Grades 0-4'' WHEN emp.grade<10 THEN ''Grades 4-9'' ELSE ''Grades 10+'' END AS Form,
-			   emp.job_desc, emp.region, empScore.PScore AS EPScore, empScore.PSDescription AS EPSDescr, empScore.GScore AS EGScore, empscore.GSDescription AS EGSDescr,
+			   pos.job_desc, reg.regiongroup as region, empScore.PScore AS EPScore, empScore.PSDescription AS EPSDescr, empScore.GScore AS EGScore, empscore.GSDescription AS EGSDescr,
 			   empScore.CScore AS ECScore, empScore.CSDescription AS ECSDescr, empScore.LScore AS ELScore, empScore.LSDescription AS ELSDescr,  empScore.OverallScore AS EOScore,
 			   empScore.OSDescription AS EOSDescr, evalScore.PScore as EVPScore, evalScore.PSDescription AS EVPSDescr, evalScore.GScore as EVGscore, evalScore.GSDescription AS EVGSDescr, evalScore.CScore as EVCScore,
 			   evalScore.CSDescription AS EVCSDescr, evalScore.LScore EVLScore, evalScore.LSDescription AS EVLSDescr, evalScore.OverallScore  AS EVOScore, evalScore.OSDescription AS EVODescr,
@@ -37,17 +35,23 @@ class StatisticsDAO{
 			   evalScore.OverallScore-empScore.OverallScore AS OGap
 			FROM dbo.Evaluations E
 			INNER JOIN dbo.vw_arco_employee emp ON emp.empno = e.EmployeeID
-			INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID';
+			INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID AND RLM.cycleid=@cycleID';
 			SELECT @sql=@sql+ CASE WHEN @myStatistics=0 OR @myStatistics=1 THEN
 			' AND RLM.State=5' 
 			WHEN @myStatistics=2 THEN ' 
 			AND RLM.State=4
-			INNER JOIN reportingLine RLD on RLD.empnosource=e.employeeID AND RLD.State=5
+			INNER JOIN reportingLine RLD on RLD.empnosource=e.employeeID AND RLD.State=5 AND RLD.cycleid=@cycleID 
 			' END 
 			SELECT @sql=@sql+ '
 			INNER JOIN dbo.vw_arco_employee eval ON eval.empno = ' 
 			SELECT @sql=@sql+ CASE WHEN @myStatistics=2 THEN ' RLD.empnotarget ' ELSE  ' RLM.empnotarget ' END
 			SELECT @sql=@sql+ '
+			INNER JOIN AHRIS.dbo.ref_gacomsit AS gac ON gac.site=e.site_code
+			INNER JOIN CommonRefs.dbo.ProjectReference prj ON prj.projectCode=prj.projectCode
+			INNER JOIN CommonRefs.dbo.RegionReference reg ON reg.regionCode=prj.region
+			INNER JOIN AHRIS.dbo.ref_actualtitle AS pos ON pos.job_code = e.position_code 
+			INNER JOIN AHRIS.dbo.ref_jobfamily AS fam ON fam.family_code = pos.family_code
+			
 			OUTER APPLY(
 			SELECT * FROM dbo.EvaluationScores
 			WHERE EvaluationID=E.EvaluationID AND State=3
@@ -63,13 +67,13 @@ class StatisticsDAO{
 			INNER JOIN dbo.vw_arco_employee emp ON emp.empno = RL.empnosource
 			OUTER APPLY(
 			SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=5
-			AND ISNULL(RL2.excludeFromCycles,0)<>@cycleid
+			AND RL2.cycleid=@cycleid
 			)Evals
-			WHERE RL.empnotarget=@reviewer AND RL.state=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0) AND RL.State=5 '
+			WHERE RL.empnotarget=@reviewer AND RL.state=5 AND RL.cycleid=@cycleid AND Evals.count>0) AND RL.State=5 '
 			WHEN @myStatistics=1  THEN '=@evaluator AND RL.State=5 '
 		    WHEN @myStatistics=2  THEN '=@evaluator AND RL.State=4 'END;
 
-			SELECT @sql=@sql+' AND ISNULL(RL.excludeFromCycles,0)<>@cycleid) ';
+			SELECT @sql=@sql+' AND RL.cycleid=@cycleid) ';
 			--calibrated
 			IF @calibrated=0
 			BEGIN 
@@ -102,11 +106,11 @@ class StatisticsDAO{
 			END
 			IF @position IS NOT NULL AND  @position<>''
 			BEGIN
-				 SELECT @sql = @sql + ' AND emp.job_desc like ''%'+@position+'%'''
+				 SELECT @sql = @sql + ' AND pos.job_desc like ''%'+@position+'%'''
 			END
 			IF @region IS NOT NULL AND @region<>''
 			BEGIN
-				 SELECT @sql = @sql + ' AND emp.region like ''%'+@region+'%'''
+				 SELECT @sql = @sql + ' AND reg.regionGroup like ''%'+@region+'%'''
 			END
 			--evaluator scores
 			IF @coreDesc IS NOT NULL AND @coreDesc <> 'Select All'
@@ -208,8 +212,6 @@ class StatisticsDAO{
 		   @empcoreDesc NVARCHAR(100)=:empcoreDesc, @empgoalsDesc NVARCHAR(100)=:empgoalsDesc, @empleadershipDesc NVARCHAR(100)=:empleadershipDesc, @empperformanceDesc NVARCHAR(100)=:empperformanceDesc,
 		   @empoverallDesc NVARCHAR(100)=:empoverallDesc, @myStatistics INT =:myStatistics, @cycleID INT=:cycleid, @calibrated INT=:calibrated;
 		   SELECT @sql=N'
-		   --Declare @cycleid as int;
-		   --SELECT @cycleid = ID FROM EvaluationsCycle WHERE status=1 and questionaireInputStatus=1;
 		   SELECT  MIN(evalScore.PScore) as MinPerfScore, MAX(evalScore.PScore) as MaxPerfScore, CAST(AVG(evalScore.PScore) AS DECIMAL(5,2)) as AvgPerfScore,
 		   MIN(NULLIF(evalScore.GScore,0)) as MinGoalScore, MAX(evalScore.GScore) as MaxGoalScore, CAST(AVG(NULLIF(evalScore.GScore,0)) AS DECIMAL(5,2)) as AvgGoalScore,
 		   MIN(evalScore.CScore) as MinCoreCompScore, MAX(evalScore.CScore) as MaxCoreCompScore, CAST(AVG(evalScore.CScore) AS DECIMAL(5,2)) as AvgCoreCompScore,
@@ -223,11 +225,17 @@ class StatisticsDAO{
 
 		   FROM dbo.Evaluations E
 		   INNER JOIN dbo.vw_arco_employee emp ON emp.empno = e.EmployeeID
-		   INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID';
+		   INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID AND RLM.cycleid=@cycleID';
 		   SELECT @sql=@sql+ CASE WHEN @myStatistics=0 OR @myStatistics=1 THEN
 		   ' AND RLM.State=5' WHEN @myStatistics=2 THEN ' AND RLM.State=4' END 
 
 		   SELECT @sql=@sql+ '
+			INNER JOIN AHRIS.dbo.ref_gacomsit AS gac ON gac.site=e.site_code
+			INNER JOIN CommonRefs.dbo.ProjectReference prj ON prj.projectCode=prj.projectCode
+			INNER JOIN CommonRefs.dbo.RegionReference reg ON reg.regionCode=prj.region
+			INNER JOIN AHRIS.dbo.ref_actualtitle AS pos ON pos.job_code = e.position_code 
+			INNER JOIN AHRIS.dbo.ref_jobfamily AS fam ON fam.family_code = pos.family_code
+
 		   OUTER APPLY(
 		   SELECT * FROM dbo.EvaluationScores
 		   WHERE EvaluationID=E.EvaluationID AND State=3
@@ -242,13 +250,13 @@ class StatisticsDAO{
 					INNER JOIN dbo.vw_arco_employee emp ON emp.empno = RL.empnosource
 					OUTER APPLY(
 					SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=5
-					AND ISNULL(RL2.excludeFromCycles,0)<>@cycleid
+					AND RL2.cycleid=@cycleID
 					)Evals
-					WHERE RL.empnotarget=@reviewer AND RL.state=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0)'
+					WHERE RL.empnotarget=@reviewer AND RL.state=5 AND RL.cycleid=@cycleID AND Evals.count>0)'
 		   WHEN @myStatistics=1 THEN '=@evaluator AND RL.State=5'
 		   WHEN @myStatistics=2 THEN '=@evaluator AND RL.State=4 'END;
 
-		   SELECT @sql=@sql+' AND ISNULL(RL.excludeFromCycles,0)<>@cycleid ) ';
+		   SELECT @sql=@sql+' AND RL.cycleid=@cycleID ) ';
 		   --calibrated
 		   IF @calibrated=0
 		   BEGIN 
@@ -279,11 +287,11 @@ class StatisticsDAO{
 		   END
 		   IF @position IS NOT NULL AND  @position<>''
 		   BEGIN
-				SELECT @sql = @sql + ' AND emp.job_desc like ''%'+@position+'%'''
+				SELECT @sql = @sql + ' AND pos.job_desc like ''%'+@position+'%'''
 		   END
 		   IF @region IS NOT NULL AND @region<>''
 		   BEGIN
-				SELECT @sql = @sql + ' AND emp.region like ''%'+@region+'%'''
+				SELECT @sql = @sql + ' AND reg.regiongroup like ''%'+@region+'%'''
 		   END
 		   --evaluator scores
 		   IF @coreDesc IS NOT NULL AND @coreDesc <> 'Select All'
@@ -376,8 +384,6 @@ class StatisticsDAO{
 		  @empcoreDesc NVARCHAR(100)=:empcoreDesc, @empgoalsDesc NVARCHAR(100)=:empgoalsDesc, @empleadershipDesc NVARCHAR(100)=:empleadershipDesc, @empperformanceDesc NVARCHAR(100)=:empperformanceDesc,
 		  @empoverallDesc NVARCHAR(100)=:empoverallDesc, @myStatistics INT =:myStatistics, @cycleID INT=:cycleid, @calibrated INT=:calibrated;
 		  SELECT @sql=N'
-		  --Declare @cycleid as int;
-		  --SELECT @cycleid = ID FROM EvaluationsCycle WHERE status=1 and questionaireInputStatus=1;
 		  SELECT SUM( CASE evalScore.OSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS PerfImproNeededCount,
 		  SUM( CASE evalScore.OSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS BuildingCapabilityCount,
 		  SUM( CASE evalScore.OSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS AchievingPerformanceCount,
@@ -388,11 +394,18 @@ class StatisticsDAO{
 		  SUM( CASE empScore.OSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS EmpLeadingPerformanceCount
 		  FROM dbo.Evaluations E
 		  INNER JOIN dbo.vw_arco_employee emp ON emp.empno = e.EmployeeID
-		  INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID ';
+		  INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID AND RLM.cycleid=@cycleID ';
 		   SELECT @sql=@sql+ CASE WHEN @myStatistics=0 OR @myStatistics=1 THEN
 		   'AND RLM.State=5' WHEN @myStatistics=2 THEN ' AND RLM.State=4' END 
 		  
 		  SELECT @sql=@sql+ '
+
+			INNER JOIN AHRIS.dbo.ref_gacomsit AS gac ON gac.site=e.site_code
+			INNER JOIN CommonRefs.dbo.ProjectReference prj ON prj.projectCode=prj.projectCode
+			INNER JOIN CommonRefs.dbo.RegionReference reg ON reg.regionCode=prj.region
+			INNER JOIN AHRIS.dbo.ref_actualtitle AS pos ON pos.job_code = e.position_code 
+			INNER JOIN AHRIS.dbo.ref_jobfamily AS fam ON fam.family_code = pos.family_code
+
 		  OUTER APPLY(
 		  SELECT * FROM dbo.EvaluationScores
 		  WHERE EvaluationID=E.EvaluationID AND State=2
@@ -407,13 +420,13 @@ class StatisticsDAO{
 				   INNER JOIN dbo.vw_arco_employee emp ON emp.empno = RL.empnosource
 				   OUTER APPLY(
 				   SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=5
-				   AND ISNULL(RL2.excludeFromCycles,0)<>@cycleid
+				   AND RL2.cycleid=@cycleID
 				   )Evals
-				   WHERE RL.empnotarget=@reviewer AND RL.state=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0)'
+				   WHERE RL.empnotarget=@reviewer AND RL.state=5 AND RL.cycleid=@cycleID AND Evals.count>0)'
 			WHEN @myStatistics=1 THEN '=@evaluator AND RL.State=5'
 			WHEN @myStatistics=2 THEN '=@evaluator AND RL.State=4 'END;
 
-		  SELECT @sql=@sql+' AND ISNULL(RL.excludeFromCycles,0)<>@cycleid) ';
+		  SELECT @sql=@sql+' AND RL.cycleid=@cycleID) ';
 		--calibrated
 		IF @calibrated=0
 		BEGIN 
@@ -444,11 +457,11 @@ class StatisticsDAO{
 			END
 			IF @position IS NOT NULL AND  @position<>''
 			BEGIN
-				 SELECT @sql = @sql + ' AND emp.job_desc like ''%'+@position+'%'''
+				 SELECT @sql = @sql + ' AND pos.job_desc like ''%'+@position+'%'''
 			END
 			IF @region IS NOT NULL AND @region<>''
 			BEGIN
-				 SELECT @sql = @sql + ' AND emp.region like ''%'+@region+'%'''
+				 SELECT @sql = @sql + ' AND reg.regiongroup like ''%'+@region+'%'''
 			END
 			--evaluator scores
 			IF @coreDesc IS NOT NULL AND @coreDesc <> 'Select All'
@@ -543,8 +556,7 @@ class StatisticsDAO{
 		 @empoverallDesc NVARCHAR(100)=:empoverallDesc,  @hasGoals NVARCHAR(3)=:hasGoals, @isManager NVARCHAR(3)=:isManager, @myStatistics INT =:myStatistics, 
 		 @actualAvgFlag INT =:actualAvgFlag, @cycleID INT=:cycleid, @typeOfStats INT=:typeOfStats, @calibrated INT =:calibrated;
 		 SELECT @sql=N'
- 		--Declare @cycleid as int;
- 		--SELECT @cycleid = ID FROM EvaluationsCycle WHERE status=1 and questionaireInputStatus=1;
+ 		SELECT @sql=N'
  		SELECT RLM.empnotarget as ''Evaluator'', LTrim(RTrim(eval.family_name))+'' ''+LTrim(RTrim(eval.first_name)) AS Name, COUNT(emp.empno) as ''EvaluatedCount'',
 		CAST(AVG(evalScore.PScore) as decimal(5,2)) as AVGPScore,
 		[dbo].[ConvertScoreToTextPCStandards](AVG(evalScore.PScore)) as AVGPDesc,
@@ -597,8 +609,13 @@ class StatisticsDAO{
 
  		FROM dbo.Evaluations E
  		INNER JOIN dbo.vw_arco_employee emp ON emp.empno = e.EmployeeID
- 		INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID AND RLM.State=5
+ 		INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID AND RLM.State=5 AND RLM.cycleid=@cycleID 
 		INNER JOIN dbo.vw_arco_employee eval ON eval.empno = RLM.empnotarget
+		INNER JOIN AHRIS.dbo.ref_gacomsit AS gac ON gac.site=e.site_code
+		INNER JOIN CommonRefs.dbo.ProjectReference prj ON prj.projectCode=prj.projectCode
+		INNER JOIN CommonRefs.dbo.RegionReference reg ON reg.regionCode=prj.region
+		INNER JOIN AHRIS.dbo.ref_actualtitle AS pos ON pos.job_code = e.position_code 
+		INNER JOIN AHRIS.dbo.ref_jobfamily AS fam ON fam.family_code = pos.family_code
  		OUTER APPLY(
  		SELECT * FROM dbo.EvaluationScores
  		WHERE EvaluationID=E.EvaluationID AND State=3
@@ -620,12 +637,12 @@ class StatisticsDAO{
 				 INNER JOIN dbo.vw_arco_employee emp ON emp.empno = RL.empnosource
 				 OUTER APPLY(
 				 SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=5
-				 AND ISNULL(RL2.excludeFromCycles,0)<>@cycleid
+				 AND RL2.cycleid=@cycleID 
 				 )Evals
-				 WHERE RL.empnotarget=@reviewer AND RL.state=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0)'
+				 WHERE RL.empnotarget=@reviewer AND RL.state=5 AND RL.cycleid=@cycleID  AND Evals.count>0)'
 				 WHEN @myStatistics=1 THEN '=@evaluator' END;
 
-		SELECT @sql=@sql+' AND RL.State=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid)';
+		SELECT @sql=@sql+' AND RL.State=5 AND RL.cycleid=@cycleID )';
 		--calibrated
 		IF @calibrated=0
 		BEGIN 
@@ -657,11 +674,11 @@ class StatisticsDAO{
  		END
  		IF @position IS NOT NULL AND  @position<>''
  		BEGIN
- 			 SELECT @sql = @sql + ' AND emp.job_desc like ''%'+@position+'%'''
+ 			 SELECT @sql = @sql + ' AND pos.job_desc like ''%'+@position+'%'''
  		END
  		IF @region IS NOT NULL AND @region<>''
  		BEGIN
- 			 SELECT @sql = @sql + ' AND emp.region like ''%'+@region+'%'''
+ 			 SELECT @sql = @sql + ' AND reg.regiongroup like ''%'+@region+'%'''
  		END
  		--evaluator scores
  		IF @coreDesc IS NOT NULL AND @coreDesc <> 'Select All'
@@ -781,172 +798,101 @@ class StatisticsDAO{
  		DECLARE  @evaluator NVARCHAR(5)=:evaluator,@reviewer VARCHAR(5)=:reviewer, @form NVARCHAR(10)=:form, @employee NVARCHAR(100)=:employee, @position NVARCHAR(100)=:position, @region NVARCHAR(4) =:region,
  		@coreDesc NVARCHAR(100)=:coreDesc, @goalsDesc NVARCHAR(100)=:goalsDesc, @leadershipDesc NVARCHAR(100)=:leadershipDesc, @performanceDesc NVARCHAR(100)=:performanceDesc, @overallDesc NVARCHAR(100)=:overallDesc,
  		@empcoreDesc NVARCHAR(100)=:empcoreDesc, @empgoalsDesc NVARCHAR(100)=:empgoalsDesc, @empleadershipDesc NVARCHAR(100)=:empleadershipDesc, @empperformanceDesc NVARCHAR(100)=:empperformanceDesc,
-		 @empoverallDesc NVARCHAR(100)=:empoverallDesc,  @hasGoals NVARCHAR(3)=:hasGoals, @isManager NVARCHAR(3)=:isManager, @myStatistics INT =:myStatistics, 
-		 @actualAvgFlag INT =:actualAvgFlag, @cycleID INT=:cycleid, @calibrated INT=:calibrated;
+		@empoverallDesc NVARCHAR(100)=:empoverallDesc,  @hasGoals NVARCHAR(3)=:hasGoals, @isManager NVARCHAR(3)=:isManager, @myStatistics INT =:myStatistics, 
+		@actualAvgFlag INT =:actualAvgFlag, @cycleID INT=:cycleid, @calibrated INT=:calibrated;
 		 SELECT @sql=N'
 		 DECLARE @ProductAvgs TABLE
 		 (
-		   Evaluator VARCHAR(5), 
-		   Name VARCHAR(150),
-		   EvaluatedCount INT,
- 
-		   AVGPScore FLOAT,
-		   AVGPDesc VARCHAR(200),
-		   MINPScore FLOAT,
-		   MAXPscore FLOAT,
-		   PPerfImproNeededCount INT,
-		   PBuildingCapabilityCount INT,
-		   PAchievingPerformanceCount INT,
-		   PleadingPerformanceCount INT,
- 
-		   AVGGScore FLOAT,
-		   AVGGDesc VARCHAR(200),
-		   MINGScore FLOAT,
-		   MAXGscore FLOAT,
-		   GPerfImproNeededCount INT,
-		   GBuildingCapabilityCount INT,
-		   GAchievingPerformanceCount INT,
-		   GleadingPerformanceCount INT,
- 
-		   AVGCScore FLOAT,
-		   AVGCDesc VARCHAR(200),
-		   MINCScore FLOAT,
-		   MAXCscore FLOAT,
-		   CPerfImproNeededCount INT,
-		   CBuildingCapabilityCount INT,
-		   CAchievingPerformanceCount INT,
-		   CleadingPerformanceCount INT,
- 
-		   AVGLScore FLOAT,
-		   AVGLDesc VARCHAR(200),
-		   MINLScore FLOAT,
-		   MAXLscore FLOAT,
-		   LPerfImproNeededCount INT,
-		   LBuildingCapabilityCount INT,
-		   LAchievingPerformanceCount INT,
-		   LleadingPerformanceCount INT,
- 
-		   AVGOScore FLOAT,
-		   AVGODesc VARCHAR(200),
-		   MINOScore FLOAT,
-		   MAXOscore FLOAT,
-		   OPerfImproNeededCount INT,
-		   OBuildingCapabilityCount INT,
-		   OAchievingPerformanceCount INT,
-		   OleadingPerformanceCount INT
+		 Evaluator VARCHAR(5), Name VARCHAR(150), EvaluatedCount INT,
+  
+		 AVGPScore FLOAT,AVGPDesc VARCHAR(200),MINPScore FLOAT,MAXPscore FLOAT,PPerfImproNeededCount INT,PBuildingCapabilityCount INT,PAchievingPerformanceCount INT,PleadingPerformanceCount INT,
+  
+		 AVGGScore FLOAT,AVGGDesc VARCHAR(200),MINGScore FLOAT,MAXGscore FLOAT,GPerfImproNeededCount INT,GBuildingCapabilityCount INT,GAchievingPerformanceCount INT,GleadingPerformanceCount INT,
+  
+		 AVGCScore FLOAT,AVGCDesc VARCHAR(200),MINCScore FLOAT,MAXCscore FLOAT,CPerfImproNeededCount INT,CBuildingCapabilityCount INT,CAchievingPerformanceCount INT,CleadingPerformanceCount INT,
+  
+		 AVGLScore FLOAT,AVGLDesc VARCHAR(200),MINLScore FLOAT,MAXLscore FLOAT,LPerfImproNeededCount INT,LBuildingCapabilityCount INT,LAchievingPerformanceCount INT,LleadingPerformanceCount INT,
+  
+		 AVGOScore FLOAT,AVGODesc VARCHAR(200),MINOScore FLOAT,MAXOscore FLOAT,OPerfImproNeededCount INT,OBuildingCapabilityCount INT,OAchievingPerformanceCount INT,OleadingPerformanceCount INT
 		 )
-		 -- Declare @cycleid as int;
-		  --SELECT @cycleid = ID FROM EvaluationsCycle WHERE status=1 and questionaireInputStatus=1;
-		  INSERT INTO @ProductAvgs
+ 
+		 INSERT INTO @ProductAvgs
 		 (
-			 Evaluator,
-			 Name,
-			 EvaluatedCount,
-			 AVGPScore,
-			 AVGPDesc,
-			 MINPScore,
-			 MAXPscore,
-			 PPerfImproNeededCount,
-			 PBuildingCapabilityCount,
-			 PAchievingPerformanceCount,
-			 PleadingPerformanceCount,
-			 AVGGScore,
-			 AVGGDesc,
-			 MINGScore,
-			 MAXGscore,
-			 GPerfImproNeededCount,
-			 GBuildingCapabilityCount,
-			 GAchievingPerformanceCount,
-			 GleadingPerformanceCount,
-			 AVGCScore,
-			 AVGCDesc,
-			 MINCScore,
-			 MAXCscore,
-			 CPerfImproNeededCount,
-			 CBuildingCapabilityCount,
-			 CAchievingPerformanceCount,
-			 CleadingPerformanceCount,
-			 AVGLScore,
-			 AVGLDesc,
-			 MINLScore,
-			 MAXLscore,
-			 LPerfImproNeededCount,
-			 LBuildingCapabilityCount,
-			 LAchievingPerformanceCount,
-			 LleadingPerformanceCount,
-			 AVGOScore,
-			 AVGODesc,
-			 MINOScore,
-			 MAXOscore,
-			 OPerfImproNeededCount,
-			 OBuildingCapabilityCount,
-			 OAchievingPerformanceCount,
-			 OleadingPerformanceCount
+		 Evaluator,Name,EvaluatedCount,AVGPScore,AVGPDesc,MINPScore,MAXPscore,PPerfImproNeededCount,PBuildingCapabilityCount,PAchievingPerformanceCount,PleadingPerformanceCount,
+		 AVGGScore,AVGGDesc,MINGScore,MAXGscore,GPerfImproNeededCount,GBuildingCapabilityCount,GAchievingPerformanceCount,GleadingPerformanceCount,AVGCScore,AVGCDesc,MINCScore,MAXCscore,
+		 CPerfImproNeededCount,CBuildingCapabilityCount,CAchievingPerformanceCount,CleadingPerformanceCount,AVGLScore,AVGLDesc,MINLScore,MAXLscore,
+		 LPerfImproNeededCount,LBuildingCapabilityCount,LAchievingPerformanceCount,LleadingPerformanceCount,AVGOScore,AVGODesc,MINOScore,MAXOscore,
+		 OPerfImproNeededCount,OBuildingCapabilityCount,OAchievingPerformanceCount,OleadingPerformanceCount
 		 )
-		 
-		   SELECT 
-		  RLM.empnotarget as ''Evaluator'', LTrim(RTrim(eval.family_name))+'' ''+LTrim(RTrim(eval.first_name)) AS Name, COUNT(emp.empno) as ''EvaluatedCount'',
-		  CAST(AVG(evalScore.PScore) as decimal(5,2)) as AVGPScore,
+		  
+		 SELECT 
+		 RLM.empnotarget as ''Evaluator'', LTrim(RTrim(eval.family_name))+'' ''+LTrim(RTrim(eval.first_name)) AS Name, COUNT(emp.empno) as ''EvaluatedCount'',
+		 CAST(AVG(evalScore.PScore) as decimal(5,2)) as AVGPScore,
 		 [dbo].[ConvertScoreToTextPCStandards](AVG(evalScore.PScore)) as AVGPDesc,
 		 MIN(evalScore.PScore) as MINPScore, MAX(evalScore.PScore) as MAXPScore,
 		 SUM( CASE evalScore.PSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS PPerfImproNeededCount,
-		   SUM( CASE evalScore.PSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS PBuildingCapabilityCount,
-		   SUM( CASE evalScore.PSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS PAchievingPerformanceCount,
-		   SUM( CASE evalScore.PSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS PLeadingPerformanceCount,
-		  -- CAST(AVG(evalScore.PScore) as decimal(5,2)) - CAST(AVG(empScore.PScore) as decimal(5,2)) as PGap,
- 
+		 SUM( CASE evalScore.PSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS PBuildingCapabilityCount,
+		 SUM( CASE evalScore.PSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS PAchievingPerformanceCount,
+		 SUM( CASE evalScore.PSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS PLeadingPerformanceCount,
+		 -- CAST(AVG(evalScore.PScore) as decimal(5,2)) - CAST(AVG(empScore.PScore) as decimal(5,2)) as PGap,
+  
 		 CAST(AVG(NULLIF(evalScore.GScore,0)) as decimal(5,2)) as AVGGScore,
 		 [dbo].[ConvertScoreToTextGoals](AVG(evalScore.GScore)) as AVGGDesc,
 		 MIN(NULLIF(evalScore.GScore,0)) as MINGScore, MAX(NULLIF(evalScore.GScore,0)) as MAXGScore,
 		 SUM( CASE evalScore.GSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS GPerfImproNeededCount,
-		   SUM( CASE evalScore.GSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS GBuildingCapabilityCount,
-		   SUM( CASE evalScore.GSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS GAchievingPerformanceCount,
-		   SUM( CASE evalScore.GSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS GLeadingPerformanceCount,
-		  -- CAST(AVG(evalScore.GScore) as decimal(5,2)) - CAST(AVG(empScore.GScore) as decimal(5,2)) as GGap,
- 
+		 SUM( CASE evalScore.GSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS GBuildingCapabilityCount,
+		 SUM( CASE evalScore.GSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS GAchievingPerformanceCount,
+		 SUM( CASE evalScore.GSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS GLeadingPerformanceCount,
+		 -- CAST(AVG(evalScore.GScore) as decimal(5,2)) - CAST(AVG(empScore.GScore) as decimal(5,2)) as GGap,
+  
 		 CAST(AVG(evalScore.CScore) as decimal(5,2)) as AVGCScore,
 		 [dbo].[ConvertScoreToTextPCStandards](AVG(evalScore.CScore)) as AVGCDesc,
 		 MIN(evalScore.CScore) as MINCScore, MAX(evalScore.CScore) as MAXCScore,
 		 SUM( CASE evalScore.CSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS CPerfImproNeededCount,
-		   SUM( CASE evalScore.CSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS CBuildingCapabilityCount,
-		   SUM( CASE evalScore.CSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS CAchievingPerformanceCount,
-		   SUM( CASE evalScore.CSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS CLeadingPerformanceCount,
-		   --CAST(AVG(evalScore.CScore) as decimal(5,2)) - CAST(AVG(empScore.CScore) as decimal(5,2)) as CGap,
- 
+		 SUM( CASE evalScore.CSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS CBuildingCapabilityCount,
+		 SUM( CASE evalScore.CSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS CAchievingPerformanceCount,
+		 SUM( CASE evalScore.CSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS CLeadingPerformanceCount,
+		 --CAST(AVG(evalScore.CScore) as decimal(5,2)) - CAST(AVG(empScore.CScore) as decimal(5,2)) as CGap,
+  
 		 CAST(AVG(NULLIF(evalScore.LScore,0)) as decimal(5,2)) as AVGLScore,
 		 [dbo].[ConvertScoreToTextPCStandards](AVG(evalScore.LScore)) as AVGLDesc,
 		 MIN(NULLIF(evalScore.LScore,0)) as MINLScore, MAX(NULLIF(evalScore.LScore,0)) as MAXLScore,
 		 SUM( CASE evalScore.LSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS LPerfImproNeededCount,
-		   SUM( CASE evalScore.LSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS LBuildingCapabilityCount,
-		   SUM( CASE evalScore.LSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS LAchievingPerformanceCount,
-		   SUM( CASE evalScore.LSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS LLeadingPerformanceCount,
-		  -- CAST(AVG(evalScore.LScore) as decimal(5,2)) - CAST(AVG(empScore.LScore) as decimal(5,2)) as LGap,
- 
+		 SUM( CASE evalScore.LSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS LBuildingCapabilityCount,
+		 SUM( CASE evalScore.LSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS LAchievingPerformanceCount,
+		 SUM( CASE evalScore.LSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS LLeadingPerformanceCount,
+		 -- CAST(AVG(evalScore.LScore) as decimal(5,2)) - CAST(AVG(empScore.LScore) as decimal(5,2)) as LGap,
+  
 		 CAST(AVG(evalScore.OverallScore) as decimal(5,2)) as AVGOScore,
-		  CASE
-			  WHEN AVG(evalScore.OverallScore) <ScoreScale.Scale1 THEN ScoreScale.ScaleDesc1
-			  WHEN AVG(evalScore.OverallScore) <ScoreScale.Scale2 THEN ScoreScale.ScaleDesc2
-			  WHEN AVG(evalScore.OverallScore) <ScoreScale.Scale3 THEN ScoreScale.ScaleDesc3
-			  ELSE ScoreScale.ScaleDesc4 END  as AVGODesc,
+		 CASE
+		 WHEN AVG(evalScore.OverallScore) <ScoreScale.Scale1 THEN ScoreScale.ScaleDesc1
+		 WHEN AVG(evalScore.OverallScore) <ScoreScale.Scale2 THEN ScoreScale.ScaleDesc2
+		 WHEN AVG(evalScore.OverallScore) <ScoreScale.Scale3 THEN ScoreScale.ScaleDesc3
+		 ELSE ScoreScale.ScaleDesc4 END  as AVGODesc,
 		 MIN(evalScore.OverallScore) as MINOScore, MAX(evalScore.OverallScore) as MAXOScore,
 		 SUM( CASE evalScore.OSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS OPerfImproNeededCount,
-		   SUM( CASE evalScore.OSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END)  AS OBuildingCapabilityCount,
-		   SUM( CASE evalScore.OSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END)  AS OAchievingPerformanceCount,
-		   SUM( CASE evalScore.OSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS OLeadingPerformanceCount --,
+		 SUM( CASE evalScore.OSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END)  AS OBuildingCapabilityCount,
+		 SUM( CASE evalScore.OSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END)  AS OAchievingPerformanceCount,
+		 SUM( CASE evalScore.OSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS OLeadingPerformanceCount --,
 		 --  CAST(AVG(evalScore.OverallScore) as decimal(5,2)) - CAST(AVG(empScore.OverallScore) as decimal(5,2)) as OGap
- 
-		  FROM dbo.Evaluations E
-		  INNER JOIN dbo.vw_arco_employee emp ON emp.empno = e.EmployeeID
-		  INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID AND RLM.State=5
+  
+		 FROM dbo.Evaluations E
+		 INNER JOIN dbo.vw_arco_employee emp ON emp.empno = e.EmployeeID
+		 INNER JOIN reportingLine RLM on RLM.empnosource=e.EmployeeID AND RLM.State=5 AND RLM.cycleid=@cycleID
 		 INNER JOIN dbo.vw_arco_employee eval ON eval.empno = RLM.empnotarget
-		  OUTER APPLY(
-		  SELECT * FROM dbo.EvaluationScores
-		  WHERE EvaluationID=E.EvaluationID AND State=3
-		  )empScore
-		  OUTER APPLY(
-		  SELECT * FROM dbo.EvaluationScores
-		  WHERE EvaluationID=E.EvaluationID AND State=CASE WHEN @calibrated=0 THEN 5 WHEN @calibrated=1 THEN 6 END
-		  )evalScore
+		 INNER JOIN AHRIS.dbo.ref_gacomsit AS gac ON gac.site=e.site_code
+		 INNER JOIN CommonRefs.dbo.ProjectReference prj ON prj.projectCode=prj.projectCode
+		 INNER JOIN CommonRefs.dbo.RegionReference reg ON reg.regionCode=prj.region
+		 INNER JOIN AHRIS.dbo.ref_actualtitle AS pos ON pos.job_code = e.position_code 
+		 INNER JOIN AHRIS.dbo.ref_jobfamily AS fam ON fam.family_code = pos.family_code
+		 OUTER APPLY(
+		 SELECT * FROM dbo.EvaluationScores
+		 WHERE EvaluationID=E.EvaluationID AND State=3
+		 )empScore
+		 OUTER APPLY(
+		 SELECT * FROM dbo.EvaluationScores
+		 WHERE EvaluationID=E.EvaluationID AND State=CASE WHEN @calibrated=0 THEN 5 WHEN @calibrated=1 THEN 6 END
+		 )evalScore
 		 OUTER APPLY(
 		 SELECT SSC.* FROM dbo.[ScoreScales] SSC
 		 INNER JOIN dbo.ScoreGroups SG ON SG.scoreScaleID=SSC.GroupID
@@ -954,18 +900,18 @@ class StatisticsDAO{
 		 AND SG.withGoals=CASE WHEN @hasGoals=''Yes'' THEN 1 ELSE 0 END
 		 AND SG.forManager=CASE WHEN @isManager=''Yes'' THEN 1 ELSE 0 END
 		 ) ScoreScale
-		  WHERE E.CycleID=@cycleid AND E.EmployeeID IN
-		  (SELECT RL.empnosource FROM dbo.ReportingLine RL WHERE RL.empnotarget '
+		 WHERE E.CycleID=@cycleid AND E.EmployeeID IN
+		 (SELECT RL.empnosource FROM dbo.ReportingLine RL WHERE RL.empnotarget '
 		 SELECT @sql=@sql+ CASE WHEN @myStatistics=0 THEN 'in (SELECT emp.empno FROM dbo.ReportingLine RL
-				  INNER JOIN dbo.vw_arco_employee emp ON emp.empno = RL.empnosource
-				  OUTER APPLY(
-				  SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=5
-				  AND ISNULL(RL2.excludeFromCycles,0)<>@cycleid
-				  )Evals
-				  WHERE RL.empnotarget=@reviewer AND RL.state=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0)'
-				  WHEN @myStatistics=1 THEN '=@evaluator' END;
- 
-		 SELECT @sql=@sql+' AND RL.State=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid)';
+		 INNER JOIN dbo.vw_arco_employee emp ON emp.empno = RL.empnosource
+		 OUTER APPLY(
+		 SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=5
+		 AND RL2.cycleid=@cycleID
+		 )Evals
+		 WHERE RL.empnotarget=@reviewer AND RL.state=5 AND RL.cycleid=@cycleID AND Evals.count>0)'
+		 WHEN @myStatistics=1 THEN '=@evaluator' END;
+  
+		 SELECT @sql=@sql+' AND RL.State=5 AND RL.cycleid=@cycleID)';
 		 --calibrated
 		 IF @calibrated=0
 		 BEGIN 
@@ -975,145 +921,142 @@ class StatisticsDAO{
 		 BEGIN 
 		 SELECT @sql=@sql+' AND E.State=7';
 		 END
-		  SET @ParmDefinition = N'@form NVARCHAR(10), @evaluator NVARCHAR(5),@employee NVARCHAR(100), @position NVARCHAR(100), @region NVARCHAR(4),
-		  @coreDesc NVARCHAR(100), @goalsDesc NVARCHAR(100), @leadershipDesc NVARCHAR(100), @performanceDesc NVARCHAR(100), @overallDesc NVARCHAR(100),
-		  @empcoreDesc NVARCHAR(100), @empgoalsDesc NVARCHAR(100), @empleadershipDesc NVARCHAR(100), @empperformanceDesc NVARCHAR(100), @empoverallDesc NVARCHAR(100), @hasGoals NVARCHAR(3),
+		 SET @ParmDefinition = N'@form NVARCHAR(10), @evaluator NVARCHAR(5),@employee NVARCHAR(100), @position NVARCHAR(100), @region NVARCHAR(4),
+		 @coreDesc NVARCHAR(100), @goalsDesc NVARCHAR(100), @leadershipDesc NVARCHAR(100), @performanceDesc NVARCHAR(100), @overallDesc NVARCHAR(100),
+		 @empcoreDesc NVARCHAR(100), @empgoalsDesc NVARCHAR(100), @empleadershipDesc NVARCHAR(100), @empperformanceDesc NVARCHAR(100), @empoverallDesc NVARCHAR(100), @hasGoals NVARCHAR(3),
 		 @isManager NVARCHAR(3), @reviewer NVARCHAR(5), @myStatistics INT, @actualAvgFlag INT, @cycleID INT, @calibrated INT'
- 
-		  --main filters
-		 
-		  IF @evaluator IS NOT NULL AND @evaluator <> ''
-		  BEGIN
-				   SELECT @sql = @sql + ' AND RLM.empnotarget=@evaluator'
-		  END
- 
-		  IF @form IS NOT NULL AND @form <> '' AND @form <> 'Select All'
-		  BEGIN
-			   SELECT @sql = @sql + ' AND E.empGrade>= CASE WHEN @form=''1_3'' THEN 0 WHEN @form=''4_9'' THEN 4 WHEN @form=''10'' THEN 10 END AND  E.empGrade<= CASE WHEN @form=''1_3'' THEN 3 WHEN @form=''4_9'' THEN 9 WHEN @form=''10'' THEN 20 END'
-		  END
-		  IF @employee IS NOT NULL AND @employee<>''
-		  BEGIN
-			   SELECT @sql = @sql + ' AND (emp.family_name like ''%'+@employee+'%'' OR emp.first_name like ''%'+@employee+'%'' OR emp.empno=@employee)'
-		  END
-		  IF @position IS NOT NULL AND  @position<>''
-		  BEGIN
-			   SELECT @sql = @sql + ' AND emp.job_desc like ''%'+@position+'%'''
-		  END
-		  IF @region IS NOT NULL AND @region<>''
-		  BEGIN
-			   SELECT @sql = @sql + ' AND emp.region like ''%'+@region+'%'''
-		  END
-		  --evaluator scores
-		  IF @coreDesc IS NOT NULL AND @coreDesc <> 'Select All'
-		  BEGIN
-			   SELECT @sql = @sql + ' AND evalScore.CSDescription=@coreDesc'
-		  END
-		  IF @goalsDesc IS NOT NULL AND @goalsDesc <> 'Select All'
-		  BEGIN
-			   SELECT @sql = @sql + ' AND evalScore.GSDescription=@goalsDesc'
-		  END
-		  IF @leadershipDesc IS NOT NULL AND @leadershipDesc <> 'Select All'
-		  BEGIN
-			   SELECT @sql = @sql + ' AND evalScore.LSDescription=@leadershipDesc'
-		  END
-		  IF @performanceDesc IS NOT NULL AND @performanceDesc <> 'Select All'
-		  BEGIN
-			   SELECT @sql = @sql + ' AND evalScore.PSDescription=@performanceDesc'
-		  END
-		  IF @overallDesc IS NOT NULL AND @overallDesc <> 'Select All'
-		  BEGIN
-			   SELECT @sql = @sql + ' AND evalScore.OSDescription=@overallDesc'
-		  END
- 
-		  --employye scores
-		  IF @empcoreDesc IS NOT NULL AND @empcoreDesc <> 'Select All'
-		  BEGIN
-			   SELECT @sql = @sql + ' AND empScore.CSDescription=@empcoreDesc'
-		  END
-		  IF @empgoalsDesc IS NOT NULL AND @empgoalsDesc <> 'Select All'
-		  BEGIN
-			   SELECT @sql = @sql + ' AND empScore.GSDescription=@empgoalsDesc'
-		  END
-		  IF @empleadershipDesc IS NOT NULL AND @empleadershipDesc <> 'Select All'
-		  BEGIN
-			   SELECT @sql = @sql + ' AND empScore.LSDescription=@empleadershipDesc'
-		  END
-		  IF @empperformanceDesc IS NOT NULL AND @empperformanceDesc <> 'Select All'
-		  BEGIN
-			   SELECT @sql = @sql + ' AND empScore.PSDescription=@empperformanceDesc'
-		  END
-		  IF @empoverallDesc IS NOT NULL AND @empoverallDesc <> 'Select All'
-		  BEGIN
-			   SELECT @sql = @sql + ' AND empScore.OSDescription=@empoverallDesc'
-		  END
- 
- 
-		  IF @actualAvgFlag  IS NOT NULL AND @actualAvgFlag= 0
-			 BEGIN	 
-				 IF @hasGoals IS NOT NULL AND @hasGoals <> ''
-				  BEGIN
-					   SELECT @sql = CASE WHEN @hasGoals='Yes' THEN
-					  @sql + ' AND (evalScore.GScore>0 or empScore.GScore>0)'
-					 ELSE
-					  @sql + ' AND (evalScore.GScore=0 AND empScore.GScore=0)'
-					  END
-				  END
- 
-				 IF @isManager IS NOT NULL AND @isManager <> ''
-				  BEGIN
-					 SELECT @sql = CASE WHEN @isManager='Yes' THEN
-					  @sql + ' AND E.ManagesTeam=1 '
-					 ELSE
-					  @sql + ' AND E.ManagesTeam=0 '
-					  END
-				  END
+  
+		 --main filters
+		  
+		 IF @evaluator IS NOT NULL AND @evaluator <> ''
+		 BEGIN
+			 SELECT @sql = @sql + ' AND RLM.empnotarget=@evaluator'
+		 END
+  
+		 IF @form IS NOT NULL AND @form <> '' AND @form <> 'Select All'
+		 BEGIN
+		 SELECT @sql = @sql + ' AND E.empGrade>= CASE WHEN @form=''1_3'' THEN 0 WHEN @form=''4_9'' THEN 4 WHEN @form=''10'' THEN 10 END AND  E.empGrade<= CASE WHEN @form=''1_3'' THEN 3 WHEN @form=''4_9'' THEN 9 WHEN @form=''10'' THEN 20 END'
+		 END
+		 IF @employee IS NOT NULL AND @employee<>''
+		 BEGIN
+		 SELECT @sql = @sql + ' AND (emp.family_name like ''%'+@employee+'%'' OR emp.first_name like ''%'+@employee+'%'' OR emp.empno=@employee)'
+		 END
+		 IF @position IS NOT NULL AND  @position<>''
+		 BEGIN
+		 SELECT @sql = @sql + ' AND pos.job_desc like ''%'+@position+'%'''
+		 END
+		 IF @region IS NOT NULL AND @region<>''
+		 BEGIN
+		 SELECT @sql = @sql + ' AND reg.regiongroup like ''%'+@region+'%'''
+		 END
+		 --evaluator scores
+		 IF @coreDesc IS NOT NULL AND @coreDesc <> 'Select All'
+		 BEGIN
+		 SELECT @sql = @sql + ' AND evalScore.CSDescription=@coreDesc'
+		 END
+		 IF @goalsDesc IS NOT NULL AND @goalsDesc <> 'Select All'
+		 BEGIN
+		 SELECT @sql = @sql + ' AND evalScore.GSDescription=@goalsDesc'
+		 END
+		 IF @leadershipDesc IS NOT NULL AND @leadershipDesc <> 'Select All'
+		 BEGIN
+		 SELECT @sql = @sql + ' AND evalScore.LSDescription=@leadershipDesc'
+		 END
+		 IF @performanceDesc IS NOT NULL AND @performanceDesc <> 'Select All'
+		 BEGIN
+		 SELECT @sql = @sql + ' AND evalScore.PSDescription=@performanceDesc'
+		 END
+		 IF @overallDesc IS NOT NULL AND @overallDesc <> 'Select All'
+		 BEGIN
+		 SELECT @sql = @sql + ' AND evalScore.OSDescription=@overallDesc'
+		 END
+  
+		 --employye scores
+		 IF @empcoreDesc IS NOT NULL AND @empcoreDesc <> 'Select All'
+		 BEGIN
+		 SELECT @sql = @sql + ' AND empScore.CSDescription=@empcoreDesc'
+		 END
+		 IF @empgoalsDesc IS NOT NULL AND @empgoalsDesc <> 'Select All'
+		 BEGIN
+		 SELECT @sql = @sql + ' AND empScore.GSDescription=@empgoalsDesc'
+		 END
+		 IF @empleadershipDesc IS NOT NULL AND @empleadershipDesc <> 'Select All'
+		 BEGIN
+		 SELECT @sql = @sql + ' AND empScore.LSDescription=@empleadershipDesc'
+		 END
+		 IF @empperformanceDesc IS NOT NULL AND @empperformanceDesc <> 'Select All'
+		 BEGIN
+		 SELECT @sql = @sql + ' AND empScore.PSDescription=@empperformanceDesc'
+		 END
+		 IF @empoverallDesc IS NOT NULL AND @empoverallDesc <> 'Select All'
+		 BEGIN
+		 SELECT @sql = @sql + ' AND empScore.OSDescription=@empoverallDesc'
+		 END
+  
+  
+		 IF @actualAvgFlag  IS NOT NULL AND @actualAvgFlag= 0
+		 BEGIN	 
+			 IF @hasGoals IS NOT NULL AND @hasGoals <> ''
+			 BEGIN
+				 SELECT @sql = CASE WHEN @hasGoals='Yes' THEN
+				 @sql + ' AND (evalScore.GScore>0 or empScore.GScore>0)'
+				 ELSE
+				 @sql + ' AND (evalScore.GScore=0 AND empScore.GScore=0)'
+				 END
 			 END
- 
-		  SELECT @sql= @sql+' GROUP BY RLM.empnotarget,eval.family_name, eval.first_name, ScoreScale.Scale1, ScoreScale.Scale2, ScoreScale.Scale3, ScoreScale.Scale4, ScoreScale.ScaleDesc1, ScoreScale.ScaleDesc2, ScoreScale.ScaleDesc3, ScoreScale.ScaleDesc4';
-		 
+  
+			 IF @isManager IS NOT NULL AND @isManager <> ''
+			 BEGIN
+				 SELECT @sql = CASE WHEN @isManager='Yes' THEN
+				 @sql + ' AND E.ManagesTeam=1 '
+				 ELSE
+				 @sql + ' AND E.ManagesTeam=0 '
+				 END
+			 END
+		 END
+  
+		 SELECT @sql= @sql+' GROUP BY RLM.empnotarget,eval.family_name, eval.first_name, ScoreScale.Scale1, ScoreScale.Scale2, ScoreScale.Scale3, ScoreScale.Scale4, ScoreScale.ScaleDesc1, ScoreScale.ScaleDesc2, ScoreScale.ScaleDesc3, ScoreScale.ScaleDesc4';
+		  
 		 SELECT @sql=@sql+'
-		  SELECT 
+		 SELECT 
+			  
+		 CAST(AVG(AVGPScore) as DECIMAL(5,2)) as AVGPScore,
+		 CAST(MIN(AVGPScore) as DECIMAL(5,2)) as MINPScore,
+		 CAST(MAX(AVGPScore) as DECIMAL(5,2)) as MAXPScore,
+		 --AVGPDesc,
+  
+		 CAST(AVG(AVGGScore) as DECIMAL(5,2)) as AVGGScore,
+		 CAST(MIN(AVGGScore) as DECIMAL(5,2)) as MINGScore,
+		 CAST(MAX(AVGGScore) as DECIMAL(5,2)) as MAXGScore,
+		 --AVGGDesc,
+			  
+		 CAST(AVG(AVGCScore) as DECIMAL(5,2)) as AVGCScore,
+		 CAST(MIN(AVGCScore) as DECIMAL(5,2)) as MINCScore,
+		 CAST(MAX(AVGCScore) as DECIMAL(5,2)) as MAXCScore,
+		 --AVGCDesc,
+  
+		 CAST(AVG(AVGLScore) as DECIMAL(5,2)) as AVGLScore,
+		 CAST(MIN(AVGLScore) as DECIMAL(5,2)) as MINLScore,
+		 CAST(MAX(AVGLScore) as DECIMAL(5,2)) as MAXLScore,
+		 --AVGLDesc,
 			 
-			 CAST(AVG(AVGPScore) as DECIMAL(5,2)) as AVGPScore,
-			 CAST(MIN(AVGPScore) as DECIMAL(5,2)) as MINPScore,
-			 CAST(MAX(AVGPScore) as DECIMAL(5,2)) as MAXPScore,
-			 --AVGPDesc,
- 
-			 CAST(AVG(AVGGScore) as DECIMAL(5,2)) as AVGGScore,
-			 CAST(MIN(AVGGScore) as DECIMAL(5,2)) as MINGScore,
-			 CAST(MAX(AVGGScore) as DECIMAL(5,2)) as MAXGScore,
-			 --AVGGDesc,
-			 
-			 CAST(AVG(AVGCScore) as DECIMAL(5,2)) as AVGCScore,
-			 CAST(MIN(AVGCScore) as DECIMAL(5,2)) as MINCScore,
-			 CAST(MAX(AVGCScore) as DECIMAL(5,2)) as MAXCScore,
-			 --AVGCDesc,
- 
-			 CAST(AVG(AVGLScore) as DECIMAL(5,2)) as AVGLScore,
-			 CAST(MIN(AVGLScore) as DECIMAL(5,2)) as MINLScore,
-			 CAST(MAX(AVGLScore) as DECIMAL(5,2)) as MAXLScore,
-			 --AVGLDesc,
-			
-			 CAST(AVG(AVGOScore) as DECIMAL(5,2)) as AVGOScore,
-			 CAST(MIN(AVGOScore) as DECIMAL(5,2)) as MINOScore,
-			 CAST(MAX(AVGOScore) as DECIMAL(5,2)) as MAXOScore,
-			  --AVGODesc,
-			 CAST(CAST(SUM(OPerfImproNeededCount) AS FLOAT) / CAST(SUM( EvaluatedCount) AS FLOAT) AS DECIMAL (5,2)) as OPerfImproNeeded,
-			 CAST(CAST(SUM(OBuildingCapabilityCount) AS FLOAT) / CAST(SUM( EvaluatedCount) AS FLOAT) AS DECIMAL (5,2)) as OBuildingCapability,
-			 CAST(CAST(SUM(OAchievingPerformanceCount) AS FLOAT) / CAST(SUM( EvaluatedCount) AS FLOAT) AS DECIMAL (5,2)) as OAchievingPerformance,
-			 CAST(CAST(SUM(OLeadingPerformanceCount) AS FLOAT) / CAST(SUM( EvaluatedCount) AS FLOAT) AS DECIMAL (5,2)) as OLeadingPerformance,
-			 SUM(OPerfImproNeededCount) as OPerfImproNeededCount,
-			 SUM(OBuildingCapabilityCount) as OBuildingCapabilityCount,
-			 SUM(OAchievingPerformanceCount) as OAchievingPerformanceCount,
-			 SUM(OLeadingPerformanceCount)  as OLeadingPerformanceCount
-			 
-			 FROM @ProductAvgs
- 
-		 '
-		
-		  EXEC sp_ExecuteSQL @sql,  @ParmDefinition, @evaluator=@evaluator, @form=@form, @position=@position, @region=@region, @employee=@employee, @coreDesc=@coreDesc,
-		  @goalsDesc=@goalsDesc,@leadershipDesc=@leadershipDesc,@performanceDesc=@performanceDesc,@overallDesc=@overallDesc, @empcoreDesc=@coreDesc,
-		  @empgoalsDesc=@empgoalsDesc,@empleadershipDesc=@empleadershipDesc,@empperformanceDesc=@empperformanceDesc,@empoverallDesc=@empoverallDesc, @hasGoals=@hasGoals,
+		 CAST(AVG(AVGOScore) as DECIMAL(5,2)) as AVGOScore,
+		 CAST(MIN(AVGOScore) as DECIMAL(5,2)) as MINOScore,
+		 CAST(MAX(AVGOScore) as DECIMAL(5,2)) as MAXOScore,
+		 --AVGODesc,
+		 CAST(CAST(SUM(OPerfImproNeededCount) AS FLOAT) / CAST(SUM( EvaluatedCount) AS FLOAT) AS DECIMAL (5,2)) as OPerfImproNeeded,
+		 CAST(CAST(SUM(OBuildingCapabilityCount) AS FLOAT) / CAST(SUM( EvaluatedCount) AS FLOAT) AS DECIMAL (5,2)) as OBuildingCapability,
+		 CAST(CAST(SUM(OAchievingPerformanceCount) AS FLOAT) / CAST(SUM( EvaluatedCount) AS FLOAT) AS DECIMAL (5,2)) as OAchievingPerformance,
+		 CAST(CAST(SUM(OLeadingPerformanceCount) AS FLOAT) / CAST(SUM( EvaluatedCount) AS FLOAT) AS DECIMAL (5,2)) as OLeadingPerformance,
+		 SUM(OPerfImproNeededCount) as OPerfImproNeededCount,
+		 SUM(OBuildingCapabilityCount) as OBuildingCapabilityCount,
+		 SUM(OAchievingPerformanceCount) as OAchievingPerformanceCount,
+		 SUM(OLeadingPerformanceCount)  as OLeadingPerformanceCount
+			  
+		 FROM @ProductAvgs'
+		 EXEC sp_ExecuteSQL @sql,  @ParmDefinition, @evaluator=@evaluator, @form=@form, @position=@position, @region=@region, @employee=@employee, @coreDesc=@coreDesc,
+		 @goalsDesc=@goalsDesc,@leadershipDesc=@leadershipDesc,@performanceDesc=@performanceDesc,@overallDesc=@overallDesc, @empcoreDesc=@coreDesc,
+		 @empgoalsDesc=@empgoalsDesc,@empleadershipDesc=@empleadershipDesc,@empperformanceDesc=@empperformanceDesc,@empoverallDesc=@empoverallDesc, @hasGoals=@hasGoals,
 		 @isManager=@isManager, @reviewer=@reviewer, @myStatistics=@myStatistics, @actualAvgFlag=@actualAvgFlag, @cycleID=@cycleID, @calibrated=@calibrated
  	";
  	$query = $this->connection->prepare($queryString);
@@ -1163,124 +1106,106 @@ class StatisticsDAO{
 	 @empno varchar(5)=:userid;
 	 SET @ParmDefinition = N'@region NVARCHAR(15), @projectCode varchar(5), @cycleID INT, @calibrated INT, @family varchar(10), @empno varchar(5)'
 	 
-		  IF @region IS NOT NULL AND @region <> '' AND @region = 'na'
-		   BEGIN
-					SELECT @sqlFilters = @sqlFilters + ' AND (emp.region in (''RAIS'', ''RAIC'', ''RAUS'', ''REGY'') or emp.pay_cs in (''5171'', ''5173'', ''5509'')) '
-					 SELECT @sqlFilters2 = @sqlFilters2 + ' AND (emp2.region in (''RAIS'', ''RAIC'', ''RAUS'', ''REGY'') or emp2.pay_cs in (''5171'', ''5173'', ''5509'')) ';
-			  END
+	 IF @region IS NOT NULL AND @region <> '' AND @region <> 'Select All'
+	  BEGIN
+			   SELECT @sqlFilters = @sqlFilters + ' AND emp.region = @region '
+				SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.region = @region ';
+	  END
+
+	 IF @projectCode IS NOT NULL AND @projectCode <> '' AND @projectCode <> 'Select All'
+		 BEGIN
+			 SELECT @sqlFilters = @sqlFilters + ' AND emp.pay_cs=@projectCode ';
+		 SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.pay_cs=@projectCode ';
+		 END
+	   
+	 IF @family IS NOT NULL AND @family <> '' AND @family <> 'Select All'
+	   BEGIN
+		   SELECT @sqlFilters = @sqlFilters + ' AND emp.family_Code=@family ';
+	   SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.family_code=@family ';
+	   END
+
+	 IF @family = 'Select All' AND (SELECT COUNT(*) FROM userDepartmentAccess WHERE empno=@empno)>0
+	   BEGIN
+		   SELECT @sqlFilters = @sqlFilters + ' AND emp.family_Code in (SELECT family_code FROM userDepartmentAccess WHERE empno=@empno)';
+	   SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.family_code in (SELECT family_code FROM userDepartmentAccess WHERE empno=@empno)';
+	   END
+
 		 
-		  IF @region IS NOT NULL AND @region <> '' AND @region = 'europe'
-			  BEGIN
-				  SELECT @sqlFilters = @sqlFilters + ' AND emp.region in (''RGRE'', ''RGEN'', ''RHOL'',''RZ01'',''RTRN'', ''RKAZ'') ';
-				  SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.region in (''RGRE'', ''RGEN'', ''RHOL'',''RZ01'',''RTRN'', ''RKAZ'') ';
-			  END
-	 
-		  IF @region IS NOT NULL AND @region <> '' AND @region = 'gulf'
-			  BEGIN
-				  SELECT @sqlFilters = @sqlFilters + ' AND emp.region in (''ROMN'', ''RQAT'', ''RUAE'', ''RDRD'',''RIRQ'',''RMUR'') and emp.pay_cs not in (''5171'', ''5173'', ''5509'') ';
-				  SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.region in (''ROMN'', ''RQAT'', ''RUAE'', ''RDRD'',''RIRQ'',''RMUR'') and emp2.pay_cs not in (''5171'', ''5173'', ''5509'') ';
-			  END
-	 
-		  IF @region IS NOT NULL AND @region <> '' AND @region = 'ksa'
-			  BEGIN
-				  SELECT @sqlFilters = @sqlFilters + ' AND emp.region in ( ''RSAR'', ''RCYP'')';
-				  SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.region in ( ''RSAR'', ''RCYP'')';
-			  END
-	 
-		  IF @projectCode IS NOT NULL AND @projectCode <> '' AND @projectCode <> 'Select All'
-			  BEGIN
-				  SELECT @sqlFilters = @sqlFilters + ' AND emp.pay_cs=@projectCode ';
-			  SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.pay_cs=@projectCode ';
-			  END
-			
-		  IF @family IS NOT NULL AND @family <> '' AND @family <> 'Select All'
-			BEGIN
-				SELECT @sqlFilters = @sqlFilters + ' AND emp.family_Code=@family ';
-			SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.family_code=@family ';
-			END
+	  SELECT @sql=N'
+	 Declare @currentCycleDesc varchar(50), @nextcycleid int, @nextCycleDesc varchar(50);
+	 SELECT @nextcycleid=EC.nextCycleID, @currentCycleDesc=EC.CycleDescription,   @nextCycleDesc=ECN.CycleDescription
+	 FROM EvaluationsCycle EC 
+	 LEFT JOIN EvaluationsCycle ECN on EC.nextCycleID=ECN.ID 
+	 WHERE EC.ID = @cycleID;
 
-		  IF @family = 'Select All' AND (SELECT COUNT(*) FROM userDepartmentAccess WHERE empno=@empno)>0
-			BEGIN
-				SELECT @sqlFilters = @sqlFilters + ' AND emp.family_Code in (SELECT family_code FROM userDepartmentAccess WHERE empno=@empno)';
-			SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.family_code in (SELECT family_code FROM userDepartmentAccess WHERE empno=@empno)';
-			END
+	 SELECT
+	 @currentCycleDesc as currentPeriodDescription,
+	 COUNT(*) AS totalAssignedCurrentPeriod, finishedCurrentPeriod.cnt AS completedCurrentPeriod,
+	 CAST((CAST(finishedCurrentPeriod.cnt AS DECIMAL(7,2)) / CAST(COUNT(*) AS DECIMAL(7,2))) AS DECIMAL(7,2)) AS precentageCurrentPeriod ,
+	 isnull(overallCurrentPeriod.OPerfImproNeededCount, 0) as OPerfImproNeededCount, isnull(overallCurrentPeriod.OBuildingCapabilityCount,0) as OBuildingCapabilityCount, 
+	 isnull(overallCurrentPeriod.OAchievingPerformanceCount,0) as OAchievingPerformanceCount, isnull(overallCurrentPeriod.OLeadingPerformanceCount, 0) as OLeadingPerformanceCount,
+	 @nextCycleDesc as nextPeriodDescription,
+	 countNextPeriod.cnt AS totalAssignedNextPeriod, finishedNextPeriod.cnt AS completedNextPeriod , CAST((CAST(finishedNextPeriod.cnt AS DECIMAL(7,2)) / CAST(countNextPeriod.cnt AS DECIMAL(7,2))) AS DECIMAL(7,2)) AS precentageNextPeriod
+	 FROM dbo.ReportingLine RL
+	 INNER JOIN dbo.vw_arco_employee emp ON emp.empno=rl.empnosource AND rl.state=5 and RL.cycleid=@cycleID
+	 OUTER APPLY(
+	 SELECT COUNT(*) AS cnt 
+	 FROM dbo.Evaluations E
+	 INNER JOIN dbo.ReportingLine RL2 ON rl2.empnosource=E.EmployeeID AND RL2.state=5
+	 INNER JOIN dbo.vw_arco_employee emp2 ON emp2.empno=rl2.empnosource AND rl2.state=5 
+	 WHERE E.CycleID=@cycleID AND RL2.cycleid=@cycleID';
+	 IF @calibrated=0
+	 BEGIN 
+	 SELECT @sql=@sql+' AND E.State IN (6,7)';
+	 END
+	 IF @calibrated=1
+	 BEGIN 
+	 SELECT @sql=@sql+' AND E.State=7';
+	 END
 
-			  
-		   SELECT @sql=N'
-		  Declare @currentCycleDesc varchar(50), @nextcycleid int, @nextCycleDesc varchar(50);
-		  SELECT @nextcycleid=EC.nextCycleID, @currentCycleDesc=EC.CycleDescription,   @nextCycleDesc=ECN.CycleDescription
-		  FROM EvaluationsCycle EC 
-		  LEFT JOIN EvaluationsCycle ECN on EC.nextCycleID=ECN.ID 
-		  WHERE EC.ID = @cycleID;
+	 SELECT @sql=@sql+@sqlFilters2+'
+	 ) finishedCurrentPeriod
+	 OUTER APPLY(
+	 SELECT SUM( CASE OSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS OPerfImproNeededCount,
+		   SUM( CASE OSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS OBuildingCapabilityCount,
+		   SUM( CASE OSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS OAchievingPerformanceCount,
+		   SUM( CASE OSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS OLeadingPerformanceCount
+		   FROM EvaluationScores ES
+	 INNER JOIN dbo.Evaluations E ON E.EvaluationID =ES.EvaluationID
+	 INNER JOIN dbo.vw_arco_employee emp2 ON emp2.empno=e.employeeid 
+	 WHERE E.CycleID=@cycleID';
+	 IF @calibrated=0
+	 BEGIN 
+	 SELECT @sql=@sql+' AND E.State IN (6,7) AND ES.State=5';
+	 END
+	 IF @calibrated=1
+	 BEGIN 
+	 SELECT @sql=@sql+' AND E.State=7 AND ES.State=6';
+	 END
+
+	 SELECT @sql=@sql+@sqlFilters2+'
+	 ) overallCurrentPeriod
+	 OUTER APPLY(
+	 SELECT COUNT(*) AS cnt FROM dbo.ReportingLine rl2
+	 INNER JOIN dbo.vw_arco_employee emp2 ON emp2.empno=rl2.empnosource AND rl2.state=5
+	 WHERE rl2.cycleid=@nextcycleid AND rl2.state=5
+	 '+@sqlFilters2+'
+	 ) countNextPeriod
+	 OUTER APPLY(
+	 SELECT COUNT(*) AS cnt FROM dbo.Evaluations  E
+	 INNER JOIN dbo.ReportingLine RL2 ON rl2.empnosource=E.EmployeeID AND RL2.state=5
+	 INNER JOIN dbo.vw_arco_employee emp2 ON emp2.empno=rl2.empnosource AND rl2.state=5 
+	 WHERE E.CycleID=@nextcycleid AND E.State>=2 AND RL2.cycleid=@nextcycleid 
+	 '+@sqlFilters2+'
+	 ) finishedNextPeriod
+	 WHERE RL.state=5 AND RL.cycleid=@cycleID ';
+	  
+	  --main filters
+	 SELECT @sql = @sql + @sqlFilters
+	 --group by
+	 SELECT @sql= @sql+' GROUP BY finishedCurrentPeriod.cnt, countNextPeriod.cnt, finishedNextPeriod.cnt, overallCurrentPeriod.OPerfImproNeededCount, overallCurrentPeriod.OBuildingCapabilityCount, overallCurrentPeriod.OAchievingPerformanceCount, overallCurrentPeriod.OLeadingPerformanceCount';
 	 
-		  SELECT
-		  @currentCycleDesc as currentPeriodDescription,
-		  COUNT(*) AS totalAssignedCurrentPeriod, finishedCurrentPeriod.cnt AS completedCurrentPeriod,
-		  CAST((CAST(finishedCurrentPeriod.cnt AS DECIMAL(7,2)) / CAST(COUNT(*) AS DECIMAL(7,2))) AS DECIMAL(7,2)) AS precentageCurrentPeriod ,
-		  isnull(overallCurrentPeriod.OPerfImproNeededCount, 0) as OPerfImproNeededCount, isnull(overallCurrentPeriod.OBuildingCapabilityCount,0) as OBuildingCapabilityCount, 
-		  isnull(overallCurrentPeriod.OAchievingPerformanceCount,0) as OAchievingPerformanceCount, isnull(overallCurrentPeriod.OLeadingPerformanceCount, 0) as OLeadingPerformanceCount,
-		  @nextCycleDesc as nextPeriodDescription,
-		  countNextPeriod.cnt AS totalAssignedNextPeriod, finishedNextPeriod.cnt AS completedNextPeriod , CAST((CAST(finishedNextPeriod.cnt AS DECIMAL(7,2)) / CAST(countNextPeriod.cnt AS DECIMAL(7,2))) AS DECIMAL(7,2)) AS precentageNextPeriod
-		  FROM dbo.ReportingLine RL
-		  INNER JOIN dbo.vw_arco_employee emp ON emp.empno=rl.empnosource AND rl.state=5
-		  OUTER APPLY(
-		  SELECT COUNT(*) AS cnt 
-		  FROM dbo.Evaluations E
-		  INNER JOIN dbo.ReportingLine RL2 ON rl2.empnosource=E.EmployeeID AND RL2.state=5
-		  INNER JOIN dbo.vw_arco_employee emp2 ON emp2.empno=rl2.empnosource AND rl2.state=5 
-		  WHERE E.CycleID=@cycleID AND RL2.excludeFromCycles<>@cycleID';
-		  IF @calibrated=0
-		  BEGIN 
-		  SELECT @sql=@sql+' AND E.State IN (6,7)';
-		  END
-		  IF @calibrated=1
-		  BEGIN 
-		  SELECT @sql=@sql+' AND E.State=7';
-		  END
-
-		  SELECT @sql=@sql+@sqlFilters2+'
-		  ) finishedCurrentPeriod
-		  OUTER APPLY(
-		  SELECT SUM( CASE OSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS OPerfImproNeededCount,
-				SUM( CASE OSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS OBuildingCapabilityCount,
-				SUM( CASE OSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS OAchievingPerformanceCount,
-				SUM( CASE OSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS OLeadingPerformanceCount
-				FROM EvaluationScores ES
-		  INNER JOIN dbo.Evaluations E ON E.EvaluationID =ES.EvaluationID
-		  INNER JOIN dbo.vw_arco_employee emp2 ON emp2.empno=e.employeeid 
-		  WHERE E.CycleID=@cycleID';
-		  IF @calibrated=0
-		  BEGIN 
-		  SELECT @sql=@sql+' AND E.State IN (6,7) AND ES.State=5';
-		  END
-		  IF @calibrated=1
-		  BEGIN 
-		  SELECT @sql=@sql+' AND E.State=7 AND ES.State=6';
-		  END
-
-		  SELECT @sql=@sql+@sqlFilters2+'
-		  ) overallCurrentPeriod
-		  OUTER APPLY(
-		  SELECT COUNT(*) AS cnt FROM dbo.ReportingLine rl2
-		  INNER JOIN dbo.vw_arco_employee emp2 ON emp2.empno=rl2.empnosource AND rl2.state=5
-		  WHERE rl2.excludeFromCycles<>@nextcycleid AND rl2.state=5
-		  '+@sqlFilters2+'
-		  ) countNextPeriod
-		  OUTER APPLY(
-		  SELECT COUNT(*) AS cnt FROM dbo.Evaluations  E
-		  INNER JOIN dbo.ReportingLine RL2 ON rl2.empnosource=E.EmployeeID AND RL2.state=5
-		  INNER JOIN dbo.vw_arco_employee emp2 ON emp2.empno=rl2.empnosource AND rl2.state=5 
-		  WHERE E.CycleID=@nextcycleid AND E.State>=2 AND RL2.excludeFromCycles<>@nextcycleid 
-		  '+@sqlFilters2+'
-		  ) finishedNextPeriod
-		  WHERE RL.state=5 AND RL.excludeFromCycles<>@cycleID ';
-		   
-		   --main filters
-		  SELECT @sql = @sql + @sqlFilters
-		  --group by
-		  SELECT @sql= @sql+' GROUP BY finishedCurrentPeriod.cnt, countNextPeriod.cnt, finishedNextPeriod.cnt, overallCurrentPeriod.OPerfImproNeededCount, overallCurrentPeriod.OBuildingCapabilityCount, overallCurrentPeriod.OAchievingPerformanceCount, overallCurrentPeriod.OLeadingPerformanceCount';
-		  
-		  EXEC sp_ExecuteSQL @sql,  @ParmDefinition, @region=@region, @projectCode=@projectCode, @cycleID=@cycleID, @calibrated=@calibrated, @family=@family, @empno=@empno";
+	 EXEC sp_ExecuteSQL @sql,  @ParmDefinition, @region=@region, @projectCode=@projectCode, @cycleID=@cycleID, @calibrated=@calibrated, @family=@family, @empno=@empno";
 	 $query = $this->connection->prepare($queryString);
 	 $query->bindValue(':region', $filters['region'], PDO::PARAM_STR);
 	 $query->bindValue(':projectCode', $filters['project'], PDO::PARAM_STR);
@@ -1309,134 +1234,116 @@ class StatisticsDAO{
 	@empno varchar(5)=:userid;
 	SET @ParmDefinition = N'@region NVARCHAR(15), @projectCode varchar(5), @cycleID INT, @calibrated INT, @family varchar(10), @empno varchar(5)'
 	
-	IF @region IS NOT NULL AND @region <> '' AND @region = 'na'
-	BEGIN
-		SELECT @sqlFilters = @sqlFilters + ' AND (emp.region in (''RAIS'', ''RAIC'', ''RAUS'', ''REGY'') or emp.pay_cs in (''5171'', ''5173'', ''5509'')) ';
-	END
+		IF @region IS NOT NULL AND @region <> '' AND @region <> 'Select All'
+			BEGIN
+					SELECT @sqlFilters = @sqlFilters + ' AND emp.region = @region ';
+			END
 
-IF @region IS NOT NULL AND @region <> '' AND @region = 'europe'
-	BEGIN
-		SELECT @sqlFilters = @sqlFilters + ' AND emp.region in (''RGRE'', ''RGEN'', ''RHOL'',''RZ01'',''RTRN'', ''RKAZ'') ';
-	END
+		IF @projectCode IS NOT NULL AND @projectCode <> '' AND @projectCode <> 'Select All'
+			BEGIN
+				SELECT @sqlFilters = @sqlFilters + ' AND emp.pay_cs=@projectCode ';
+			END
 
-IF @region IS NOT NULL AND @region <> '' AND @region = 'gulf'
-	BEGIN
-		SELECT @sqlFilters = @sqlFilters + ' AND emp.region in (''ROMN'', ''RQAT'', ''RUAE'', ''RDRD'',''RIRQ'',''RMUR'') and emp.pay_cs not in (''5171'', ''5173'', ''5509'') ';
-   END
+		IF @family IS NOT NULL AND @family <> '' AND @family <> 'Select All'
+			BEGIN
+				SELECT @sqlFilters = @sqlFilters + ' AND emp.family_code=@family ';
+			END
 
-IF @region IS NOT NULL AND @region <> '' AND @region = 'ksa'
-	BEGIN
-		SELECT @sqlFilters = @sqlFilters + ' AND emp.region in ( ''RSAR'', ''RCYP'')';
-	END
+		IF @family = 'Select All' AND (SELECT COUNT(*) FROM userDepartmentAccess WHERE empno=@empno)>0
+			BEGIN
+				SELECT @sqlFilters = @sqlFilters + ' AND emp.family_Code in (SELECT family_code FROM userDepartmentAccess WHERE empno=@empno)';
+			END
 
-IF @projectCode IS NOT NULL AND @projectCode <> '' AND @projectCode <> 'Select All'
-	BEGIN
-		SELECT @sqlFilters = @sqlFilters + ' AND emp.pay_cs=@projectCode ';
-	END
+		SELECT @sql=N'
+		Declare @currentCycleDesc varchar(50), @nextcycleid int, @nextCycleDesc varchar(50);
+		SELECT @nextcycleid=EC.nextCycleID, @currentCycleDesc=EC.CycleDescription,   @nextCycleDesc=ECN.CycleDescription
+		FROM EvaluationsCycle EC 
+		LEFT JOIN EvaluationsCycle ECN on EC.nextCycleID=ECN.ID 
+		WHERE EC.ID = @cycleID;
+		WITH regions_CTE( regionCode, OPerfImproNeededCount, OBuildingCapabilityCount, OAchievingPerformanceCount, OLeadingPerformanceCount)
+		AS
+		(
+		SELECT 
+		emp.region as regionCode,
+		SUM( CASE ES.OSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS OPerfImproNeededCount,
+		SUM( CASE ES.OSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS OBuildingCapabilityCount,
+		SUM( CASE ES.OSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS OAchievingPerformanceCount,
+		SUM( CASE ES.OSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS OLeadingPerformanceCount
+		FROM dbo.EvaluationScores ES
+		INNER JOIN dbo.Evaluations E ON E.EvaluationID=ES.EvaluationID
+		INNER JOIN dbo.vw_arco_employee EMP ON E.EmployeeID=EMP.empno
+		WHERE E.CycleID=@cycleID';
+		--calibrated
+		IF @calibrated=0
+		BEGIN 
+		SELECT @sql=@sql+' AND E.State IN (5,7) AND ES.State=5 ';
+		END
+		IF @calibrated=1
+		BEGIN 
+		SELECT @sql=@sql+' AND E.State=7 AND ES.State=6 ';
+		END
 
-IF @family IS NOT NULL AND @family <> '' AND @family <> 'Select All'
-	BEGIN
-		SELECT @sqlFilters = @sqlFilters + ' AND emp.family_code=@family ';
-	END
-
-IF @family = 'Select All' AND (SELECT COUNT(*) FROM userDepartmentAccess WHERE empno=@empno)>0
-	BEGIN
-		SELECT @sqlFilters = @sqlFilters + ' AND emp.family_Code in (SELECT family_code FROM userDepartmentAccess WHERE empno=@empno)';
-	END
-
-SELECT @sql=N'
-Declare @currentCycleDesc varchar(50), @nextcycleid int, @nextCycleDesc varchar(50);
-SELECT @nextcycleid=EC.nextCycleID, @currentCycleDesc=EC.CycleDescription,   @nextCycleDesc=ECN.CycleDescription
-FROM EvaluationsCycle EC 
-LEFT JOIN EvaluationsCycle ECN on EC.nextCycleID=ECN.ID 
-WHERE EC.ID = @cycleID;
-WITH regions_CTE( regionCode, OPerfImproNeededCount, OBuildingCapabilityCount, OAchievingPerformanceCount, OLeadingPerformanceCount)
-AS
-(
-SELECT 
-CASE WHEN (emp.region in (''RAIS'', ''RAIC'', ''RAUS'', ''REGY'') or emp.pay_cs in (''5171'', ''5173'', ''5509'')) THEN ''NA'' 
-WHEN emp.region in (''RGRE'', ''RGEN'', ''RHOL'',''RZ01'',''RTRN'', ''RKAZ'') THEN ''EUROPE''
-WHEN emp.region in (''ROMN'', ''RQAT'', ''RUAE'', ''RDRD'',''RIRQ'',''RMUR'', ''RLIB'') and emp.pay_cs not in (''5171'', ''5173'', ''5509'') THEN ''GULF''
-WHEN emp.region in ( ''RSAR'', ''RCYP'') THEN ''KSA'' ELSE ''OTHER'' END as regionCode,
-SUM( CASE ES.OSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS OPerfImproNeededCount,
-SUM( CASE ES.OSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS OBuildingCapabilityCount,
-SUM( CASE ES.OSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS OAchievingPerformanceCount,
-SUM( CASE ES.OSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS OLeadingPerformanceCount
-FROM dbo.EvaluationScores ES
-INNER JOIN dbo.Evaluations E ON E.EvaluationID=ES.EvaluationID
-INNER JOIN dbo.vw_arco_employee EMP ON E.EmployeeID=EMP.empno
-WHERE E.CycleID=@cycleID';
---calibrated
-IF @calibrated=0
-BEGIN 
-SELECT @sql=@sql+' AND E.State IN (5,7) AND ES.State=5 ';
-END
-IF @calibrated=1
-BEGIN 
-SELECT @sql=@sql+' AND E.State=7 AND ES.State=6 ';
-END
-
-SELECT @sql = @sql + @sqlFilters
-SELECT @sql = @sql + ' GROUP BY emp.region, emp.pay_cs
-)
-SELECT regions_CTE.regionCode, 
-@currentCycleDesc as currentPeriodDescription, 
-SUM(regions_CTE.OPerfImproNeededCount) AS OPerfImproNeededCount,
-CAST(ROUND(CAST (
-	SUM(regions_CTE.OPerfImproNeededCount)/
-	CAST(
-		SUM(regions_CTE.OPerfImproNeededCount)+SUM(regions_CTE.OBuildingCapabilityCount)+
-		SUM(regions_CTE.OAchievingPerformanceCount)+SUM(regions_CTE.OLeadingPerformanceCount) 
-		AS FLOAT
+		SELECT @sql = @sql + @sqlFilters
+		SELECT @sql = @sql + ' GROUP BY emp.region 
 		)
-	AS FLOAT
-	)
-* 100
-,2) as FLOAT) 
-AS OPerfImproNeededPerc,
-SUM(regions_CTE.OBuildingCapabilityCount) AS OBuildingCapabilityCount,
-	CAST(ROUND(CAST (
-		SUM(regions_CTE.OBuildingCapabilityCount)/
-		CAST(
-			SUM(regions_CTE.OPerfImproNeededCount)+SUM(regions_CTE.OBuildingCapabilityCount)+
-			SUM(regions_CTE.OAchievingPerformanceCount)+SUM(regions_CTE.OLeadingPerformanceCount) 
-			AS float
+		SELECT regions_CTE.regionCode, 
+		@currentCycleDesc as currentPeriodDescription, 
+		SUM(regions_CTE.OPerfImproNeededCount) AS OPerfImproNeededCount,
+		CAST(ROUND(CAST (
+			SUM(regions_CTE.OPerfImproNeededCount)/
+			CAST(
+				SUM(regions_CTE.OPerfImproNeededCount)+SUM(regions_CTE.OBuildingCapabilityCount)+
+				SUM(regions_CTE.OAchievingPerformanceCount)+SUM(regions_CTE.OLeadingPerformanceCount) 
+				AS FLOAT
+				)
+			AS FLOAT
 			)
-		AS FLOAT
-		)
-	* 100
-	,2) as FLOAT) 
-	AS OBuildingCapabilityPerc,
-SUM(regions_CTE.OAchievingPerformanceCount) AS OAchievingPerformanceCount,
-CAST(ROUND(CAST (
-	SUM(regions_CTE.OAchievingPerformanceCount)/
-	CAST(
-		SUM(regions_CTE.OPerfImproNeededCount)+SUM(regions_CTE.OBuildingCapabilityCount)+
-		SUM(regions_CTE.OAchievingPerformanceCount)+SUM(regions_CTE.OLeadingPerformanceCount) 
-		AS float
-		)
-	AS FLOAT
-	)
-* 100
-,2) as FLOAT) 
-AS OAchievingPerformancePerc,
-SUM(regions_CTE.OLeadingPerformanceCount) AS OLeadingPerformanceCount,
-CAST(ROUND(CAST (
-	SUM(regions_CTE.OLeadingPerformanceCount)/
-	CAST(
-		SUM(regions_CTE.OPerfImproNeededCount)+SUM(regions_CTE.OBuildingCapabilityCount)+
-		SUM(regions_CTE.OAchievingPerformanceCount)+SUM(regions_CTE.OLeadingPerformanceCount) 
-		AS float
-		)
-	AS FLOAT
-	)
-* 100
-,2) as FLOAT) 
-AS OLeadingPerformancePerc
-FROM Regions_CTE
-GROUP BY regions_CTE.regionCode
-';
-EXEC sp_ExecuteSQL @sql,  @ParmDefinition, @region=@region, @projectCode=@projectCode, @cycleID=@cycleID, @calibrated=@calibrated, @family=@family, @empno=@empno
+		* 100
+		,2) as FLOAT) 
+		AS OPerfImproNeededPerc,
+		SUM(regions_CTE.OBuildingCapabilityCount) AS OBuildingCapabilityCount,
+			CAST(ROUND(CAST (
+				SUM(regions_CTE.OBuildingCapabilityCount)/
+				CAST(
+					SUM(regions_CTE.OPerfImproNeededCount)+SUM(regions_CTE.OBuildingCapabilityCount)+
+					SUM(regions_CTE.OAchievingPerformanceCount)+SUM(regions_CTE.OLeadingPerformanceCount) 
+					AS float
+					)
+				AS FLOAT
+				)
+			* 100
+			,2) as FLOAT) 
+			AS OBuildingCapabilityPerc,
+		SUM(regions_CTE.OAchievingPerformanceCount) AS OAchievingPerformanceCount,
+		CAST(ROUND(CAST (
+			SUM(regions_CTE.OAchievingPerformanceCount)/
+			CAST(
+				SUM(regions_CTE.OPerfImproNeededCount)+SUM(regions_CTE.OBuildingCapabilityCount)+
+				SUM(regions_CTE.OAchievingPerformanceCount)+SUM(regions_CTE.OLeadingPerformanceCount) 
+				AS float
+				)
+			AS FLOAT
+			)
+		* 100
+		,2) as FLOAT) 
+		AS OAchievingPerformancePerc,
+		SUM(regions_CTE.OLeadingPerformanceCount) AS OLeadingPerformanceCount,
+		CAST(ROUND(CAST (
+			SUM(regions_CTE.OLeadingPerformanceCount)/
+			CAST(
+				SUM(regions_CTE.OPerfImproNeededCount)+SUM(regions_CTE.OBuildingCapabilityCount)+
+				SUM(regions_CTE.OAchievingPerformanceCount)+SUM(regions_CTE.OLeadingPerformanceCount) 
+				AS float
+				)
+			AS FLOAT
+			)
+		* 100
+		,2) as FLOAT) 
+		AS OLeadingPerformancePerc
+		FROM Regions_CTE
+		GROUP BY regions_CTE.regionCode
+		';
+		EXEC sp_ExecuteSQL @sql,  @ParmDefinition, @region=@region, @projectCode=@projectCode, @cycleID=@cycleID, @calibrated=@calibrated, @family=@family, @empno=@empno
 	  ";
 		
 	  $query = $this->connection->prepare($queryString);
@@ -1468,84 +1375,62 @@ EXEC sp_ExecuteSQL @sql,  @ParmDefinition, @region=@region, @projectCode=@projec
 	@empno varchar(5)=:userid;
 	SET @ParmDefinition = N'@region NVARCHAR(15), @projectCode varchar(5), @cycleID INT, @calibrated INT, @family varchar(10), @empno varchar(5)'
 	
-	 IF @region IS NOT NULL AND @region <> '' AND @region = 'na'
-		 BEGIN
-			 SELECT @sqlFilters = @sqlFilters + ' AND (emp.region in (''RAIS'', ''RAIC'', ''RAUS'', ''REGY'') or emp.pay_cs in (''5171'', ''5173'', ''5509'')) ';
-			 SELECT @sqlFilters2 = @sqlFilters2 + ' AND (emp2.region in (''RAIS'', ''RAIC'', ''RAUS'', ''REGY'') or emp2.pay_cs in (''5171'', ''5173'', ''5509'')) ';
-		 END
-	
-	 IF @region IS NOT NULL AND @region <> '' AND @region = 'europe'
-		 BEGIN
-			 SELECT @sqlFilters = @sqlFilters + ' AND emp.region in (''RGRE'', ''RGEN'', ''RHOL'',''RZ01'',''RTRN'', ''RKAZ'') ';
-			 SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.region in (''RGRE'', ''RGEN'', ''RHOL'',''RZ01'',''RTRN'', ''RKAZ'') ';
-		 END
-
-	 IF @region IS NOT NULL AND @region <> '' AND @region = 'gulf'
-		 BEGIN
-			 SELECT @sqlFilters = @sqlFilters + ' AND emp.region in (''ROMN'', ''RQAT'', ''RUAE'', ''RDRD'',''RIRQ'',''RMUR'') and emp.pay_cs not in (''5171'', ''5173'', ''5509'') ';
-			 SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.region in (''ROMN'', ''RQAT'', ''RUAE'', ''RDRD'',''RIRQ'',''RMUR'') and emp2.pay_cs not in (''5171'', ''5173'', ''5509'') ';
-		 END
-
-	 IF @region IS NOT NULL AND @region <> '' AND @region = 'ksa'
-		 BEGIN
-			 SELECT @sqlFilters = @sqlFilters + ' AND emp.region in ( ''RSAR'', ''RCYP'')';
-			 SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.region in ( ''RSAR'', ''RCYP'')';
-		 END
+	 IF @region IS NOT NULL AND @region <> '' AND @region <> 'Select All'
+	  BEGIN
+			   SELECT @sqlFilters = @sqlFilters + ' AND emp.region = @region ';
+	  END
 
 	 IF @projectCode IS NOT NULL AND @projectCode <> '' AND @projectCode <> 'Select All'
 		 BEGIN
 			 SELECT @sqlFilters = @sqlFilters + ' AND emp.pay_cs=@projectCode ';
-		 SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.pay_cs=@projectCode ';
 		 END
 	IF @family IS NOT NULL AND @family <> '' AND @family <> 'Select All'
 		 BEGIN
 			 SELECT @sqlFilters = @sqlFilters + ' AND emp.family_code=@family ';
-		 SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.family_code=@family ';
 		 END
 	
 	IF @family = 'Select All' AND (SELECT COUNT(*) FROM userDepartmentAccess WHERE empno=@empno)>0
 		 BEGIN
 			 SELECT @sqlFilters = @sqlFilters + ' AND emp.family_Code in (SELECT family_code FROM userDepartmentAccess WHERE empno=@empno)';
-		 SELECT @sqlFilters2 = @sqlFilters2 + ' AND emp2.family_code in (SELECT family_code FROM userDepartmentAccess WHERE empno=@empno)';
 		 END
- SELECT @sql=N'
- Declare @currentCycleDesc varchar(50), @nextcycleid int, @nextCycleDesc varchar(50);
- SELECT @nextcycleid=EC.nextCycleID, @currentCycleDesc=EC.CycleDescription,   @nextCycleDesc=ECN.CycleDescription
- FROM EvaluationsCycle EC 
- LEFT JOIN EvaluationsCycle ECN on EC.nextCycleID=ECN.ID 
- WHERE EC.ID = @cycleID;
- SELECT @currentCycleDesc as currentPeriodDescription, 
- SUM( CASE ES.PSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS PPerfImproNeededCount,
- SUM( CASE ES.PSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS PBuildingCapabilityCount,
- SUM( CASE ES.PSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS PAchievingPerformanceCount,
- SUM( CASE ES.PSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS PLeadingPerformanceCount,
- SUM( CASE ES.GSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS GPerfImproNeededCount,
- SUM( CASE ES.GSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS GBuildingCapabilityCount,
- SUM( CASE ES.GSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS GAchievingPerformanceCount,
- SUM( CASE ES.GSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS GLeadingPerformanceCount,
- SUM( CASE ES.CSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS CPerfImproNeededCount,
- SUM( CASE ES.CSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS CBuildingCapabilityCount,
- SUM( CASE ES.CSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS CAchievingPerformanceCount,
- SUM( CASE ES.CSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS CLeadingPerformanceCount,
- SUM( CASE ES.LSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS LPerfImproNeededCount,
- SUM( CASE ES.LSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS LBuildingCapabilityCount,
- SUM( CASE ES.LSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS LAchievingPerformanceCount,
- SUM( CASE ES.LSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS LLeadingPerformanceCount 
- FROM dbo.EvaluationScores ES
-INNER JOIN dbo.Evaluations E ON E.EvaluationID=ES.EvaluationID
-INNER JOIN dbo.vw_arco_employee EMP ON E.EmployeeID=EMP.empno
-WHERE E.CycleID=@cycleID';
---calibrated
-IF @calibrated=0
-BEGIN 
-SELECT @sql=@sql+' AND E.State IN (6,7) AND ES.State=5';
-END
-IF @calibrated=1
-BEGIN 
-SELECT @sql=@sql+' AND E.State=7 AND ES.State=6';
-END
- SELECT @sql = @sql + @sqlFilters
- EXEC sp_ExecuteSQL @sql,  @ParmDefinition, @region=@region, @projectCode=@projectCode, @cycleID=@cycleID, @calibrated=@calibrated, @family=@family, @empno=@empno			 
+	SELECT @sql=N'
+	Declare @currentCycleDesc varchar(50), @nextcycleid int, @nextCycleDesc varchar(50);
+	SELECT @nextcycleid=EC.nextCycleID, @currentCycleDesc=EC.CycleDescription,   @nextCycleDesc=ECN.CycleDescription
+	FROM EvaluationsCycle EC 
+	LEFT JOIN EvaluationsCycle ECN on EC.nextCycleID=ECN.ID 
+	WHERE EC.ID = @cycleID;
+	SELECT @currentCycleDesc as currentPeriodDescription, 
+	SUM( CASE ES.PSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS PPerfImproNeededCount,
+	SUM( CASE ES.PSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS PBuildingCapabilityCount,
+	SUM( CASE ES.PSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS PAchievingPerformanceCount,
+	SUM( CASE ES.PSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS PLeadingPerformanceCount,
+	SUM( CASE ES.GSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS GPerfImproNeededCount,
+	SUM( CASE ES.GSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS GBuildingCapabilityCount,
+	SUM( CASE ES.GSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS GAchievingPerformanceCount,
+	SUM( CASE ES.GSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS GLeadingPerformanceCount,
+	SUM( CASE ES.CSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS CPerfImproNeededCount,
+	SUM( CASE ES.CSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS CBuildingCapabilityCount,
+	SUM( CASE ES.CSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS CAchievingPerformanceCount,
+	SUM( CASE ES.CSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS CLeadingPerformanceCount,
+	SUM( CASE ES.LSDescription WHEN ''Performance Improvement Needed'' THEN 1 ELSE 0 END) AS LPerfImproNeededCount,
+	SUM( CASE ES.LSDescription WHEN ''Building Capability'' THEN 1 ELSE 0 END) AS LBuildingCapabilityCount,
+	SUM( CASE ES.LSDescription WHEN ''Achieving Performance'' THEN 1 ELSE 0 END) AS LAchievingPerformanceCount,
+	SUM( CASE ES.LSDescription WHEN ''Leading Performance'' THEN 1 ELSE 0 END) AS LLeadingPerformanceCount 
+	FROM dbo.EvaluationScores ES
+	INNER JOIN dbo.Evaluations E ON E.EvaluationID=ES.EvaluationID
+	INNER JOIN dbo.vw_arco_employee EMP ON E.EmployeeID=EMP.empno
+	WHERE E.CycleID=@cycleID';
+	--calibrated
+	IF @calibrated=0
+	BEGIN 
+	SELECT @sql=@sql+' AND E.State IN (6,7) AND ES.State=5';
+	END
+	IF @calibrated=1
+	BEGIN 
+	SELECT @sql=@sql+' AND E.State=7 AND ES.State=6';
+	END
+	SELECT @sql = @sql + @sqlFilters
+	EXEC sp_ExecuteSQL @sql,  @ParmDefinition, @region=@region, @projectCode=@projectCode, @cycleID=@cycleID, @calibrated=@calibrated, @family=@family, @empno=@empno			 
 	  ";
 	  $query = $this->connection->prepare($queryString);
 	  $query->bindValue(':region', $filters['region'], PDO::PARAM_STR);
@@ -1578,29 +1463,10 @@ END
 	@empno varchar(5)=:userid;
 	SET @ParmDefinition = N'@region NVARCHAR(15), @projectCode varchar(5), @cycleID INT, @calibrated INT, @family varchar(10), @empno varchar(5)'
 	
-	 IF @region IS NOT NULL AND @region <> '' AND @region = 'na'
-		 BEGIN
-			 SELECT @sqlFilters = @sqlFilters + ' AND (emp.region in (''RAIS'', ''RAIC'', ''RAUS'', ''REGY'') or emp.pay_cs in (''5171'', ''5173'', ''5509'')) ';
-			
-		 END
-	
-	 IF @region IS NOT NULL AND @region <> '' AND @region = 'europe'
-		 BEGIN
-			 SELECT @sqlFilters = @sqlFilters + ' AND emp.region in (''RGRE'', ''RGEN'', ''RHOL'',''RZ01'',''RTRN'', ''RKAZ'') ';
-			
-		 END
-
-	 IF @region IS NOT NULL AND @region <> '' AND @region = 'gulf'
-		 BEGIN
-			 SELECT @sqlFilters = @sqlFilters + ' AND emp.region in (''ROMN'', ''RQAT'', ''RUAE'', ''RDRD'',''RIRQ'',''RMUR'') and emp.pay_cs not in (''5171'', ''5173'', ''5509'') ';
-			
-		 END
-
-	 IF @region IS NOT NULL AND @region <> '' AND @region = 'ksa'
-		 BEGIN
-			 SELECT @sqlFilters = @sqlFilters + ' AND emp.region in ( ''RSAR'', ''RCYP'')';
-			
-		 END
+	 IF @region IS NOT NULL AND @region <> '' AND @region <> 'Select All'
+	  BEGIN
+			   SELECT @sqlFilters = @sqlFilters + ' AND emp.region = @region ';
+	  END
 
 	 IF @projectCode IS NOT NULL AND @projectCode <> '' AND @projectCode <> 'Select All'
 		 BEGIN
@@ -1630,8 +1496,11 @@ END
 			INNER JOIN	dbo.vw_arco_employee emp ON emp.empno=E.EmployeeID
 			INNER JOIN dbo.Questions Q ON A.QuestionID=Q.ID AND q.QuestionTypeID=1
 			INNER JOIN dbo.QuestionSections QS ON QS.ID=Q.SectionID
+			INNER JOIN dbo.QuestionConfig QSC on QSC.QuestionID=Q.ID
+			INNER JOIN dbo.QuestionConfigCycle QSCC on QSC.id=QSCC.QuestionConfigID
 			WHERE QS.ID<>3 --Not Goals
 			AND Q.QuestionTypeID =1 --only questions with 1-4 input
+			AND QSCC.CycleID=@cycleID
 			';
 			--calibrated
 			IF @calibrated=0
@@ -1649,7 +1518,7 @@ END
 		GROUP BY QS.ID, QS.SectionDescription, Q.ID, Q.QuestionDescripton
 		ORDER BY QS.ID, Q.ID';
 		EXEC sp_ExecuteSQL @sql,  @ParmDefinition, @region=@region, @projectCode=@projectCode, @cycleID=@cycleID, @calibrated=@calibrated, @family=@family, 
-		@empno=@empno		 
+		@empno=@empno	 
 	  ";
 	  $query = $this->connection->prepare($queryString);
 	  $query->bindValue(':region', $filters['region'], PDO::PARAM_STR);
@@ -1679,29 +1548,13 @@ public function GetSatisfactionByQuestion($filters)
 	DECLARE @ParmDefinition NVARCHAR(max);
 	DECLARE  @region NVARCHAR(15)=:region, @projectCode varchar(5)=:projectCode, @cycleID INT=:cycleid,  @calibrated INT =:calibrated,  
 	@family varchar(10)=:family, @empno varchar(5)=:userid;
-	
-	
+
 	SET @ParmDefinition = N'@region NVARCHAR(15), @projectCode varchar(5),  @cycleID INT, @calibrated INT, @family varchar(10), @empno varchar(5)'
 
-	IF @region IS NOT NULL AND @region <> '' AND @region = 'NA'
-	 BEGIN
-			  SELECT @sqlFilters = @sqlFilters + ' AND (emp.region in (''RAIS'', ''RAIC'', ''RAUS'', ''REGY'') or emp.pay_cs in (''5171'', ''5173'', ''5509'')) '
-	 END
-
-	IF @region IS NOT NULL AND @region <> '' AND @region = 'EUROPE'
-	 BEGIN
-			  SELECT @sqlFilters = @sqlFilters + ' AND emp.region in (''RGRE'', ''RGEN'', ''RHOL'',''RZ01'',''RTRN'', ''RKAZ'') '
-	 END
-
-	IF @region IS NOT NULL AND @region <> '' AND @region = 'GULF'
-	 BEGIN
-			  SELECT @sqlFilters = @sqlFilters + ' AND emp.region in (''ROMN'', ''RQAT'', ''RUAE'', ''RDRD'',''RIRQ'',''RMUR'') and emp.pay_cs not in (''5171'', ''5173'', ''5509'') '
-	 END
-
-	IF @region IS NOT NULL AND @region <> '' AND @region = 'KSA'
-	 BEGIN
-			  SELECT @sqlFilters = @sqlFilters + ' AND emp.region in ( ''RSAR'', ''RCYP'')'
-	 END
+	 IF @region IS NOT NULL AND @region <> '' AND @region <> 'Select All'
+	  BEGIN
+			   SELECT @sqlFilters = @sqlFilters + ' AND emp.region = @region ';
+	  END
 
 	 IF @projectCode IS NOT NULL AND @projectCode <> '' AND @projectCode <> 'Select All'
 	 BEGIN
@@ -1734,9 +1587,11 @@ public function GetSatisfactionByQuestion($filters)
 		 SUM( CASE a.Answer WHEN ''Very Satisfied'' THEN 1 ELSE 0 END)  AS vsatisfiedCnt
 	FROM dbo.Answers A
 	INNER JOIN dbo.Questions Q ON Q.ID=A.QuestionID
+	INNER JOIN dbo.QuestionConfig QSC on QSC.QuestionID=Q.ID
+	INNER JOIN dbo.QuestionConfigCycle QSCC on QSC.id=QSCC.QuestionConfigID
 	INNER JOIN dbo.Evaluations E ON E.EvaluationID=A.EvaluationID
 	INNER JOIN dbo.vw_arco_employee EMP ON EMP.empno=E.EmployeeID
-	WHERE A.QuestionID IN (12,14) AND E.CycleID=@cycleID';
+	WHERE A.QuestionID IN (12,14) AND E.CycleID=@cycleID AND QSCC.CycleID=@cycleID';
 	--calibrated
 	IF @calibrated=0
 	BEGIN 
@@ -1786,25 +1641,10 @@ public function GetSatisfactionByGradeQuestion($filters)
 	
 	SET @ParmDefinition = N'@region NVARCHAR(15), @projectCode varchar(5),  @cycleID INT, @questionid INT, @calibrated INT, @family varchar(10), @empno varchar(5)'
 
-	IF @region IS NOT NULL AND @region <> '' AND @region = 'NA'
-	 BEGIN
-			  SELECT @sqlFilters = @sqlFilters + ' AND (emp.region in (''RAIS'', ''RAIC'', ''RAUS'', ''REGY'') or emp.pay_cs in (''5171'', ''5173'', ''5509'')) '
-	 END
-
-	IF @region IS NOT NULL AND @region <> '' AND @region = 'EUROPE'
-	 BEGIN
-			  SELECT @sqlFilters = @sqlFilters + ' AND emp.region in (''RGRE'', ''RGEN'', ''RHOL'',''RZ01'',''RTRN'', ''RKAZ'') '
-	 END
-
-	IF @region IS NOT NULL AND @region <> '' AND @region = 'GULF'
-	 BEGIN
-			  SELECT @sqlFilters = @sqlFilters + ' AND emp.region in (''ROMN'', ''RQAT'', ''RUAE'', ''RDRD'',''RIRQ'',''RMUR'') and emp.pay_cs not in (''5171'', ''5173'', ''5509'') '
-	 END
-
-	IF @region IS NOT NULL AND @region <> '' AND @region = 'KSA'
-	 BEGIN
-			  SELECT @sqlFilters = @sqlFilters + ' AND emp.region in ( ''RSAR'', ''RCYP'')'
-	 END
+	IF @region IS NOT NULL AND @region <> '' AND @region <> 'Select All'
+	  BEGIN
+			   SELECT @sqlFilters = @sqlFilters + ' AND emp.region = @region ';
+	  END
 
 	 IF @projectCode IS NOT NULL AND @projectCode <> '' AND @projectCode <> 'Select All'
 	 BEGIN
@@ -1837,9 +1677,11 @@ public function GetSatisfactionByGradeQuestion($filters)
 	SUM( CASE a.Answer WHEN ''Very Satisfied'' THEN 1 ELSE 0 END)  AS vsatisfiedCnt
 	FROM dbo.Answers A
 	INNER JOIN dbo.Questions Q ON Q.ID=A.QuestionID
+	INNER JOIN dbo.QuestionConfig QSC on QSC.QuestionID=Q.ID
+	INNER JOIN dbo.QuestionConfigCycle QSCC on QSC.id=QSCC.QuestionConfigID
 	INNER JOIN dbo.Evaluations E ON E.EvaluationID=A.EvaluationID
 	INNER JOIN dbo.vw_arco_employee EMP ON EMP.empno=E.EmployeeID
-	WHERE A.QuestionID IN (@questionid) AND E.CycleID=@cycleID';
+	WHERE A.QuestionID IN (@questionid) AND E.CycleID=@cycleID AND QSCC.CycleID=@cycleID';
 	--calibrated
 	IF @calibrated=0
 	BEGIN 
@@ -1878,22 +1720,23 @@ public function GetSatisfactionByGradeQuestion($filters)
  *
  */
 
-public function GetEvaluators($reviewer)
+public function GetEvaluators($reviewer, $cycleid) //Angelos update script
 {
 	$queryString = "
 	DECLARE @empno as varchar(5) = :reviewer;
-	Declare @cycleid as int;
-	SELECT @cycleid = ID FROM EvaluationsCycle WHERE status=1 and questionaireInputStatus=1;
+	Declare @cycleid as int=:cycleid;
+	--SELECT @cycleid = ID FROM EvaluationsCycle WHERE status=1 and questionaireInputStatus=1;
 	SELECT emp.empno as 'empNo', rtrim(ltrim(emp.family_name))+' - '+rtrim(ltrim(emp.first_name)) as 'empName', Evals.count AS AssignedAsEvaluator
 	FROM dbo.ReportingLine RL
 	INNER JOIN dbo.vw_arco_employee emp ON emp.empno = RL.empnosource
 	OUTER APPLY(
 	SELECT COUNT(RL2.empnosource) AS count FROM dbo.ReportingLine RL2 WHERE RL2.empnotarget= RL.empnosource AND RL2.state=5 AND ISNULL(RL2.excludeFromCycles,0)<>@cycleid
 	)Evals
-	 WHERE RL.empnotarget=@empno AND RL.state=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0
+	 WHERE RL.empnotarget=@empno AND RL.state=5 AND ISNULL(RL.excludeFromCycles,0)<>@cycleid AND Evals.count>0 and RL.cycleid=@cycleid
 	";
 	$query = $this->connection->prepare($queryString);
 	$query->bindValue(':reviewer', $reviewer, PDO::PARAM_STR);
+	$query->bindValue(':cycleid', $cycleid, PDO::PARAM_INT);
 	$result["success"] = $query->execute();
 	$result["errorMessage"] = $query->errorInfo();
 	$query->setFetchMode(PDO::FETCH_ASSOC);
@@ -1907,19 +1750,22 @@ public function GetEvaluators($reviewer)
 	 *	Get Available projects for input
 	 *
 	 */
-	public function GetFamilies($userID)
+	public function GetFamilies($userID, $cycleid) // angelos to update script.
 	{
 		$queryString="
 		DECLARE @empno as varchar(5) = :userid;
+		Declare @cycleid as int=:cycleid;
 		SELECT DISTINCT EMP.family_code, EMP.family_desc, DA.empno 
 		FROM dbo.ReportingLine RL
 		INNER JOIN dbo.vw_arco_employee EMP ON EMP.empno=RL.empnosource 
 		LEFT JOIN dbo.userdepartmentAccess DA ON DA.family_code=EMP.family_code AND DA.empno=@empno
 		WHERE ISNULL(DA.empno, '')= CASE WHEN (SELECT COUNT(*) FROM userDepartmentAccess WHERE empno=@empno)>0 THEN @empno ELSE '' END
+		AND RL.cycleid=@cycleid
 		ORDER BY 1
 		";
 		$query = $this->connection->prepare($queryString);
 		$query->bindValue(':userid', $userID, PDO::PARAM_STR);
+		$query->bindValue(':cycleid', $cycleid, PDO::PARAM_INT);
 		$result["success"] = $query->execute();
 		$result["errorMessage"] = $query->errorInfo();
 		$query->setFetchMode(PDO::FETCH_ASSOC);

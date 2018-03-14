@@ -57,83 +57,84 @@ class AdminDAO{
  		DECLARE @empid NVARCHAR(50)=:empid, @evaluatorid NVARCHAR(5)=:evaluatorid, @dottedid NVARCHAR(5)=:dottedid, @projectcode NVARCHAR(5)=:projectcode,
 		@wrongmanager varchar(2) =:wrongmanager, @isactive varchar(3) =:isactive
 
-		--DECLARE @empid NVARCHAR(5)='', @evaluatorid NVARCHAR(5)='', @dottedid NVARCHAR(5)='', @projectcode NVARCHAR(5)='',
-		--@wrongmanager VARCHAR(2) ='',@isactive varchar(3) ='No'
-
 		SELECT @sql=N'
-		Declare @currentcycleid int, @nextcycleid int;
+		Declare @currentcycleid int, @nextcycleid int, @nextcycleDesc as varchar(50);
 		SELECT @currentcycleid = ID FROM EvaluationsCycle WHERE status=1 and questionaireInputStatus=1;
-		SELECT @nextcycleid = ID FROM EvaluationsCycle WHERE status=0 and questionaireInputStatus=0 and goalsInputStatus=1;
+		SELECT @nextcycleid = ID, @nextcycleDesc=CycleDescription FROM EvaluationsCycle WHERE status=0 and questionaireInputStatus=0 and goalsInputStatus=1;
 	    SELECT emp.empno as EmpNo, RTRIM(LTRIM(emp.family_name))+'' ''+RTRIM(LTRIM(emp.first_name)) As EmpName,
 		emp.empCategory as Category, emp.empstatus as EmployeeAhrisStatus,  emp.family_code as FamilyCode, emp.family_desc as FamilyDesc,
 		emp.section_code as SectionCode,emp.section_desc as SectionDesc,
 		emp.post_title_code as PositionCode, emp.job_desc as PositionDesc , emp.region, emp.pay_cs as ProjectCode, emp.site_desc as ProjectDesc, emp.grade, emp.groupYears,
 
-		RL.excludeFromCycles AS CycleExclude, ISNULL(EC.CycleDescription, '' '') AS CycleDescription,
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN eval.empno ELSE '''' END AS EvaluatorNumber,
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN RTRIM(LTRIM(eval.family_name))+'' ''+RTRIM(LTRIM(eval.first_name)) ELSE '' '' END AS EvaluatorName,
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN eval.empstatus ELSE '' '' END AS EvaluatorAhrisStatus,
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN RL.wrongManager ELSE '' '' END AS ReportedWrongEvaluator,
+		CASE WHEN nextevalperiod.empno = '' '' THEN @nextcycleid ELSE '' '' END AS CycleExclude, 
+		CASE WHEN nextevalperiod.empno = '' '' THEN @nextcycleDesc ELSE '' '' END AS CycleDescription,
+		
+		eval.empno AS EvaluatorNumber,
+		RTRIM(LTRIM(eval.family_name))+'' ''+RTRIM(LTRIM(eval.first_name)) AS EvaluatorName,
+		eval.empstatus AS EvaluatorAhrisStatus,
+		RL.wrongManager AS ReportedWrongEvaluator,
 
-		CASE WHEN ISNULL(nextevalperiod.empno, '''')='''' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid THEN eval.empno ELSE '''' END ELSE nextevalperiod.empno END AS NextEvaluationEvaluatorNumber,
-		CASE WHEN ISNULL(nextevalperiod.empno, '''')='''' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid THEN RTRIM(LTRIM(eval.family_name))+'' ''+RTRIM(LTRIM(eval.first_name)) ELSE '''' END ELSE nextevalperiod.Name END AS NextEvaluationEvaluatorName,
-		CASE WHEN ISNULL(nextevalperiod.empno, '''')='''' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid THEN RL.wrongManager ELSE '''' END ELSE nextevalperiod.wrongmanager END AS NextEvaluationReportedWrongEvaluator,
+		nextevalperiod.empno AS NextEvaluationEvaluatorNumber,
+		nextevalperiod.Name AS NextEvaluationEvaluatorName,
+		nextevalperiod.wrongmanager AS NextEvaluationReportedWrongEvaluator,
 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot1.empno ELSE '''' END AS Dotted1Empno, 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot1.Dotted1Name ELSE '''' END AS Dotted1Name, 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot1.empstatus ELSE '''' END AS dotted1AhrisStatus,
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot1.wrongManager ELSE '''' END AS ReportedWrongDot1 ,
+		Dot1.empno AS Dotted1Empno, 
+		Dot1.Dotted1Name AS Dotted1Name, 
+		Dot1.empstatus AS dotted1AhrisStatus,
+		Dot1.wrongManager AS ReportedWrongDot1 ,
 
-		CASE WHEN ISNULL(nextevalperiod.empno, '''')='''' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot1.empno ELSE '''' END ELSE nextDot1.empno END AS NextDotted1Empno, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '''')='''' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot1.Dotted1Name ELSE '''' END ELSE nextDot1.DottedName END AS NextDotted1Name, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '''')='''' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot1.empstatus ELSE '''' END ELSE nextDot1.empstatus END AS NextDotted1empstatus, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '''')='''' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot1.wrongManager ELSE '''' END ELSE nextDot1.wrongManager END AS NextReportedWrongDot1, 
+		nextDot1.empno AS NextDotted1Empno, 
+		nextDot1.DottedName AS NextDotted1Name, 
+		nextDot1.empstatus AS NextDotted1empstatus, 
+		nextDot1.wrongManager AS NextReportedWrongDot1, 
 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot2.empno ELSE '''' END AS Dotted2Empno, 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot2.Dotted2Name ELSE '''' END AS Dotted2Name, 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot2.empstatus ELSE '''' END AS dotted2AhrisStatus,
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot2.wrongManager ELSE '''' END AS ReportedWrongDot2 ,
+		Dot2.empno AS Dotted2Empno, 
+		Dot2.Dotted2Name AS Dotted2Name, 
+		Dot2.empstatus AS dotted2AhrisStatus,
+		Dot2.wrongManager AS ReportedWrongDot2 ,
 
-		CASE WHEN ISNULL(nextevalperiod.empno, '''')='''' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot2.empno ELSE '''' END ELSE nextDot2.empno END AS NextDotted2Empno, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '''')='''' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot2.Dotted2Name ELSE '''' END ELSE nextDot2.DottedName END AS NextDotted2Name, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '''')='''' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot2.empstatus ELSE '''' END ELSE nextDot2.empstatus END AS NextDotted2empstatus, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '''')='''' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot2.wrongManager ELSE '''' END ELSE nextDot2.wrongManager END AS NextReportedWrongDot2, 
+		nextDot2.empno AS NextDotted2Empno, 
+		nextDot2.DottedName AS NextDotted2Name, 
+		nextDot2.empstatus AS NextDotted2empstatus, 
+		nextDot2.wrongManager AS NextReportedWrongDot2, 
 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot3.empno ELSE '''' END AS Dotted3Empno, 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot3.Dotted3Name ELSE '''' END AS Dotted3Name, 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot3.empstatus ELSE '''' END AS dotted3AhrisStatus,
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot3.wrongManager ELSE '''' END AS ReportedWrongDot3 ,
+		Dot3.empno AS Dotted3Empno, 
+		Dot3.Dotted3Name AS Dotted3Name, 
+		Dot3.empstatus AS dotted3AhrisStatus,
+		Dot3.wrongManager AS ReportedWrongDot3 ,
 
-		CASE WHEN ISNULL(nextevalperiod.empno, '''')='''' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot3.empno ELSE '''' END ELSE nextDot3.empno END AS NextDotted3Empno, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '''')='''' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot3.Dotted3Name ELSE '''' END ELSE nextDot3.DottedName END AS NextDotted3Name, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '''')='''' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot3.empstatus ELSE '''' END ELSE nextDot3.empstatus END AS NextDotted3empstatus, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '''')='''' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot3.wrongManager ELSE '''' END ELSE nextDot3.wrongManager END AS NextReportedWrongDot3 
+		nextDot3.empno AS NextDotted3Empno, 
+		nextDot3.DottedName AS NextDotted3Name, 
+		nextDot3.empstatus AS NextDotted3empstatus, 
+		nextDot3.wrongManager AS NextReportedWrongDot3 
 		FROM dbo.ReportingLine RL
-		INNER JOIN [dbo].[vw_arco_employee] emp on emp.empno=RL.empnosource
+		INNER JOIN [dbo].[vw_arco_employee] emp on emp.empno=RL.empnosource 
 		INNER JOIN [dbo].[vw_arco_employee] eval on eval.empno=RL.empnotarget
-		LEFT JOIN  EvaluationsCycle EC ON EC.ID=RL.excludeFromCycles
+
 		OUTER APPLY (
 		SELECT  TOP 1 empnotarget, empnotarget AS empno, RTRIM(LTRIM(emp1.family_name))+'' ''+RTRIM(LTRIM(emp1.first_name)) As Name, emp1.empstatus, RLE.wrongManager
-			FROM dbo.ReportingLineExceptions RLE
+			FROM dbo.ReportingLine RLE
 			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=RLE.empnotarget AND RLE.state=5
-			where RLE.state=5 and RLE.empnosource=RL.empnosource
+			where RLE.state=5 and RLE.empnosource=RL.empnosource AND RLE.cycleid=@nextcycleid
 		)
 		nextevalperiod
+
 		OUTER APPLY (
 		SELECT  TOP 1 empnotarget, empnotarget AS empno, RTRIM(LTRIM(emp1.family_name))+'' ''+RTRIM(LTRIM(emp1.first_name)) As Dotted1Name, emp1.empstatus, dot1.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot1
 			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=dot1.empnotarget AND dot1.state=4
-			where dot1.state=4 and dot1.empnosource=RL.empnosource
+			where dot1.state=4 and dot1.empnosource=RL.empnosource and dot1.cycleid=@currentcycleid
 			ORDER BY Rownumber
 		)
 		Dot1
+
 		OUTER APPLY (
 		SELECT  empnotarget AS empno,RTRIM(LTRIM(emp2.family_name))+'' ''+RTRIM(LTRIM(emp2.first_name)) As Dotted2Name, emp2.empstatus, dot2.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot2
 			inner JOIN [dbo].[vw_arco_employee] emp2 on emp2.empno=dot2.empnotarget AND dot2.state=4
-			where dot2.state=4 and dot2.empnosource=RL.empnosource
+			where dot2.state=4 and dot2.empnosource=RL.empnosource AND dot2.cycleid=@currentcycleid
 			ORDER BY Rownumber
 			OFFSET 1 ROW
 			FETCH NEXT 1 ROW ONLY
@@ -144,7 +145,7 @@ class AdminDAO{
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot3
 			inner JOIN [dbo].[vw_arco_employee] emp3 on emp3.empno=dot3.empnotarget AND dot3.state=3
-			where dot3.state=3 and dot3.empnosource=RL.empnosource
+			where dot3.state=3 and dot3.empnosource=RL.empnosource AND dot3.cycleid=@currentcycleid
 			ORDER BY Rownumber
 			OFFSET 2 ROW
 			FETCH NEXT 1 ROW ONLY
@@ -153,18 +154,18 @@ class AdminDAO{
 		OUTER APPLY (
 		SELECT  TOP 1 ndot1.empnotarget, ndot1.empnotarget AS empno, RTRIM(LTRIM(dotemp1.family_name))+'' ''+RTRIM(LTRIM(dotemp1.first_name)) As DottedName, dotemp1.empstatus, ndot1.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY ndot1.empnotarget) AS Rownumber
-			FROM ReportingLineExceptions ndot1
+			FROM ReportingLine ndot1
 			inner JOIN [dbo].[vw_arco_employee] dotemp1 on dotemp1.empno=ndot1.empnotarget AND ndot1.state=4
-			where ndot1.state=4 and ndot1.empnosource=RL.empnosource
+			where ndot1.state=4 and ndot1.empnosource=RL.empnosource AND ndot1.cycleid=@nextcycleid
 			ORDER BY Rownumber
 		)
 		nextDot1
 		OUTER APPLY (
 		SELECT ndot2.empnotarget, ndot2.empnotarget AS empno, RTRIM(LTRIM(dotemp2.family_name))+'' ''+RTRIM(LTRIM(dotemp2.first_name)) As DottedName, dotemp2.empstatus, ndot2.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY ndot2.empnotarget) AS Rownumber
-			FROM ReportingLineExceptions ndot2
+			FROM ReportingLine ndot2
 			inner JOIN [dbo].[vw_arco_employee] dotemp2 on dotemp2.empno=ndot2.empnotarget AND ndot2.state=4
-			where ndot2.state=4 and ndot2.empnosource=RL.empnosource
+			where ndot2.state=4 and ndot2.empnosource=RL.empnosource AND ndot2.cycleid=@nextcycleid
 			ORDER BY Rownumber
 			OFFSET 1 ROW
 			FETCH NEXT 1 ROW ONLY
@@ -173,15 +174,15 @@ class AdminDAO{
 		OUTER APPLY (
 		SELECT ndot3.empnotarget, ndot3.empnotarget AS empno, RTRIM(LTRIM(dotemp3.family_name))+'' ''+RTRIM(LTRIM(dotemp3.first_name)) As DottedName, dotemp3.empstatus, ndot3.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY ndot3.empnotarget) AS Rownumber
-			FROM ReportingLineExceptions ndot3
+			FROM ReportingLine ndot3
 			inner JOIN [dbo].[vw_arco_employee] dotemp3 on dotemp3.empno=ndot3.empnotarget AND ndot3.state=4
-			where ndot3.state=4 and ndot3.empnosource=RL.empnosource
+			where ndot3.state=4 and ndot3.empnosource=RL.empnosource AND ndot3.cycleid=@nextcycleid
 			ORDER BY Rownumber
 			OFFSET 2 ROW
 			FETCH NEXT 1 ROW ONLY
 		)
 		nextDot3
-	    WHERE RL.State=5
+	    WHERE RL.State=5 and RL.cycleid=@currentcycleid
 	   '
  		SET @ParmDefinition = N'@empid NVARCHAR(5), @evaluatorid NVARCHAR(5), @dottedid NVARCHAR(5), @projectcode NVARCHAR(5),@wrongmanager varchar(2), @isactive varchar(3)'
 
@@ -283,8 +284,7 @@ class AdminDAO{
 		--Define New State
 		SELECT @empid=E.EmployeeID, @currentState=E.State, 
 		@newState=CASE
-		WHEN E.empGrade<5 AND E.State=5 THEN 1 --Sent Directly to Goals Intial Step for evaluator
-		WHEN E.empGrade>3 AND E.State=5 AND (SELECT COUNT(*) FROM Answers WHERE EvaluationID=E.EvaluationID AND State=4)=0 THEN E.State-2 -- check if dotted was in process if not send back 2 steps
+		WHEN E.empGrade<4 AND E.State=5 THEN 2 --Sent Directly to Goals Intial Step for evaluator
 		WHEN E.State in (1,2,3,4,5,6,7) THEN E.State-1
 		END
 	  	FROM dbo.Evaluations E WHERE E.EvaluationID=@evalid
@@ -301,8 +301,8 @@ class AdminDAO{
 		UPDATE dbo.Answers Set Finished=0
 		WHERE EvaluationID = @evalid AND State=@newState
 
-		-- create audit log 4 is step back
-		INSERT INTO AuditEvals values (@evalid, @empid, @userid, 4, getdate(), @currentState, @newState )
+		-- create audit log 3 is step back
+		INSERT INTO AuditEvals values (@evalid, @empid, @userid, 3, getdate(), @currentState, @newState )
 		";
 		$query = $this->connection->prepare($queryString);
 		$query->bindValue(':userid', $userid, PDO::PARAM_STR);
@@ -370,7 +370,6 @@ class AdminDAO{
 		BEGIN
 			UPDATE dbo.Evaluations SET @newState = State = CASE WHEN empGrade<5 Then 5 ELSE 2 END
 			WHERE EvaluationID = @evalid
-			--SELECT @newState=CASE WHEN empGrade<5 Then 5 ELSE 2 END
 		END
 		-- create audit for evaluations
 		INSERT INTO AuditEvals values (@evalid, @empid, @userid, @resetgoals, getdate(), @currentState, @newState )
@@ -423,14 +422,17 @@ class AdminDAO{
 	{
 		$queryString="
 		DECLARE @empno as varchar(5)=:empno, @userid as varchar(5)=:userid;
+		Declare @currentcycleid int;
+		DECLARE @evalid as int = (SELECT EvaluationID FROM dbo.Evaluations WHERE EmployeeID=@empno AND cycleid=@currentcycleid)
+		SELECT @currentcycleid = ID FROM EvaluationsCycle WHERE status=1 and questionaireInputStatus=1;
 		--delete user from all tables.
-		DELETE FROM dbo.Answers WHERE EvaluationID in (SELECT EvaluationID FROM dbo.Evaluations WHERE EmployeeID=@empno);
-		DELETE FROM dbo.DevelopmentPlan WHERE EvaluationID in (SELECT EvaluationID FROM dbo.Evaluations WHERE EmployeeID=@empno);
-		DELETE FROM dbo.EvaluationScores WHERE EvaluationID in (SELECT EvaluationID FROM dbo.Evaluations WHERE EmployeeID=@empno);
-		DELETE FROM dbo.Goals WHERE EvaluationID in (SELECT EvaluationID FROM dbo.Evaluations WHERE EmployeeID=@empno);
-		DELETE FROM dbo.Evaluations WHERE EmployeeID=@empno;
-		DELETE FROM dbo.ReportingLine WHERE empnosource=@empno;
-		DELETE FROM dbo.ReportingLineExceptions WHERE empnosource=@empno;
+		DELETE FROM dbo.Answers WHERE EvaluationID = @evalid;
+		DELETE FROM dbo.DevelopmentPlan WHERE EvaluationID = @evalid;
+		DELETE FROM dbo.EvaluationScores WHERE EvaluationID = @evalid;
+		DELETE FROM dbo.Goals WHERE EvaluationID = @evalid;
+		DELETE FROM dbo.GoalsHistory WHERE EvaluationID = @evalid;
+		DELETE FROM dbo.Evaluations WHERE EmployeeID=@empno AND EvaluationID = @evalid ;
+		DELETE FROM dbo.ReportingLine WHERE empnosource=@empno AND cycleid=@currentcycleid;
 		-- create audit for evaluations
 		INSERT INTO AuditEvals values (0, @empno, @userid, 2, getdate(), 0, 0)
 		";
@@ -654,14 +656,14 @@ class AdminDAO{
 		FROM dbo.ReportingLine RL 
 		LEFT JOIN Evaluations E on RL.empnosource=E.EmployeeID AND E.CycleID=@nextcycleid
 		WHERE RL.empnosource=@empid AND Rl.state=5 
-		AND RL.excludeFromCycles <> @nextcycleid
+		AND RL.cycleid = @currentcycleid
 		--Check if there is ecxeption
 		
 		SELECT @evaluatorNextp = RL.empnotarget,  @evaluationNextpState = ISNULL(E.State,0), @createdByNextp=ISNULL(UserID, '')
-		FROM dbo.ReportingLineExceptions RL 
+		FROM dbo.ReportingLine RL 
 		LEFT JOIN Evaluations E on RL.empnosource=E.EmployeeID AND E.CycleID=@nextcycleid
 		WHERE RL.empnosource=@empid AND Rl.state=5 
-		AND RL.goalCycle = @nextcycleid
+		AND RL.cycleid = @nextcycleid
 
 		IF (@evaluatorNextp <> @nexteval AND @evaluationNextpState>0) OR (@evaluationNextpState=0 AND @createdByNextp <> '' AND @createdByNextp<>@empid) 
 		BEGIN
@@ -671,11 +673,11 @@ class AdminDAO{
 		--Change dotted next period
 		SELECT @noofdottedFound=COUNT(*), @noofdottedtoUpdate=CASE WHEN isnull(@ndot1, '')='' THEN 0 ELSE 1 END + CASE WHEN isnull(@ndot2, '')='' THEN 0 ELSE 1 END 
 		+ CASE WHEN isnull(@ndot3, '')='' THEN 0 ELSE 1 END 
-		 FROM ReportingLine Where (@ndot1=empnotarget or @ndot2=empnotarget or @ndot3=empnotarget) and empnosource=@empid and state=4  AND excludeFromCycles <> @nextcycleid
+		 FROM ReportingLine Where (@ndot1=empnotarget or @ndot2=empnotarget or @ndot3=empnotarget) and empnosource=@empid and state=4  AND cycleid = @currentcycleid
 		--check if there is exception
 		 SELECT @noofdottedFound=COUNT(*), @noofdottedtoUpdate=CASE WHEN isnull(@ndot1, '')='' THEN 0 ELSE 1 END + CASE WHEN isnull(@ndot2, '')='' THEN 0 ELSE 1 END 
 		 + CASE WHEN isnull(@ndot3, '')='' THEN 0 ELSE 1 END 
-		  FROM ReportingLineExceptions Where (@ndot1=empnotarget or @ndot2=empnotarget or @ndot3=empnotarget) and empnosource=@empid and state=4  AND goalCycle = @nextcycleid
+		  FROM ReportingLine Where (@ndot1=empnotarget or @ndot2=empnotarget or @ndot3=empnotarget) and empnosource=@empid and state=4  AND cycleid = @nextcycleid
 		  
 		IF (@evaluationNextpState>0 AND @noofdottedFound<>@noofdottedtoUpdate)  
 		BEGIN
@@ -727,72 +729,60 @@ class AdminDAO{
 		SELECT @nextcycleid = ID FROM EvaluationsCycle WHERE status=0 and questionaireInputStatus=0 and goalsInputStatus=1;
 
 		--Start the update of the reportingLineTable. --Update, if no record insert.
-		--1st update reporting line evaluator.
-		UPDATE ReportingLine set empnotarget=CASE WHEN isnull(@currenteval,'')='' THEN @nexteval ELSE @currenteval END, wrongmanager=0, excludeFromCycles=@excludecycle, updatedBy=@userid, date=getdate()
-		WHERE empnosource=@empid AND State=5
-		IF @@ROWCOUNT = 0
-			BEGIN
-				INSERT INTO dbo.ReportingLine VALUES(@empid, CASE WHEN isnull(@currenteval,'')='' THEN @nexteval ELSE @currenteval END,5, @excludecycle, 0, @userid, getdate());
-			END
+		--1st update reporting line evaluator. current cycle
+		IF @excludecycle <> @currentcycleid
+		BEGIN 
+			UPDATE ReportingLine set empnotarget=@currenteval, wrongmanager=0, updatedBy=@userid, date=getdate()
+			WHERE empnosource=@empid AND State=5 AND cycleid=@currentcycleid
+			IF @@ROWCOUNT = 0
+				BEGIN
+					INSERT INTO dbo.ReportingLine VALUES(@empid, @currenteval,5, @currentcycleid,0, 0, @userid, getdate());
+				END
 
-		--2nd Create Dotted. First delete all dotted and then create one by one.
-		--Make sure you delete dotted and reset.
-		DELETE FROM ReportingLine WHERE empnosource=@empid and State=4
-		IF isnull(@dot1,'')<>''
-			BEGIN
-				INSERT INTO dbo.ReportingLine VALUES(@empid, @dot1,4, @excludecycle, 0, @userid, getdate());
-			END
-		IF isnull(@dot2,'')<>''
-			BEGIN
-				INSERT INTO dbo.ReportingLine VALUES(@empid, @dot2,4, @excludecycle, 0, @userid, getdate());
-			END
-		IF isnull(@dot3,'')<>''
-			BEGIN
-				INSERT INTO dbo.ReportingLine VALUES(@empid, @dot3,4, @excludecycle, 0, @userid, getdate());
-			END
+			--2nd Create Dotted. First delete all dotted and then create one by one.
+			--Make sure you delete dotted and reset.
+			DELETE FROM ReportingLine WHERE empnosource=@empid and State=4 and cycleid=@currentcycleid
+			IF isnull(@dot1,'')<>''
+				BEGIN
+					INSERT INTO dbo.ReportingLine VALUES(@empid, @dot1,4, @currentcycleid, 0, 0, @userid, getdate());
+				END
+			IF isnull(@dot2,'')<>''
+				BEGIN
+					INSERT INTO dbo.ReportingLine VALUES(@empid, @dot2,4, @currentcycleid, 0, 0, @userid, getdate());
+				END
+			IF isnull(@dot3,'')<>''
+				BEGIN
+					INSERT INTO dbo.ReportingLine VALUES(@empid, @dot3,4, @currentcycleid, 0, 0, @userid, getdate());
+				END
+		END
 
-		--Delete from exceptions and then reset.
-		DELETE FROM ReportingLineExceptions WHERE empnosource=@empid;
+		--1st update reporting line evaluator. next cycle
+		IF @excludecycle <> @nextcycleid
+		BEGIN 
+			UPDATE ReportingLine set empnotarget=@nexteval, wrongmanager=0, updatedBy=@userid, date=getdate()
+			WHERE empnosource=@empid AND State=5 AND cycleid=@nextcycleid
+			IF @@ROWCOUNT = 0
+				BEGIN
+					INSERT INTO dbo.ReportingLine VALUES(@empid, @nexteval,5, @nextcycleid,0, 0, @userid, getdate());
+				END
 
-		--Create flag to see if there is a difference on the dotted lines
-		DECLARE @diffDotted as int;
-		SELECT @diffDotted= CASE WHEN 
-		   ( RTRIM(LTRIM(@ndot1)) NOT IN (RTRIM(LTRIM(@dot1)), RTRIM(LTRIM(@dot2)), RTRIM(LTRIM(@dot3)) )) 
-		OR ( RTRIM(LTRIM(@ndot2)) NOT IN (RTRIM(LTRIM(@dot1)), RTRIM(LTRIM(@dot2)), RTRIM(LTRIM(@dot3)) )) 
-		OR ( RTRIM(LTRIM(@ndot3)) NOT IN (RTRIM(LTRIM(@dot1)), RTRIM(LTRIM(@dot2)), RTRIM(LTRIM(@dot3)) ))
-		OR ( RTRIM(LTRIM(@dot1)) NOT IN (RTRIM(LTRIM(@ndot1)), RTRIM(LTRIM(@ndot2)), RTRIM(LTRIM(@ndot3)) ))
-		OR ( RTRIM(LTRIM(@dot2)) NOT IN (RTRIM(LTRIM(@ndot1)), RTRIM(LTRIM(@ndot2)), RTRIM(LTRIM(@ndot3)) ))
-		OR ( RTRIM(LTRIM(@dot3)) NOT IN (RTRIM(LTRIM(@ndot1)), RTRIM(LTRIM(@ndot2)), RTRIM(LTRIM(@ndot3)) ))
-		THEN 1 ELSE 0 END;
+			--2nd Create Dotted. First delete all dotted and then create one by one.
+			--Make sure you delete dotted and reset.
+			DELETE FROM ReportingLine WHERE empnosource=@empid and State=4 and cycleid=@nextcycleid
+			IF isnull(@dot1,'')<>''
+				BEGIN
+					INSERT INTO dbo.ReportingLine VALUES(@empid, @ndot1,4, @nextcycleid, 0, 0, @userid, getdate());
+				END
+			IF isnull(@dot2,'')<>''
+				BEGIN
+					INSERT INTO dbo.ReportingLine VALUES(@empid, @ndot2,4, @nextcycleid, 0, 0, @userid, getdate());
+				END
+			IF isnull(@dot3,'')<>''
+				BEGIN
+					INSERT INTO dbo.ReportingLine VALUES(@empid, @ndot3,4, @nextcycleid, 0, 0, @userid, getdate());
+				END
+		END
 		
-		--Check in case the next period evaluator is different than the current and create an exception. The program should not do the insert if the exclusion for next period is set as its not required.
-		IF (@currenteval<>@nexteval AND @excludecycle=0) OR (@diffDotted=1 AND @excludecycle=0)
-			BEGIN
-				--Start the update of the Exception. Insert evaluator.
-				--1st update exception evaluator.
-				--Check if same evaluator and with different dotted.
-				IF @currenteval<>@nexteval
-					BEGIN
-						INSERT INTO dbo.ReportingLineExceptions VALUES(@empid, @nexteval, 5,  @nextcycleid, 0, @userid, getdate());
-					END
-				ELSE -- insert the current evaluator in case the only difference is on the dotted
-					BEGIN
-						INSERT INTO dbo.ReportingLineExceptions VALUES(@empid, @currenteval, 5,  @nextcycleid, 0, @userid, getdate());
-					END
-				--2nd Create Exception Dotted.
-				IF isnull(@ndot1,'')<>''
-					BEGIN
-						INSERT INTO dbo.ReportingLineExceptions VALUES(@empid, @ndot1,4, @nextcycleid, 0, @userid, getdate());
-					END
-				IF isnull(@ndot2,'')<>''
-					BEGIN
-						INSERT INTO dbo.ReportingLineExceptions VALUES(@empid, @ndot2,4, @nextcycleid, 0, @userid, getdate());
-					END
-				IF isnull(@ndot3,'')<>''
-					BEGIN
-						INSERT INTO dbo.ReportingLineExceptions VALUES(@empid, @ndot3,4, @nextcycleid, 0, @userid, getdate());
-					END
-			END
 		";
 		$query = $this->connection->prepare($queryString);
 		$query->bindValue(':empid', $settings["EmpNo"], PDO::PARAM_STR);
@@ -818,120 +808,128 @@ class AdminDAO{
 		Declare @currentcycleid int, @nextcycleid int;
 		SELECT @currentcycleid = ID FROM EvaluationsCycle WHERE status=1 and questionaireInputStatus=1;
 		SELECT @nextcycleid = ID FROM EvaluationsCycle WHERE status=0 and questionaireInputStatus=0 and goalsInputStatus=1;
-		SELECT emp.empno as EmpNo, RTRIM(LTRIM(emp.family_name))+' '+RTRIM(LTRIM(emp.first_name)) As EmpName,
-		RL.excludeFromCycles AS CycleExclude, ISNULL(EC.CycleDescription, '') AS CycleDescription,
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN eval.empno ELSE '' END AS EvaluatorNumber,
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN RTRIM(LTRIM(eval.family_name))+' '+RTRIM(LTRIM(eval.first_name)) ELSE ' ' END AS EvaluatorName,
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN eval.empstatus ELSE '' END AS EvaluatorAhrisStatus,
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN RL.wrongManager ELSE '' END AS ReportedWrongEvaluator,
+		SELECT emp.empno as EmpNo, RTRIM(LTRIM(emp.family_name))+'' ''+RTRIM(LTRIM(emp.first_name)) As EmpName,
+		emp.empCategory as Category, emp.empstatus as EmployeeAhrisStatus,  emp.family_code as FamilyCode, emp.family_desc as FamilyDesc,
+		emp.section_code as SectionCode,emp.section_desc as SectionDesc,
+		emp.post_title_code as PositionCode, emp.job_desc as PositionDesc , emp.region, emp.pay_cs as ProjectCode, emp.site_desc as ProjectDesc, emp.grade, emp.groupYears,
 
-		CASE WHEN ISNULL(nextevalperiod.empno, '')='' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid THEN eval.empno ELSE '' END ELSE nextevalperiod.empno END AS NextEvaluationEvaluatorNumber,
-		CASE WHEN ISNULL(nextevalperiod.empno, '')='' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid THEN RTRIM(LTRIM(eval.family_name))+' '+RTRIM(LTRIM(eval.first_name)) ELSE '' END ELSE nextevalperiod.Name END AS NextEvaluationEvaluatorName,
-		CASE WHEN ISNULL(nextevalperiod.empno, '')='' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid THEN RL.wrongManager ELSE '' END ELSE nextevalperiod.wrongmanager END AS NextEvaluationReportedWrongEvaluator,
+		CASE WHEN nextevalperiod.empno = '' '' THEN @nextcycleid ELSE '' '' END AS CycleExclude, 
+		CASE WHEN nextevalperiod.empno = '' '' THEN @nextcycleDesc ELSE '' '' END AS CycleDescription,
+		
+		eval.empno AS EvaluatorNumber,
+		RTRIM(LTRIM(eval.family_name))+'' ''+RTRIM(LTRIM(eval.first_name)) AS EvaluatorName,
+		eval.empstatus AS EvaluatorAhrisStatus,
+		RL.wrongManager AS ReportedWrongEvaluator,
 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot1.empno ELSE '' END AS Dotted1Empno, 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot1.Dotted1Name ELSE '' END AS Dotted1Name, 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot1.empstatus ELSE '' END AS dotted1AhrisStatus,
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot1.wrongManager ELSE '' END AS ReportedWrongDot1 ,
+		nextevalperiod.empno AS NextEvaluationEvaluatorNumber,
+		nextevalperiod.Name AS NextEvaluationEvaluatorName,
+		nextevalperiod.wrongmanager AS NextEvaluationReportedWrongEvaluator,
 
-		CASE WHEN ISNULL(nextevalperiod.empno, '')='' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot1.empno ELSE '' END ELSE nextDot1.empno END AS NextDotted1Empno, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '')='' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot1.Dotted1Name ELSE '' END ELSE nextDot1.DottedName END AS NextDotted1Name, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '')='' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot1.empstatus ELSE '' END ELSE nextDot1.empstatus END AS NextDotted1empstatus, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '')='' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot1.wrongManager ELSE '' END ELSE nextDot1.wrongManager END AS NextReportedWrongDot1, 
+		Dot1.empno AS Dotted1Empno, 
+		Dot1.Dotted1Name AS Dotted1Name, 
+		Dot1.empstatus AS dotted1AhrisStatus,
+		Dot1.wrongManager AS ReportedWrongDot1 ,
 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot2.empno ELSE '' END AS Dotted2Empno, 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot2.Dotted2Name ELSE '' END AS Dotted2Name, 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot2.empstatus ELSE '' END AS dotted2AhrisStatus,
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot2.wrongManager ELSE '' END AS ReportedWrongDot2,
+		nextDot1.empno AS NextDotted1Empno, 
+		nextDot1.DottedName AS NextDotted1Name, 
+		nextDot1.empstatus AS NextDotted1empstatus, 
+		nextDot1.wrongManager AS NextReportedWrongDot1, 
 
-		CASE WHEN ISNULL(nextevalperiod.empno, '')='' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot2.empno ELSE '' END ELSE nextDot2.empno END AS NextDotted2Empno, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '')='' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot2.Dotted2Name ELSE '' END ELSE nextDot2.DottedName END AS NextDotted2Name, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '')='' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot2.empstatus ELSE '' END ELSE nextDot2.empstatus END AS NextDotted2empstatus, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '')='' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot2.wrongManager ELSE '' END ELSE nextDot2.wrongManager END AS NextReportedWrongDot2, 
+		Dot2.empno AS Dotted2Empno, 
+		Dot2.Dotted2Name AS Dotted2Name, 
+		Dot2.empstatus AS dotted2AhrisStatus,
+		Dot2.wrongManager AS ReportedWrongDot2 ,
 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot3.empno ELSE '' END AS Dotted3Empno, 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot3.Dotted3Name ELSE '' END AS Dotted3Name, 
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot3.empstatus ELSE '' END AS dotted3AhrisStatus,
-		CASE WHEN RL.excludeFromCycles<>@currentcycleid THEN Dot3.wrongManager ELSE '' END AS ReportedWrongDot3,
+		nextDot2.empno AS NextDotted2Empno, 
+		nextDot2.DottedName AS NextDotted2Name, 
+		nextDot2.empstatus AS NextDotted2empstatus, 
+		nextDot2.wrongManager AS NextReportedWrongDot2, 
 
-		CASE WHEN ISNULL(nextevalperiod.empno, '')='' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot3.empno ELSE '' END ELSE nextDot3.empno END AS NextDotted3Empno, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '')='' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot3.Dotted3Name ELSE '' END ELSE nextDot3.DottedName END AS NextDotted3Name, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '')='' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot3.empstatus ELSE '' END ELSE nextDot3.empstatus END AS NextDotted3empstatus, 
-		CASE WHEN ISNULL(nextevalperiod.empno, '')='' THEN CASE WHEN RL.excludeFromCycles<>@nextcycleid then dot3.wrongManager ELSE '' END ELSE nextDot3.wrongManager END AS NextReportedWrongDot3 
+		Dot3.empno AS Dotted3Empno, 
+		Dot3.Dotted3Name AS Dotted3Name, 
+		Dot3.empstatus AS dotted3AhrisStatus,
+		Dot3.wrongManager AS ReportedWrongDot3 ,
+
+		nextDot3.empno AS NextDotted3Empno, 
+		nextDot3.DottedName AS NextDotted3Name, 
+		nextDot3.empstatus AS NextDotted3empstatus, 
+		nextDot3.wrongManager AS NextReportedWrongDot3 
 		FROM dbo.ReportingLine RL
-		INNER JOIN [dbo].[vw_arco_employee] emp on emp.empno=RL.empnosource
+		INNER JOIN [dbo].[vw_arco_employee] emp on emp.empno=RL.empnosource 
 		INNER JOIN [dbo].[vw_arco_employee] eval on eval.empno=RL.empnotarget
-		LEFT JOIN  EvaluationsCycle EC ON EC.ID=RL.excludeFromCycles
+
 		OUTER APPLY (
-		SELECT  TOP 1 empnotarget, empnotarget AS empno, RTRIM(LTRIM(emp1.family_name))+' '+RTRIM(LTRIM(emp1.first_name)) As Name, emp1.empstatus, RLE.wrongManager
-			FROM dbo.ReportingLineExceptions RLE
+		SELECT  TOP 1 empnotarget, empnotarget AS empno, RTRIM(LTRIM(emp1.family_name))+'' ''+RTRIM(LTRIM(emp1.first_name)) As Name, emp1.empstatus, RLE.wrongManager
+			FROM dbo.ReportingLine RLE
 			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=RLE.empnotarget AND RLE.state=5
-			where RLE.state=5 and RLE.empnosource=RL.empnosource
+			where RLE.state=5 and RLE.empnosource=RL.empnosource AND RLE.cycleid=@nextcycleid
 		)
 		nextevalperiod
+
 		OUTER APPLY (
-		SELECT  TOP 1 empnotarget, empnotarget AS empno, RTRIM(LTRIM(emp1.family_name))+' '+RTRIM(LTRIM(emp1.first_name)) As Dotted1Name, emp1.empstatus, dot1.wrongmanager,
+		SELECT  TOP 1 empnotarget, empnotarget AS empno, RTRIM(LTRIM(emp1.family_name))+'' ''+RTRIM(LTRIM(emp1.first_name)) As Dotted1Name, emp1.empstatus, dot1.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot1
 			inner JOIN [dbo].[vw_arco_employee] emp1 on emp1.empno=dot1.empnotarget AND dot1.state=4
-			where dot1.state=4 and dot1.empnosource=RL.empnosource
+			where dot1.state=4 and dot1.empnosource=RL.empnosource and dot1.cycleid=@currentcycleid
 			ORDER BY Rownumber
 		)
 		Dot1
+
 		OUTER APPLY (
-		SELECT  empnotarget AS empno,RTRIM(LTRIM(emp2.family_name))+' '+RTRIM(LTRIM(emp2.first_name)) As Dotted2Name, emp2.empstatus, dot2.wrongmanager,
+		SELECT  empnotarget AS empno,RTRIM(LTRIM(emp2.family_name))+'' ''+RTRIM(LTRIM(emp2.first_name)) As Dotted2Name, emp2.empstatus, dot2.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot2
 			inner JOIN [dbo].[vw_arco_employee] emp2 on emp2.empno=dot2.empnotarget AND dot2.state=4
-			where dot2.state=4 and dot2.empnosource=RL.empnosource
+			where dot2.state=4 and dot2.empnosource=RL.empnosource AND dot2.cycleid=@currentcycleid
 			ORDER BY Rownumber
 			OFFSET 1 ROW
 			FETCH NEXT 1 ROW ONLY
 		)
 		Dot2
 		OUTER APPLY (
-		SELECT  empnotarget AS empno,RTRIM(LTRIM(emp3.family_name))+' '+RTRIM(LTRIM(emp3.first_name)) As Dotted3Name, emp3.empstatus, dot3.wrongmanager,
+		SELECT  empnotarget AS empno,RTRIM(LTRIM(emp3.family_name))+'' ''+RTRIM(LTRIM(emp3.first_name)) As Dotted3Name, emp3.empstatus, dot3.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY empnotarget) AS Rownumber
 			FROM ReportingLine dot3
-			inner JOIN [dbo].[vw_arco_employee] emp3 on emp3.empno=dot3.empnotarget AND dot3.state=4
-			where dot3.state=4 and dot3.empnosource=RL.empnosource
+			inner JOIN [dbo].[vw_arco_employee] emp3 on emp3.empno=dot3.empnotarget AND dot3.state=3
+			where dot3.state=3 and dot3.empnosource=RL.empnosource AND dot3.cycleid=@currentcycleid
 			ORDER BY Rownumber
 			OFFSET 2 ROW
 			FETCH NEXT 1 ROW ONLY
 		)
 		Dot3
 		OUTER APPLY (
-		SELECT  TOP 1 ndot1.empnotarget, ndot1.empnotarget AS empno, RTRIM(LTRIM(dotemp1.family_name))+' '+RTRIM(LTRIM(dotemp1.first_name)) As DottedName, dotemp1.empstatus, ndot1.wrongmanager,
+		SELECT  TOP 1 ndot1.empnotarget, ndot1.empnotarget AS empno, RTRIM(LTRIM(dotemp1.family_name))+'' ''+RTRIM(LTRIM(dotemp1.first_name)) As DottedName, dotemp1.empstatus, ndot1.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY ndot1.empnotarget) AS Rownumber
-			FROM ReportingLineExceptions ndot1
+			FROM ReportingLine ndot1
 			inner JOIN [dbo].[vw_arco_employee] dotemp1 on dotemp1.empno=ndot1.empnotarget AND ndot1.state=4
-			where ndot1.state=4 and ndot1.empnosource=RL.empnosource
+			where ndot1.state=4 and ndot1.empnosource=RL.empnosource AND ndot1.cycleid=@nextcycleid
 			ORDER BY Rownumber
 		)
 		nextDot1
 		OUTER APPLY (
-		SELECT ndot2.empnotarget, ndot2.empnotarget AS empno, RTRIM(LTRIM(dotemp2.family_name))+' '+RTRIM(LTRIM(dotemp2.first_name)) As DottedName, dotemp2.empstatus, ndot2.wrongmanager,
+		SELECT ndot2.empnotarget, ndot2.empnotarget AS empno, RTRIM(LTRIM(dotemp2.family_name))+'' ''+RTRIM(LTRIM(dotemp2.first_name)) As DottedName, dotemp2.empstatus, ndot2.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY ndot2.empnotarget) AS Rownumber
-			FROM ReportingLineExceptions ndot2
+			FROM ReportingLine ndot2
 			inner JOIN [dbo].[vw_arco_employee] dotemp2 on dotemp2.empno=ndot2.empnotarget AND ndot2.state=4
-			where ndot2.state=4 and ndot2.empnosource=RL.empnosource
+			where ndot2.state=4 and ndot2.empnosource=RL.empnosource AND ndot2.cycleid=@nextcycleid
 			ORDER BY Rownumber
 			OFFSET 1 ROW
 			FETCH NEXT 1 ROW ONLY
 		)
 		nextDot2
 		OUTER APPLY (
-		SELECT ndot3.empnotarget, ndot3.empnotarget AS empno, RTRIM(LTRIM(dotemp3.family_name))+' '+RTRIM(LTRIM(dotemp3.first_name)) As DottedName, dotemp3.empstatus, ndot3.wrongmanager,
+		SELECT ndot3.empnotarget, ndot3.empnotarget AS empno, RTRIM(LTRIM(dotemp3.family_name))+'' ''+RTRIM(LTRIM(dotemp3.first_name)) As DottedName, dotemp3.empstatus, ndot3.wrongmanager,
 			ROW_NUMBER() OVER (ORDER BY ndot3.empnotarget) AS Rownumber
-			FROM ReportingLineExceptions ndot3
+			FROM ReportingLine ndot3
 			inner JOIN [dbo].[vw_arco_employee] dotemp3 on dotemp3.empno=ndot3.empnotarget AND ndot3.state=4
-			where ndot3.state=4 and ndot3.empnosource=RL.empnosource
+			where ndot3.state=4 and ndot3.empnosource=RL.empnosource AND ndot3.cycleid=@nextcycleid
 			ORDER BY Rownumber
 			OFFSET 2 ROW
 			FETCH NEXT 1 ROW ONLY
 		)
 		nextDot3
-		WHERE RL.State=5 AND RL.empnosource=:empid";
+	    WHERE RL.State=5 AND RL.cycleid=@currentcycleid AND RL.empnosource=:empid";
 		$query = $this->connection->prepare($queryString);
 		$query->bindValue(':empid', $settings["EmpNo"], PDO::PARAM_STR);
 		$result["success"] = $query->execute();

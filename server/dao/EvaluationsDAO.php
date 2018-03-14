@@ -1741,15 +1741,15 @@ class EvaluationsDAO{
 	{
 
             $queryString = "
-            DECLARE @cycleid as int =:cycleid, @evalid	as int, @grade as varchar(2);
+            DECLARE @cycleid as int =:cycleid, @evalid	as int, @grade as varchar(2), @site as varchar(5), @position as varchar(5);
             -- SELECT @cycleid = ID FROM EvaluationsCycle WHERE status=1 to be used later in 2017
             UPDATE dbo.Evaluations SET ManagesTeam=:mteam WHERE State in (0,1) AND EmployeeID=:empno AND CycleID=@cycleid AND UserID=:userid
             IF @@ROWCOUNT = 0
                   BEGIN
-                      SELECT @grade=grade from vw_arco_employee where empno=:empno1
+                      SELECT @grade=grade, @site=pay_cs, @position=post_title_code from vw_arco_employee where empno=:empno1
 					  INSERT INTO dbo.Evaluations
 					  OUTPUT Inserted.EvaluationID
-					  VALUES(@cycleid, :empno2, @grade, 0, getdate(), :mteam1, :userid1, NULL, NULL);
+					  VALUES(@cycleid, :empno2, @grade, 0, getdate(), :mteam1, :userid1, NULL, NULL, @site, @position);
                   END
 		    ";
 			$query = $this->connection->prepare($queryString);

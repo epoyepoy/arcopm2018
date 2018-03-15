@@ -78,7 +78,7 @@
 						</tr>
 						<tr>
 							<th style="text-align: center;"><b>Employee Score</b>
-                                <div class="notifications" ng-click="showScoresNotifications('empHistorySectionScores')" style="background-color: #d1d1d1;"
+                                <div class="notifications" ng-if="empHistory.length!=0" ng-click="showScoresNotifications('empHistorySectionScores')" style="background-color: #d1d1d1;"
                                      uib-tooltip="Show Employee's Score History" tooltip-placement="top" tooltip-trigger="'mouseenter'">
                                     <div class="toggle">H</div>
                                     <div class="messages empHistorySectionScores">
@@ -204,7 +204,7 @@
 						<tr>
 							<!--<th style="text-align: center; border-left-width: 2px;"><b>Actual Employee Score</th>-->
 							<th style="text-align: center; border-right-width: 2px; vertical-align: top;"><b>Employee Score</b>
-                                <div class="notifications" ng-click="showScoresNotifications('empHistorySummaryTable')" style="background-color: #d1d1d1;"
+                                <div class="notifications" ng-if="empHistory.length!=0" ng-click="showScoresNotifications('empHistorySummaryTable')" style="background-color: #d1d1d1;"
                                      uib-tooltip="Show Employee's Score History" tooltip-placement="top" tooltip-trigger="'mouseenter'">
                                     <div class="toggle">H</div>
                                     <div class="messages empHistorySummaryTable">
@@ -241,7 +241,7 @@
                                             <col width="13%" />
                                             <col width="13%" />
                                             <col width="13%" />
-                                            <col width="13%" />
+                                            <col width="13%" ng-if="hasDotted > 2"/>
                                             <col width="13%" ng-if="hasDotted > 2"/>
                                             <thead>
                                                 <tr>

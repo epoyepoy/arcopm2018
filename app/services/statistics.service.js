@@ -29,9 +29,9 @@
 
 
 
-        function GetEvaluators(userid)
+        function GetEvaluators(userid,cycle)
 		{
-			return $http.get(api + '/evaluators/' + userid).then(handleSuccess, handleError);
+			return $http.get(api + '/evaluators/'+userid+'/'+cycle).then(handleSuccess, handleError);
 		}
 
 		function GetEvaluatorsEvals(filters)
@@ -93,8 +93,8 @@
 			return $http.get(api + '/evaluationperiods/').then(handleSuccess, handleError);
 		}
 		
-		function GetFamilies(userid){
-			return $http.get(api + '/getfamilies/'+userid).then(handleSuccess, handleError);
+		function GetFamilies(userid,cycle){
+			return $http.get(api + '/getfamilies/'+userid+'/'+cycle).then(handleSuccess, handleError);
 		}
 
 		// Handle a succesful response [ Status code: 200 ]

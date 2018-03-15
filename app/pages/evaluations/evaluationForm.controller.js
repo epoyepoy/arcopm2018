@@ -66,11 +66,11 @@
             $scope.getReportingLine($scope.evaluation);
             $scope.getQuestions($scope.evaluation,$scope.state);
 			$scope.getSections($scope.evaluation,$scope.state);
+            $scope.getEmployeeHistory($scope.evaluation);
 			$scope.getScores($scope.evaluation,$scope.state);
             $scope.getDottedScores($scope.evaluation);
 			$scope.getScoreScales($scope.evaluation,$scope.state);
             $scope.getActiveGoalCycles();
-            $scope.getEmployeeHistory($scope.evaluation);
 			if($scope.list != 'mylist') $scope.getDottedAnswers($scope.evaluation);
 			($scope.empid == $scope.userid) ? $scope.myevaluation = true : $scope.myevaluation = false;
 		};

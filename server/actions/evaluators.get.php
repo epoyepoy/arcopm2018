@@ -6,10 +6,11 @@
 	# Database Connection
 	require 'core/Database.php';
 	
-	# Get Questions
+	# Get params
     $userid = $args["userid"];
+    $cycle = $args["cycle"];
 
-	$result = $statisticsDao->GetEvaluators($userid);
+	$result = $statisticsDao->GetEvaluators($userid,$cycle);
 	
 	$json = json_encode($result);
     $response->write($json);

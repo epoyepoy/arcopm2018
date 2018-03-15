@@ -359,7 +359,7 @@ $app->post('/evaluations/revise/{empid}', function ($request, $response, $args) 
 });
 
 //Get evaluators
-$app->get('/evaluators/{userid}', function ($request, $response, $args) {
+$app->get('/evaluators/{userid}/{cycle}', function ($request, $response, $args) {
     require 'actions/evaluators.get.php';
 });
 
@@ -480,7 +480,7 @@ $app->get('/evaluationperiods/', function ($request, $response, $args) {
 });
 
 //Get Job Families for statistics
-$app->get('/getfamilies/{userid}', function ($request, $response, $args) {
+$app->get('/getfamilies/{userid}/{cycle}', function ($request, $response, $args) {
     require 'actions/getfamilies.get.php';
 });
 

@@ -34,6 +34,8 @@
 		$scope.statistics = {};
 		$scope.show = true;
 		$scope.userID = loginData.user.id;
+        $scope.disableEvaluatorsFilter = true;
+        $scope.disableFamiliesFilter = true;
 
 
 		/* ------------- CHARTS ------------- */
@@ -335,10 +337,8 @@
 
 
             $scope.initNavigation();
-			$scope.getEvaluators();
 			$scope.resetFilters();
 			$scope.getEvaluationPeriods();
-			$scope.getFamilies();
         };
 
 
@@ -444,6 +444,8 @@
 			if(cycle){
 				$scope.filters.cycleid = cycle.CycleID;
 				$scope.selected_cycleid = (cycle.CycleDescription).trim();
+                $scope.getEvaluators(cycle.CycleID);
+                $scope.getFamilies(cycle.CycleID);
 			}
 		};
 		
@@ -455,13 +457,16 @@
 		};
 
 
-		$scope.getEvaluators = function(){
+		$scope.getEvaluators = function(cycle){
 			if (!$scope.checkLogin()) {
                 return;
             }
-			StatisticsFactory.GetEvaluators(loginData.user.id).then(function (result) {
+            $scope.evaluatorsLoader = true;
+			StatisticsFactory.GetEvaluators(loginData.user.id,cycle).then(function (result) {
 				$scope.checkifLoggedout(result);
 				$scope.evaluators = result.evaluators;
+                $scope.disableEvaluatorsFilter = false;
+                $scope.evaluatorsLoader = false;
             });
 		};
 
@@ -813,14 +818,16 @@
             });
 		};
 		
-		$scope.getFamilies = function(){
+		$scope.getFamilies = function(cycle){
 			if (!$scope.checkLogin()) {
                 return;
             }
-			StatisticsFactory.GetFamilies(loginData.user.id).then(function (result) {
+            $scope.familiesLoader = true;
+			StatisticsFactory.GetFamilies(loginData.user.id,cycle).then(function (result) {
 				$scope.checkifLoggedout(result);
 				$scope.families = result.familyList;
-				
+				$scope.disableFamiliesFilter = false;
+                $scope.familiesLoader = false;
 				if(($scope.families).length == 1){
 					$scope.setFamily($scope.families[0]);
 				}

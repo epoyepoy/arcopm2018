@@ -7,9 +7,10 @@
 	require 'core/Database.php';
 	
 	$userid = $args["userid"];
+    $cycle = $args["cycle"];
 
-	# Get Questions
-	$result = $statisticsDao->GetFamilies($userid);
+
+	$result = $statisticsDao->GetFamilies($userid,$cycle);
 	
 	$json = json_encode($result);
     $response->write($json);

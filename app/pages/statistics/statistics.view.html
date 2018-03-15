@@ -117,7 +117,10 @@
 					</div>
 					<div class="input-group col-lg-4" ng-show="companyStatistics">
 						<div class="input-group-btn">
-							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="btn-label">Job Family</span><span class="caret"></span></button>
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" ng-disabled="disableFamiliesFilter"
+                                    tooltip-placement="top" tooltip-trigger="'mouseenter'" ng-attr-uib-tooltip="{{disableFamiliesFilter ? 'Filter will become available only after you choose the Evaluation Period.' : ''}}">
+                                <i class="fa fa-spinner fa-spin" ng-show="familiesLoader" style="margin-right: 10px;"></i><span class="btn-label">Job Family</span><span class="caret"></span>
+                            </button>
 							<ul class="dropdown-menu projects">
 								<li ng-show="families.length > 1" ng-click="filters.family = 'Select All'; selected_family = 'Select All'"><a href="">Select All</a></li>
 								<li ng-repeat="family in families" ng-click="setFamily(family)"><a href="">{{family.family_code}} - {{family.family_desc}}</a></li>
@@ -175,7 +178,10 @@
 					</div>
 					<div class="input-group col-lg-4" ng-hide="statscompany || myStatistics || dottedStatistics">
 						<div class="input-group-btn">
-							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" ng-disabled="myStatistics"><span class="btn-label">Evaluator</span><span class="caret"></span></button>
+							<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" ng-disabled="disableEvaluatorsFilter"
+                                    tooltip-placement="top" tooltip-trigger="'mouseenter'" ng-attr-uib-tooltip="{{disableEvaluatorsFilter ? 'Filter will become available only after you choose the Evaluation Period.' : ''}}">
+                                <i class="fa fa-spinner fa-spin" ng-show="evaluatorsLoader" style="margin-right: 10px;"></i><span class="btn-label">Evaluator</span><span class="caret"></span>
+                            </button>
 							<ul class="dropdown-menu">
 								<li ng-click="selected_evaluator = 'Select All'; filters.evaluator = ''"><a href="">Select All</a></li>
 								<li ng-repeat="evaluator in evaluators" ng-click="setEvaluator(evaluator)"><a href="">{{evaluator.empNo}} , {{evaluator.empName}}</a></li>

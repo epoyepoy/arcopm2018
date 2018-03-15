@@ -1726,7 +1726,7 @@ public function GetEvaluators($reviewer, $cycleid) //Angelos update script
 	DECLARE @empno as varchar(5) = :reviewer;
 	Declare @cycleid as int=:cycleid;
 	--SELECT @cycleid = ID FROM EvaluationsCycle WHERE status=1 and questionaireInputStatus=1;
-	SELECT emp.empno as 'empNo', rtrim(ltrim(emp.family_name))+' - '+rtrim(ltrim(emp.first_name)) as 'empName', Evals.count AS AssignedAsEvaluator
+	SELECT emp.empno as 'empNo', rtrim(ltrim(emp.family_name))+' '+rtrim(ltrim(emp.first_name)) as 'empName', Evals.count AS AssignedAsEvaluator
 	FROM dbo.ReportingLine RL
 	INNER JOIN dbo.vw_arco_employee emp ON emp.empno = RL.empnosource
 	OUTER APPLY(

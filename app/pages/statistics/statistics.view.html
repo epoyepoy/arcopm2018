@@ -184,7 +184,7 @@
                             </button>
 							<ul class="dropdown-menu">
 								<li ng-click="selected_evaluator = 'Select All'; filters.evaluator = ''"><a href="">Select All</a></li>
-								<li ng-repeat="evaluator in evaluators" ng-click="setEvaluator(evaluator)"><a href="">{{evaluator.empNo}} , {{evaluator.empName}}</a></li>
+								<li ng-repeat="evaluator in evaluators" ng-click="setEvaluator(evaluator)"><a href="">{{evaluator.empNo}} - {{evaluator.empName}}</a></li>
 							</ul>
 						</div>
 						<input type="text" class="form-control form-label" aria-label="" ng-readonly='true' ng-model="selected_evaluator">

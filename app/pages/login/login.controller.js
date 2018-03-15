@@ -10,6 +10,7 @@
 
     function loginController($scope,Auth,loginData,$state)
     {
+        $scope.finetuning =false;
         $scope.login = loginData.login;
         $scope.username = "";
         $scope.password = "";

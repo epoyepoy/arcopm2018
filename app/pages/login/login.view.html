@@ -10,9 +10,9 @@
 	
 	
     
-	<div id="login" ng-show="!isLoading()">
+	<div id="login" ng-show="!isLoading()" ng-if="finetuning==false">
     
-        <form ng-submit="signIn()">
+        <form ng-submit="signIn()" >
             
             <!-- fake fields are a workaround for chrome autofill getting the wrong fields -->
             <input style="display:none" type="text" name="fakeusernameremembered"/>
@@ -38,5 +38,9 @@
         
     
     </div> <!-- end of login -->
-
+    <div style="color:white;text-align:center;" ng-if="finetuning==true"><!-- finetuning -->
+        <br/> <br/> <br/> <br/> <br/> <br/>
+        We are currently fine-tuning ARCOPM for the next evaluation cycles with the 2018 reportig lines. Please bare with us for a while. We are expecting to be up and running not later than 19-Mar-2018.
+        <img src="assets/images/fineturning.jpg">
+    </div><!-- END finetuning -->
 </div><!-- end of login wrapper -->
